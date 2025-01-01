@@ -11,6 +11,7 @@ import { QuizSubmission } from '../models/QuizSubmission.js';
 import { MarksSummary } from '../models/MarksSummary.js';
 import { Branch } from '../models/branch.js';
 import { Question } from '../models/question.js';
+import EnrolledCourse from '../models/enrolledCourses.js';
 
 AdminJS.registerAdapter(AdminJSMongoose);
 
@@ -23,6 +24,7 @@ const adminJs = new AdminJS({
         { resource: QuizSubmission },
         { resource: MarksSummary },
         { resource: Branch },
+        {resource: EnrolledCourse},
         { resource: Question },
        
     ],

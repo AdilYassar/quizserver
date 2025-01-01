@@ -1,8 +1,8 @@
-// filepath: /D:/projects/quizServer/src/models/EnrolledCourse.js
+
 import mongoose from 'mongoose';
 
 const enrolledCourseSchema = new mongoose.Schema({
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
     course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
     enrolledAt: { type: Date, default: Date.now },
     completedAt: { type: Date },
@@ -15,5 +15,5 @@ const enrolledCourseSchema = new mongoose.Schema({
     
 });
 
- const EnrolledCourse = mongoose.model('EnrolledCourse', enrolledCourseSchema);
- export  default EnrolledCourse;
+const EnrolledCourse = mongoose.model('EnrolledCourse', enrolledCourseSchema);
+export default EnrolledCourse;

@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 
 const quizSubmissionSchema = new mongoose.Schema({
     quiz: { type: mongoose.Schema.Types.ObjectId, ref: 'Quiz', required: true },
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     answers: [{ question: String, answer: String }],
     score: { type: Number, default: 0 },
     startedAt: { type: Date, default: Date.now },
