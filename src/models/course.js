@@ -11,7 +11,7 @@ const courseSchema = new mongoose.Schema({
         description: { type: String, required: true
         }
     }],
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    
 });
 
 export const Course = mongoose.model('Course', courseSchema);

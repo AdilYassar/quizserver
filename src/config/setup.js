@@ -23,7 +23,8 @@ const adminJs = new AdminJS({
         { resource: QuizSubmission },
         { resource: MarksSummary },
         { resource: Branch },
-        { resource: Question }
+        { resource: Question },
+       
     ],
     branding:{
         companyName: "easykit",
