@@ -2,7 +2,6 @@ import { authRoutes } from "./auth.js";
 import {courseRoutes} from './courseRoutes.js';
 import { enrolledCourseRoutes } from "./enrolledCoursesRoutes.js";
 import { marksSummaryRoutes } from "./marksSummaryRoutes.js";
-
 import { quizRoutes } from "./quizRoutes.js";
 import { quizSubmissionroutes } from "./submissionRoutes.js";
 
