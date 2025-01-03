@@ -34,5 +34,5 @@ const adminSchema = new mongoose.Schema({
 });
 export const Student = mongoose.model('Student', studentSchema);
 export const Admin = mongoose.model('Admin', adminSchema);
-
-export default { Student, Admin };
+export const User = mongoose.model('User', userschema);
+export default { Student, Admin, User };

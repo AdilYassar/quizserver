@@ -12,6 +12,7 @@ import { MarksSummary } from '../models/MarksSummary.js';
 import { Branch } from '../models/branch.js';
 import { Question } from '../models/question.js';
 import EnrolledCourse from '../models/enrolledCourses.js';
+import Category from '../models/category.js';
 
 AdminJS.registerAdapter(AdminJSMongoose);
 
@@ -26,10 +27,10 @@ const adminJs = new AdminJS({
         { resource: Branch },
         {resource: EnrolledCourse},
         { resource: Question },
-       
+       {resource: Category}
     ],
     branding:{
-        companyName: "easykit",
+        companyName: "QuizServer",
         withMadeWithLove:false,
         favicon:"https://i.pinimg.com/736x/54/89/10/5489102e76d782aa93ee0768906c1960.jpg",
         
