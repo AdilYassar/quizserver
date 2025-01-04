@@ -31,16 +31,7 @@ const start = async () => {
         await app.listen({ port: PORT, host: '0.0.0.0' });
         console.log(`Server started on http://localhost:${PORT}`);
 
-        app.ready().then(() => {
-            app.io.on("connection", (socket) => {
-                console.log("A user connected");
-
-                socket.on("joinRoom", (orderId) => {
-                    socket.join(orderId);
-                    console.log(`User joined room: ${orderId}`);
-                });
-            });
-        });
+        
     } catch (err) {
         console.error("Error starting the server:", err);
         process.exit(1);
