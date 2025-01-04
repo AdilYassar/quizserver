@@ -11,6 +11,7 @@ import { QuizSubmission } from '../models/QuizSubmission.js';
 import { MarksSummary } from '../models/MarksSummary.js';
 import { Branch } from '../models/branch.js';
 import { Question } from '../models/question.js';
+import { Book } from '../models/books.js';
 import EnrolledCourse from '../models/enrolledCourses.js';
 import Category from '../models/category.js';
 
@@ -27,7 +28,8 @@ const adminJs = new AdminJS({
         { resource: Branch },
         {resource: EnrolledCourse},
         { resource: Question },
-       {resource: Category}
+       {resource: Category},
+       {resource: Book}
     ],
     branding:{
         companyName: "QuizServer",
