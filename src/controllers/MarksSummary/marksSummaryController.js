@@ -6,18 +6,18 @@ export const markSummaryByQuizId = async (req, reply) => {
     const { quizId } = req.params;
 
     try {
-        // Validate quizId
+       
         if (!quizId) {
             return reply.status(400).send({ message: "Quiz ID is required" });
         }
 
-        // Check if the quiz exists
+       
         const quiz = await Quiz.findById(quizId);
         if (!quiz) {
             return reply.status(404).send({ message: `No quiz found with ID: ${quizId}` });
         }
 
-        // Fetch all marks summaries for the quiz
+        
         const marksSummaries = await MarksSummary.find({ quiz: quizId });
 
         if (marksSummaries.length === 0) {
@@ -33,10 +33,10 @@ export const markSummaryByQuizId = async (req, reply) => {
         // Fetch student details for each attempt
         const attempts = await Promise.all(marksSummaries.map(async (summary) => {
             const student = await Student.findById(summary.user); // Correctly reference 'user' field
-            console.log('Student:', student); // Debugging line to check student details
+            console.log('Student:', student); 
             return {
-                studentId: summary.user, // Correctly reference 'user' field
-                studentName: student ? student.name : "Unknown Student", // Access student name, assuming it's 'name'
+                studentId: summary.user, 
+                studentName: student ? student.name : "Unknown Student", 
                 obtainedMarks: summary.obtainedMarks,
             };
         }));

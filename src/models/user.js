@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 //import Branch from './branch.js'; 
 
-// Base user schema for reuse in admin, customer, delivery partner
 const userschema = new mongoose.Schema({
     name: { type: String },
     role: {

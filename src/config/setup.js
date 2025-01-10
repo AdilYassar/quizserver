@@ -14,6 +14,8 @@ import { Question } from '../models/question.js';
 import { Book } from '../models/books.js';
 import EnrolledCourse from '../models/enrolledCourses.js';
 import Category from '../models/category.js';
+import Theory from '../models/theory.js';
+import Chapter from '../models/theory.js';
 
 AdminJS.registerAdapter(AdminJSMongoose);
 
@@ -29,7 +31,9 @@ const adminJs = new AdminJS({
         {resource: EnrolledCourse},
         { resource: Question },
        {resource: Category},
-       {resource: Book}
+       {resource: Book},
+       {resource:Theory},
+      
     ],
     branding:{
         companyName: "QuizServer",
