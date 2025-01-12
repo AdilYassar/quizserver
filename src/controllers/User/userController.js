@@ -111,11 +111,11 @@ export const refreshToken = async (req, reply) => {
 
 export const fetchUser = async (req, reply) => {
   try {
-    const { userId, role } = req.user; // assuming `req.user` has been populated with JWT data
+    const { userId, role } = req.user;
 
     let user;
     if (role === "Student") {
-      user = await Student.findById(userId);
+      user = await Student.findById(userId).select('-password');
     } else if (role === "Admin") {
       user = await Admin.findById(userId);
     } else {
@@ -126,11 +126,35 @@ export const fetchUser = async (req, reply) => {
       return reply.status(404).send({ message: "User not found" });
     }
 
+    console.log("Fetched User:", user); // Debugging: Check fetched user object
+
     return reply.send({
       message: "User fetched successfully",
       user,
     });
   } catch (error) {
+    console.error("Error fetching user:", error);
+    return reply.status(500).send({ message: "An error occurred", error });
+  }
+};
+
+export const fetchStudent = async (req, reply) => {
+  try {
+    const { userId } = req.user; // Extract userId from the request
+
+    // Fetch the student by their ID, excluding the password
+    const student = await Student.findById(userId).select('-password');
+
+    if (!student) {
+      return reply.status(404).send({ message: "Student not found" });
+    }
+
+    return reply.send({
+      message: "Student fetched successfully",
+      student, // Return the complete student object
+    });
+  } catch (error) {
+    console.error("Error fetching student:", error);
     return reply.status(500).send({ message: "An error occurred", error });
   }
 };

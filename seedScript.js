@@ -1,147 +1,76 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import Theory from "./src/models/theory.js";
-import Chapter from "./src/models/theory.js"; // Ensure this path is correct
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url"; // Import fileURLToPath to get __dirname equivalent
+import { Book } from "./src/models/books.js"; // Adjust the path to your Book model
 
 dotenv.config(); // Load environment variables
 
-const MONGO_URI = process.env.MONGO_URI; // Get the MongoDB URI from environment variables
+const MONGO_URI = process.env.MONGO_URI; // MongoDB URI from environment variables
 
-const seedTheory = async () => {
-  const theoryData = {
-    courseTitle: "Augmented Reality",
-    description: `
-      This course provides a comprehensive introduction to Augmented Reality (AR), covering its history, technologies, development tools, and applications. 
-      Students will learn how AR works, explore popular AR platforms, and understand the ethical considerations and future trends in AR.
-    `,
-    course: new mongoose.Types.ObjectId(), // Replace with an actual Course ID
-    chapters: [
-      {
-        title: "Introduction to Augmented Reality",
-        description: `
-          This chapter introduces the basics of Augmented Reality, including its history, key concepts, and applications. 
-          Topics include:
-          - What is Augmented Reality?
-          - History and Evolution of AR
-          - Differences between AR, VR, and MR
-          - Applications of AR in various industries
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-          Examples:
-          - AR in gaming: Pokémon GO
-          - AR in retail: Virtual try-ons for clothing and accessories
-
-          Key Points:
-          - AR overlays digital content onto the real world.
-          - AR enhances user experiences by blending virtual and real environments.
-        `,
-        course: new mongoose.Types.ObjectId(), // Replace with an actual Course ID
-      },
-      {
-        title: "AR Development Tools and Platforms",
-        description: `
-          This chapter covers the tools and platforms used for developing AR applications. 
-          Topics include:
-          - Popular AR SDKs: ARKit, ARCore, Vuforia
-          - 3D Modeling Tools: Blender, Unity, Unreal Engine
-          - AR Development Workflow
-
-          Examples:
-          - Building an AR app using ARKit
-          - Creating 3D models for AR using Blender
-
-          Key Points:
-          - ARKit and ARCore are the most widely used AR development platforms.
-          - Unity and Unreal Engine are popular for creating AR experiences.
-        `,
-        course: new mongoose.Types.ObjectId(), // Replace with an actual Course ID
-      },
-      {
-        title: "AR Tracking and Interaction",
-        description: `
-          This chapter explores the technologies used for tracking and interaction in AR. 
-          Topics include:
-          - Marker-based vs Markerless AR
-          - SLAM (Simultaneous Localization and Mapping)
-          - Gesture Recognition and Interaction
-
-          Examples:
-          - Marker-based AR: Scanning QR codes to display AR content
-          - Markerless AR: Using SLAM for object placement in real-world environments
-
-          Key Points:
-          - Marker-based AR relies on predefined markers to trigger AR content.
-          - SLAM enables AR devices to understand and map the environment in real-time.
-        `,
-        course: new mongoose.Types.ObjectId(), // Replace with an actual Course ID
-      },
-      {
-        title: "AR in Education and Training",
-        description: `
-          This chapter discusses the use of AR in education and training. 
-          Topics include:
-          - AR for Interactive Learning
-          - AR in Medical Training
-          - AR for Skill Development
-
-          Examples:
-          - AR anatomy apps for medical students
-          - AR simulations for training pilots and engineers
-
-          Key Points:
-          - AR makes learning more interactive and engaging.
-          - AR simulations provide safe and cost-effective training environments.
-        `,
-        course: new mongoose.Types.ObjectId(), // Replace with an actual Course ID
-      },
-      {
-        title: "Ethics and Future of AR",
-        description: `
-          This chapter explores the ethical considerations and future trends in AR. 
-          Topics include:
-          - Privacy Concerns in AR
-          - Ethical Use of AR in Advertising
-          - Future Trends: AR Glasses and Wearables
-
-          Examples:
-          - Privacy issues with AR data collection
-          - Ethical dilemmas in AR advertising
-
-          Key Points:
-          - AR raises concerns about user privacy and data security.
-          - The future of AR lies in wearable devices like AR glasses.
-        `,
-        course: new mongoose.Types.ObjectId(), // Replace with an actual Course ID
-      },
-    ],
-  };
+const seedBooks = async () => {
+  const booksData = [
+    {
+      title: "1984",
+      author: "AI_Russell_Norvig",
+      publishedDate: new Date("1949-06-08"),
+      pages: 1128,
+      genre: "CyberSecuity",
+      language: "English",
+      pdfPath: path.resolve(__dirname, "../Introduction to Cyber Security.pdf"), // Use absolute path
+    },
+    {
+      title: "Data Science for Business",
+      author: "Harper Lee",
+      publishedDate: new Date("1960-07-11"),
+      pages: 281,
+      genre: "Fiction",
+      language: "English",
+      pdfPath: path.resolve(__dirname, "../DSML.pdf"), // Use absolute path
+    },
+  ];
 
   try {
-    // Insert or update the theory data in the database
-    await Theory.findOneAndUpdate(
-      { courseTitle: theoryData.courseTitle }, // Check by course title to avoid duplicates
-      {
-        courseTitle: theoryData.courseTitle,
-        description: theoryData.description,
-        course: theoryData.course,
-        chapters: theoryData.chapters,
-      },
-      { upsert: true, new: true } // Create if not exists; update if exists
-    );
+    for (const book of booksData) {
+      // Check if the file exists before reading
+      if (!fs.existsSync(book.pdfPath)) {
+        console.error(`PDF file not found: ${book.pdfPath}`);
+        continue; // Skip this book if the file is missing
+      }
 
-    console.log("Seed data for Augmented Reality theory inserted successfully");
+      // Read the PDF file as binary data
+      const pdfBuffer = fs.readFileSync(book.pdfPath);
+
+      // Insert or update the book document
+      await Book.findOneAndUpdate(
+        { title: book.title }, // Use title as the unique identifier
+        { ...book, pdf: pdfBuffer }, // Add the binary PDF data
+        { upsert: true, new: true } // Insert if not exists; update if exists
+      );
+    }
+
+    console.log("Seed data for books inserted/updated successfully");
   } catch (error) {
-    console.error("Error seeding Augmented Reality theory:", error);
+    console.error("Error seeding books:", error);
   }
 };
 
 const seedData = async () => {
   try {
     // Connect to the database
-    await mongoose.connect(MONGO_URI);
+    await mongoose.connect(MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
     console.log("Connected to MongoDB");
 
-    // Seed theory data
-    await seedTheory();
+    // Seed book data
+    await seedBooks();
   } catch (error) {
     console.error("Error seeding database:", error);
   } finally {

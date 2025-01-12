@@ -13,10 +13,10 @@ const userschema = new mongoose.Schema({
 
 const studentSchema = new mongoose.Schema({
     ...userschema.obj,
-    name: { type: String, required: true },
-    age: { type: Number, required: true },
-    email: { type: String, required: true },
-    password: { type: String, required: true },
+    name: { type: String },
+    age: { type: Number },
+    email: { type: String },
+    password: { type: String },
     role: { type: String, enum: ['Student'], default: 'Student' },
     isActivated: { type: Boolean, default: false },
     photo: { type: String, required: false },
@@ -29,7 +29,8 @@ const studentSchema = new mongoose.Schema({
 const adminSchema = new mongoose.Schema({
     ...userschema.obj,
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    password: { type: String, },
+    phone:{type:String},
     role: { type: String, enum: ['Admin'], default: 'Admin' }
 });
 export const Student = mongoose.model('Student', studentSchema);
