@@ -1,6 +1,6 @@
 import { authRoutes } from "./auth.js";
 import { bookRoutes } from "./bookRoutes.js";
-import { quizCategories } from "./categoryRoutes.js";
+import { Branches, quizCategories } from "./categoryRoutes.js";
 import {courseRoutes} from './courseRoutes.js';
 import { enrolledCourseRoutes } from "./enrolledCoursesRoutes.js";
 import { marksSummaryRoutes } from "./marksSummaryRoutes.js";
@@ -19,7 +19,8 @@ export const registerRoutes = async (fastify) => {
     fastify.register(marksSummaryRoutes, { prefix: prefix });
     fastify.register(quizCategories, { prefix: prefix });
     fastify.register(bookRoutes, { prefix: prefix });
-    fastify.register(theoryRoutes, { prefix: prefix });
+    fastify.register(Branches, { prefix: prefix });
+    fastify.register(theoryRoutes);
     
 
     

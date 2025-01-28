@@ -71,3 +71,36 @@ export const getQuizById = async (req, reply) => {
         });
     }
 };
+
+
+
+export const getAllQuizzes = async (req, reply) => {
+    try {
+        // Fetch all quizzes
+        const quizzes = await Quiz.find()
+            .populate("category", "name description") // Populate 'category' with name and description
+            .exec();
+
+        // Check if quizzes exist
+        if (!quizzes || quizzes.length === 0) {
+            console.warn("No quizzes found");
+            return reply.status(404).send({
+                message: "No quizzes found",
+            });
+        }
+
+        console.log("All quizzes fetched successfully:", quizzes);
+
+        return reply.status(200).send({
+            message: "Quizzes fetched successfully",
+            quizzes,
+        });
+    } catch (error) {
+        console.error("Error fetching all quizzes:", error.message);
+
+        return reply.status(500).send({
+            message: "An error occurred while fetching quizzes",
+            error: error.message,
+        });
+    }
+};

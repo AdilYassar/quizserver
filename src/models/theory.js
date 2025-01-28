@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 // Define the Chapter schema
 const chapterSchema = new Schema({
   title: { type: String, required: true }, // Removed ref: "Course" as it's not necessary here
-  content: { type: String, required: true },
+content: { type: String, required: true },
 course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
   
 });
