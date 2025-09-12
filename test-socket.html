@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Call Socket Test</title>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Video Call Socket Test</h1>
+    <div id="status">Connecting...</div>
+    <div id="logs"></div>
+    
+    <br>
+    <button onclick="createSession()">Create Session</button>
+    <button onclick="joinTestSession()">Join Test Session</button>
+    <button onclick="testWebRTCSignaling()">Test WebRTC Signaling</button>
+    
+    <script>
+        const socket = io('http://localhost:3000');
+        const logs = document.getElementById('logs');
+        const status = document.getElementById('status');
+        
+        let testSessionId = null;
+        let testUserId = 'user_' + Math.random().toString(36).substring(2, 9);
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logs.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            console.log(message);
+        }
+        
+        socket.on('connect', () => {
+            status.textContent = 'Connected to server';
+            status.style.color = 'green';
+            log('Socket connected with ID: ' + socket.id);
+        });
+        
+        socket.on('disconnect', () => {
+            status.textContent = 'Disconnected from server';
+            status.style.color = 'red';
+            log('Socket disconnected');
+        });
+        
+        socket.on('error', (data) => {
+            log('Error: ' + data.message);
+        });
+        
+        socket.on('session-info', (data) => {
+            log('Session info received: ' + JSON.stringify(data));
+        });
+        
+        socket.on('new-participant', (data) => {
+            log('New participant joined: ' + JSON.stringify(data));
+        });
+        
+        socket.on('participant-left', (data) => {
+            log('Participant left: ' + JSON.stringify(data));
+        });
+        
+        socket.on('receive-offer', (data) => {
+            log('Received WebRTC offer from: ' + data.fromUserId);
+        });
+        
+        socket.on('receive-answer', (data) => {
+            log('Received WebRTC answer from: ' + data.fromUserId);
+        });
+        
+        socket.on('receive-ice-candidate', (data) => {
+            log('Received ICE candidate from: ' + data.fromUserId);
+        });
+        
+        async function createSession() {
+            try {
+                const response = await fetch('http://localhost:3000/api/create-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                testSessionId = data.sessionId;
+                log('Session created: ' + testSessionId);
+            } catch (error) {
+                log('Error creating session: ' + error.message);
+            }
+        }
+        
+        function joinTestSession() {
+            if (!testSessionId) {
+                log('Please create a session first');
+                return;
+            }
+            
+            socket.emit('join-session', {
+                sessionId: testSessionId,
+                userId: testUserId,
+                name: 'Test User',
+                photo: 'https://via.placeholder.com/50',
+                micOn: true,
+                videoOn: true
+            });
+            
+            log('Attempting to join session: ' + testSessionId);
+        }
+        
+        function testWebRTCSignaling() {
+            if (!testSessionId) {
+                log('Please create and join a session first');
+                return;
+            }
+            
+            // Simulate WebRTC offer
+            const mockOffer = {
+                type: 'offer',
+                sdp: 'mock-sdp-offer-data'
+            };
+            
+            socket.emit('send-offer', {
+                sessionId: testSessionId,
+                offer: mockOffer,
+                toUserId: 'mock-target-user'
+            });
+            
+            log('Sent mock WebRTC offer');
+            
+            // Simulate WebRTC answer
+            setTimeout(() => {
+                const mockAnswer = {
+                    type: 'answer',
+                    sdp: 'mock-sdp-answer-data'
+                };
+                
+                socket.emit('send-answer', {
+                    sessionId: testSessionId,
+                    answer: mockAnswer,
+                    toUserId: 'mock-target-user'
+                });
+                
+                log('Sent mock WebRTC answer');
+            }, 1000);
+            
+            // Simulate ICE candidate
+            setTimeout(() => {
+                const mockCandidate = {
+                    candidate: 'mock-ice-candidate',
+                    sdpMLineIndex: 0,
+                    sdpMid: 'audio'
+                };
+                
+                socket.emit('send-ice-candidate', {
+                    sessionId: testSessionId,
+                    candidate: mockCandidate,
+                    toUserId: 'mock-target-user'
+                });
+                
+                log('Sent mock ICE candidate');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

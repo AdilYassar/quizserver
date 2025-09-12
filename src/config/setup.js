@@ -16,6 +16,7 @@ import EnrolledCourse from '../models/enrolledCourses.js';
 import Category from '../models/category.js';
 import Theory from '../models/theory.js';
 import Chapter from '../models/theory.js';
+import Session from '../models/session.js';
 
 AdminJS.registerAdapter(AdminJSMongoose);
 
@@ -33,6 +34,7 @@ const adminJs = new AdminJS({
        {resource: Category},
        {resource: Book},
        {resource:Theory},
+       { resource: Session, options: { listProperties: ['sessionId', 'createdAt'], filterProperties: ['sessionId'] } },
       
     ],
     branding:{

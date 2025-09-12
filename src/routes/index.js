@@ -7,6 +7,7 @@ import { marksSummaryRoutes } from "./marksSummaryRoutes.js";
 import { quizRoutes } from "./quizRoutes.js";
 import { quizSubmissionroutes } from "./submissionRoutes.js";
 import theoryRoutes from "./theoryRoutes.js";
+import { videoCallRoutes } from "./videoCallRoutes.js";
 
 const prefix = "/api";
 
@@ -21,7 +22,7 @@ export const registerRoutes = async (fastify) => {
     fastify.register(bookRoutes, { prefix: prefix });
     fastify.register(Branches, { prefix: prefix });
     fastify.register(theoryRoutes);
-    
+    fastify.register(videoCallRoutes, { prefix: prefix });
 
     
 };
