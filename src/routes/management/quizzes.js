@@ -1,6 +1,6 @@
 import { Quiz } from '../../models/quiz.js';
 
-export const quizzesRoutes = async (app) => {
+export default async function registerQuizRoutes(app) {
     // Get all quizzes
     app.get('/api/management/quizzes', async (request, reply) => {
         try {

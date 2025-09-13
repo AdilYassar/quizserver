@@ -2,10 +2,14 @@ import { Course } from "../../models/course.js";
 
 export const getAllCourses = async (req, reply) => {
     try {
-        const courses = await Course.find();
+        const courses = await Course.find()
+            .select('title description estimatedTime materialsNeeded steps createdAt')
+            .sort({ createdAt: -1 })
+            .lean();
+        
         return reply.status(200).send({
             message: "Courses fetched successfully",
-            courses
+            data: courses
         });
     } catch (error) {
         return reply.status(500).send({

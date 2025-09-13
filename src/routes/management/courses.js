@@ -1,6 +1,6 @@
 import { Course } from '../../models/course.js';
 
-export const coursesRoutes = async (app) => {
+export default async function registerCourseRoutes(app) {
     // Get all courses
     app.get('/api/management/courses', async (request, reply) => {
         try {

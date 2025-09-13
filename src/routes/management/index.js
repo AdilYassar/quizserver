@@ -1,11 +1,29 @@
-import { studentsRoutes } from './students.js';
-import { coursesRoutes } from './courses.js';
-import { quizzesRoutes } from './quizzes.js';
-import { questionsRoutes } from './questions.js';
+import registerStudentRoutes from './students.js';
+import registerCourseRoutes from './courses.js';
+import registerQuizRoutes from './quizzes.js';
+import registerQuestionRoutes from './questions.js';
+import registerSessionRoutes from './sessions.js';
+import registerBookRoutes from './books.js';
+import registerCategoryRoutes from './categories.js';
+import registerBranchRoutes from './branches.js';
+import registerEnrolledCourseRoutes from './enrolledCourses.js';
+import registerMarksSummaryRoutes from './marksSummary.js';
+import registerQuizSubmissionRoutes from './quizSubmissions.js';
+import registerTheoryRoutes from './theory.js';
+import registerUserProgressRoutes from './userProgress.js';
 
 export const registerManagementRoutes = async (app) => {
-    await studentsRoutes(app);
-    await coursesRoutes(app);
-    await quizzesRoutes(app);
-    await questionsRoutes(app);
+    await registerStudentRoutes(app);
+    await registerCourseRoutes(app);
+    await registerQuizRoutes(app);
+    await registerQuestionRoutes(app);
+    await registerSessionRoutes(app);
+    await registerBookRoutes(app);
+    await registerCategoryRoutes(app);
+    await registerBranchRoutes(app);
+    await registerEnrolledCourseRoutes(app);
+    await registerMarksSummaryRoutes(app);
+    await registerQuizSubmissionRoutes(app);
+    await registerTheoryRoutes(app);
+    await registerUserProgressRoutes(app);
 };

@@ -228,6 +228,36 @@
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
         }
 
+
+        /* Logout button in sidebar */
+        .logout-nav-item {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            padding: 12px 20px;
+            margin: 8px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            text-align: left;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .logout-nav-item:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .logout-nav-item .nav-icon {
+            width: 20px;
+            height: 20px;
+        }
+
         .content {
             padding: 32px;
             max-width: 1800px;
@@ -1000,6 +1030,12 @@
                     </svg>
                     Submissions
                 </a>
+                <button class="nav-item logout-nav-item" onclick="logout()">
+                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
+                    </svg>
+                    Logout
+                </button>
             </nav>
         </div>
 
@@ -1082,7 +1118,7 @@
 
                     <a href="/admin" class="stat-card" style="text-decoration: none; color: inherit;">
                         <div class="stat-header">
-                            <div class="stat-title">Admins</div>
+                            <div class="stat-title">Admin Panel</div>
                             <div class="stat-icon" style="background: linear-gradient(135deg, #6b7280, #4b5563);">👨‍💼</div>
                         </div>
                         <div class="stat-value loading" id="adminsCount">Loading...</div>
@@ -1231,6 +1267,70 @@
                         </div>
                         <div class="nav-card-desc">Track and manage student marks and performance</div>
                     </a>
+
+                    <a href="/sessions" class="nav-card">
+                        <div class="nav-card-header">
+                            <div class="nav-card-icon">🎥</div>
+                            <div class="nav-card-title">Video Sessions</div>
+                        </div>
+                        <div class="nav-card-desc">Manage video call sessions and participants</div>
+                    </a>
+
+                    <a href="/books" class="nav-card">
+                        <div class="nav-card-header">
+                            <div class="nav-card-icon">📖</div>
+                            <div class="nav-card-title">Digital Books</div>
+                        </div>
+                        <div class="nav-card-desc">Manage digital books and resources</div>
+                    </a>
+
+                    <a href="/categories" class="nav-card">
+                        <div class="nav-card-header">
+                            <div class="nav-card-icon">🏷️</div>
+                            <div class="nav-card-title">Categories</div>
+                        </div>
+                        <div class="nav-card-desc">Organize content with categories and tags</div>
+                    </a>
+
+                    <a href="/branches" class="nav-card">
+                        <div class="nav-card-header">
+                            <div class="nav-card-icon">🏢</div>
+                            <div class="nav-card-title">Branches</div>
+                        </div>
+                        <div class="nav-card-desc">Manage branch locations and courses</div>
+                    </a>
+
+                    <a href="/enrolled-courses" class="nav-card">
+                        <div class="nav-card-header">
+                            <div class="nav-card-icon">📋</div>
+                            <div class="nav-card-title">Enrollments</div>
+                        </div>
+                        <div class="nav-card-desc">Track student course enrollments</div>
+                    </a>
+
+                    <a href="/quiz-submissions" class="nav-card">
+                        <div class="nav-card-header">
+                            <div class="nav-card-icon">📝</div>
+                            <div class="nav-card-title">Quiz Submissions</div>
+                        </div>
+                        <div class="nav-card-desc">Review and manage quiz submissions</div>
+                    </a>
+
+                    <a href="/theory" class="nav-card">
+                        <div class="nav-card-header">
+                            <div class="nav-card-icon">📚</div>
+                            <div class="nav-card-title">Theory Content</div>
+                        </div>
+                        <div class="nav-card-desc">Manage theoretical content and chapters</div>
+                    </a>
+
+                    <a href="/user-progress" class="nav-card">
+                        <div class="nav-card-header">
+                            <div class="nav-card-icon">📊</div>
+                            <div class="nav-card-title">User Progress</div>
+                        </div>
+                        <div class="nav-card-desc">Track student learning progress</div>
+                    </a>
                 </div>
             </div>
         </div>
@@ -1377,6 +1477,35 @@
                 closeSidebar();
             }
         });
+
+        // Logout function
+        async function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                try {
+                    const response = await fetch('/admin-logout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({}), // Send empty JSON object
+                        credentials: 'include' // Important for session cookies
+                    });
+                    
+                    if (response.ok) {
+                        // Clear any local storage
+                        localStorage.clear();
+                        // Redirect to login page
+                        window.location.href = '/';
+                    } else {
+                        const errorData = await response.json().catch(() => ({ message: 'Logout failed' }));
+                        alert('Logout failed: ' + errorData.message);
+                    }
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    alert('Logout failed. Please try again.');
+                }
+            }
+        }
 
         // Load data when page loads
         document.addEventListener('DOMContentLoaded', () => {

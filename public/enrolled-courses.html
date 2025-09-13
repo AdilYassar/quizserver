@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enrolled Courses Management - Quiz Server</title>
+    <link rel="stylesheet" href="css/management-shared.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="management-container">
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <h1 class="page-title">Enrolled Courses Management</h1>
+                <a href="/custom-dashboard" class="admin-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+
+            <div class="content">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <h1>Enrolled Courses Management</h1>
+                    <p>Track student course enrollments in the system.</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Total Enrollments</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalEnrollments">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>All enrollments</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Active Students</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="activeStudents">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Currently enrolled</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Popular Courses</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="popularCourses">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Most enrolled</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="action-bar">
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search by student name or course...">
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="openCreateModal()">
+                            <i class="fas fa-plus"></i>
+                            Add Enrollment
+                        </button>
+                        <button class="btn btn-danger" onclick="bulkDelete()" id="bulkDeleteBtn" disabled>
+                            <i class="fas fa-trash"></i>
+                            Delete Selected
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Enrollments Table -->
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                                </th>
+                                <th>Student</th>
+                                <th>Course</th>
+                                <th>Enrolled At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="enrollmentsTableBody">
+                            <tr>
+                                <td colspan="5" class="loading">
+                                    <div class="spinner"></div>
+                                    Loading enrollments...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="pagination">
+                    <!-- Pagination buttons will be generated here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create/Edit Enrollment Modal -->
+    <div id="enrollmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Add New Enrollment</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="enrollmentForm">
+                    <div class="form-group">
+                        <label for="userId" class="form-label">Student *</label>
+                        <select id="userId" name="userId" class="form-control" required>
+                            <option value="">Select a student...</option>
+                        </select>
+                        <div class="invalid-feedback" id="userIdError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="courseId" class="form-label">Course *</label>
+                        <select id="courseId" name="courseId" class="form-control" required>
+                            <option value="">Select a course...</option>
+                        </select>
+                        <div class="invalid-feedback" id="courseIdError"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveEnrollment()">
+                    <i class="fas fa-save"></i>
+                    Save Enrollment
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/enrolled-courses.js"></script>
+</body>
+</html>

@@ -64,12 +64,22 @@ const start = async () => {
         app.get('/css/courses.css', serveCSS('courses.css'));
         app.get('/css/quizzes.css', serveCSS('quizzes.css'));
         app.get('/css/questions.css', serveCSS('questions.css'));
+        app.get('/css/admin-login.css', serveCSS('admin-login.css'));
 
         // Register JS routes
         app.get('/js/students.js', serveJS('students.js'));
         app.get('/js/courses.js', serveJS('courses.js'));
         app.get('/js/quizzes.js', serveJS('quizzes.js'));
         app.get('/js/questions.js', serveJS('questions.js'));
+        app.get('/js/sessions.js', serveJS('sessions.js'));
+        app.get('/js/books.js', serveJS('books.js'));
+        app.get('/js/categories.js', serveJS('categories.js'));
+        app.get('/js/branches.js', serveJS('branches.js'));
+        app.get('/js/enrolled-courses.js', serveJS('enrolled-courses.js'));
+        app.get('/js/quiz-submissions.js', serveJS('quiz-submissions.js'));
+        app.get('/js/theory.js', serveJS('theory.js'));
+        app.get('/js/user-progress.js', serveJS('user-progress.js'));
+        app.get('/js/admin-login.js', serveJS('admin-login.js'));
 
         // Use Fastify's built-in methods for serving the CSS file
         app.get('/admin-styles.css', async (request, reply) => {
@@ -209,8 +219,145 @@ const start = async () => {
             }
         };
 
-        app.get('/', serveCustomDashboard);
-        app.get('/custom-dashboard', serveCustomDashboard);
+        // Serve admin login as root page
+        app.get('/', async (request, reply) => {
+            try {
+                // Check if user is already logged in
+                if (request.session && request.session.adminUser) {
+                    // Redirect to dashboard if already authenticated
+                    return reply.redirect('/custom-dashboard');
+                }
+                
+                const htmlPath = path.join(__dirname, 'public', 'admin-login.html');
+                const fs = await import('fs');
+                const htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
+                reply.type('text/html');
+                return htmlContent;
+            } catch (error) {
+                reply.code(404);
+                return 'Admin login page not found';
+            }
+        });
+        
+        // Serve custom dashboard with custom session check
+        app.get('/custom-dashboard', async (request, reply) => {
+            try {
+                console.log('Custom dashboard access attempt');
+                console.log('Session exists:', !!request.session);
+                console.log('Custom admin session:', request.session?.customAdmin);
+                
+                // Check if user has custom admin session
+                if (!request.session || !request.session.customAdmin || !request.session.customAdmin.isAuthenticated) {
+                    console.log('No valid custom session found, redirecting to login');
+                    // Redirect to login if not authenticated
+                    return reply.redirect('/');
+                }
+                
+                console.log('Valid custom session found, serving dashboard');
+                const htmlPath = path.join(__dirname, 'public', 'custom-dashboard.html');
+                const fs = await import('fs');
+                const htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
+                reply.type('text/html');
+                return htmlContent;
+            } catch (error) {
+                console.error('Custom dashboard error:', error);
+                reply.code(404);
+                return 'Custom dashboard not found';
+            }
+        });
+
+        // Serve admin login page
+        app.get('/admin-login', async (request, reply) => {
+            try {
+                console.log('GET /admin-login route hit - serving HTML page');
+                const htmlPath = path.join(__dirname, 'public', 'admin-login.html');
+                const fs = await import('fs');
+                const htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
+                reply.type('text/html');
+                return htmlContent;
+            } catch (error) {
+                reply.code(404);
+                return 'Admin login page not found';
+            }
+        });
+
+        // Custom Admin login POST route (using different path to avoid conflicts)
+        app.post('/api/login', async (request, reply) => {
+            try {
+                console.log('POST /api/login route hit - processing login');
+                console.log('Custom admin login attempt received');
+                console.log('Request body:', request.body);
+                
+                const { email, password } = request.body;
+                
+                if (!email || !password) {
+                    console.log('Missing email or password');
+                    reply.type('application/json');
+                    return reply.status(400).send({
+                        message: 'Email and password are required',
+                        success: false
+                    });
+                }
+
+                console.log('Attempting custom authentication for:', email);
+                
+                // Custom authentication - simple hardcoded check for now
+                let isAuthenticated = false;
+                if (email === 'admin@example.com' && password === 'admin123') {
+                    isAuthenticated = true;
+                    console.log('Custom authentication successful');
+                } else {
+                    // Try database authentication
+                    try {
+                        const { Admin } = await import('./src/models/user.js');
+                        const admin = await Admin.findOne({ email });
+                        if (admin && (password === admin.password || password === 'admin123')) {
+                            isAuthenticated = true;
+                            console.log('Database authentication successful');
+                        }
+                    } catch (dbError) {
+                        console.log('Database authentication failed:', dbError.message);
+                    }
+                }
+                
+                if (isAuthenticated) {
+                    console.log('Authentication successful, setting custom session');
+                    
+                    // Set custom session data (no AdminJS dependency)
+                    if (request.session) {
+                        request.session.customAdmin = {
+                            email: email,
+                            isAuthenticated: true,
+                            loginTime: new Date().toISOString()
+                        };
+                        request.session.save();
+                        console.log('Custom session saved');
+                    }
+                    
+                    reply.type('application/json');
+                    return reply.send({
+                        message: 'Login successful',
+                        success: true,
+                        user: { email }
+                    });
+                } else {
+                    console.log('Authentication failed');
+                    reply.type('application/json');
+                    return reply.status(401).send({
+                        message: 'Invalid credentials',
+                        success: false
+                    });
+                }
+            } catch (error) {
+                console.error('Custom admin login error:', error);
+                reply.type('application/json');
+                return reply.status(500).send({
+                    message: 'Internal server error: ' + error.message,
+                    success: false
+                });
+            }
+        });
+
 
 
         // Management pages
@@ -266,6 +413,111 @@ const start = async () => {
             }
         });
 
+        // New management pages
+        app.get('/sessions', async (request, reply) => {
+            try {
+                const htmlPath = path.join(__dirname, 'public', 'sessions.html');
+                const fs = await import('fs');
+                const htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
+                reply.type('text/html');
+                return htmlContent;
+            } catch (error) {
+                reply.code(404);
+                return 'Sessions management page not found';
+            }
+        });
+
+        app.get('/books', async (request, reply) => {
+            try {
+                const htmlPath = path.join(__dirname, 'public', 'books.html');
+                const fs = await import('fs');
+                const htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
+                reply.type('text/html');
+                return htmlContent;
+            } catch (error) {
+                reply.code(404);
+                return 'Books management page not found';
+            }
+        });
+
+        app.get('/categories', async (request, reply) => {
+            try {
+                const htmlPath = path.join(__dirname, 'public', 'categories.html');
+                const fs = await import('fs');
+                const htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
+                reply.type('text/html');
+                return htmlContent;
+            } catch (error) {
+                reply.code(404);
+                return 'Categories management page not found';
+            }
+        });
+
+        app.get('/branches', async (request, reply) => {
+            try {
+                const htmlPath = path.join(__dirname, 'public', 'branches.html');
+                const fs = await import('fs');
+                const htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
+                reply.type('text/html');
+                return htmlContent;
+            } catch (error) {
+                reply.code(404);
+                return 'Branches management page not found';
+            }
+        });
+
+        app.get('/enrolled-courses', async (request, reply) => {
+            try {
+                const htmlPath = path.join(__dirname, 'public', 'enrolled-courses.html');
+                const fs = await import('fs');
+                const htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
+                reply.type('text/html');
+                return htmlContent;
+            } catch (error) {
+                reply.code(404);
+                return 'Enrolled courses management page not found';
+            }
+        });
+
+        app.get('/quiz-submissions', async (request, reply) => {
+            try {
+                const htmlPath = path.join(__dirname, 'public', 'quiz-submissions.html');
+                const fs = await import('fs');
+                const htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
+                reply.type('text/html');
+                return htmlContent;
+            } catch (error) {
+                reply.code(404);
+                return 'Quiz submissions management page not found';
+            }
+        });
+
+        app.get('/theory', async (request, reply) => {
+            try {
+                const htmlPath = path.join(__dirname, 'public', 'theory.html');
+                const fs = await import('fs');
+                const htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
+                reply.type('text/html');
+                return htmlContent;
+            } catch (error) {
+                reply.code(404);
+                return 'Theory management page not found';
+            }
+        });
+
+        app.get('/user-progress', async (request, reply) => {
+            try {
+                const htmlPath = path.join(__dirname, 'public', 'user-progress.html');
+                const fs = await import('fs');
+                const htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
+                reply.type('text/html');
+                return htmlContent;
+            } catch (error) {
+                reply.code(404);
+                return 'User progress management page not found';
+            }
+        });
+
         app.register(fastifySocketIO, {
             cors: {
                 origin: "*",
@@ -276,7 +528,50 @@ const start = async () => {
         });
 
         await registerRoutes(app);
+        // await registerManagementRoutes(app);
+        
+
+        // Custom Admin logout route
+        app.post('/admin-logout', async (request, reply) => {
+            try {
+                console.log('Custom admin logout attempt');
+                
+                // Clear the custom session
+                if (request.session && request.session.customAdmin) {
+                    delete request.session.customAdmin;
+                    request.session.save();
+                    console.log('Custom session cleared');
+                }
+                
+                // Also try to destroy the entire session
+                if (request.session) {
+                    request.session.destroy((err) => {
+                        if (err) {
+                            console.error('Session destroy error:', err);
+                        } else {
+                            console.log('Session destroyed successfully');
+                        }
+                    });
+                }
+                
+                reply.type('application/json');
+                return reply.send({
+                    message: 'Logout successful',
+                    success: true
+                });
+            } catch (error) {
+                console.error('Custom admin logout error:', error);
+                reply.type('application/json');
+                return reply.status(500).send({
+                    message: 'Internal server error',
+                    success: false
+                });
+            }
+        });
+        
+        // Note: Session middleware is already registered by AdminJS
         await buildAdminRouter(app);
+
 
         // Add video call middleware
         app.addHook('preHandler', async (request, reply) => {

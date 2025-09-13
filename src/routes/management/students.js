@@ -1,6 +1,6 @@
 import { Student } from '../../models/user.js';
 
-export const studentsRoutes = async (app) => {
+export default async function registerStudentRoutes(app) {
     // Get all students
     app.get('/api/management/students', async (request, reply) => {
         try {

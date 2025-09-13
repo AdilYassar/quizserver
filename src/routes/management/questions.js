@@ -1,6 +1,6 @@
 import { Question } from '../../models/question.js';
 
-export const questionsRoutes = async (app) => {
+export default async function registerQuestionRoutes(app) {
     // Get all questions
     app.get('/api/management/questions', async (request, reply) => {
         try {
