@@ -14,3 +14,37 @@ export const getAllCourses = async (req, reply) => {
         });
     }
 };
+
+export const createCourse = async (req, reply) => {
+    try {
+        const { title, description, estimatedTime, materialsNeeded, steps } = req.body;
+
+        // Input validation
+        if (!title || !description) {
+            return reply.status(400).send({
+                message: "Title and description are required"
+            });
+        }
+
+        const newCourse = new Course({
+            title,
+            description,
+            estimatedTime,
+            materialsNeeded,
+            steps: steps || []
+        });
+
+        await newCourse.save();
+
+        return reply.status(201).send({
+            message: "Course created successfully",
+            course: newCourse
+        });
+    } catch (error) {
+        console.error("Course creation error:", error);
+        return reply.status(500).send({
+            message: "An error occurred while creating the course",
+            error: error.message
+        });
+    }
+};

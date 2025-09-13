@@ -7,6 +7,7 @@ import { QuizSubmission } from './QuizSubmission.js';
 import { MarksSummary } from './MarksSummary.js';
 import { Branch } from './branch.js';
 import { Question } from './question.js';
+import { UserProgress } from './userProgress.js';
 
 export  default {
     Student,
@@ -16,5 +17,6 @@ export  default {
     QuizSubmission,
     //EnrolledCourse,
     MarksSummary,
-    Question
+    Question,
+    UserProgress
 };

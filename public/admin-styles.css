@@ -1,0 +1,840 @@
+:root {
+  --topbar-color: #ffffff;
+  --sidebar-bg-color: #1e293b;
+  --sidebar-color: #e2e8f0;
+  --sidebar-link-color: #60a5fa;
+  --sidebar-hover-bg: #334155;
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --info-color: #6366f1;
+  --card-bg: #ffffff;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --card-radius: 8px;
+  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Sidebar Styling */
+section[data-css="sidebar"] {
+  background-color: var(--sidebar-bg-color) !important;
+  color: var(--sidebar-color);
+  border: none;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+section[data-css="sidebar"] svg {
+  fill: var(--sidebar-color) !important;
+}
+
+a[data-css="sidebar-logo"] {
+  background-color: var(--sidebar-bg-color) !important;
+  padding: 1.5rem 1rem !important;
+}
+
+a[data-css="sidebar-logo"] img {
+  max-height: 40px;
+}
+
+section[data-css="sidebar-resources"] {
+  background: var(--sidebar-bg-color) !important;
+}
+
+[data-css="sidebar"] section a {
+  background: var(--sidebar-bg-color) !important;
+  color: var(--sidebar-color);
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  margin: 0 0.5rem 0.25rem 0.5rem !important;
+  padding: 0.75rem 1rem !important;
+}
+
+[data-css="sidebar"] a:hover {
+  color: var(--sidebar-link-color);
+  background-color: var(--sidebar-hover-bg) !important;
+  transform: translateX(4px);
+}
+
+[data-css="sidebar"] h1 {
+  font-size: 1.1rem !important;
+  padding: 0.75rem 1.5rem !important;
+  color: var(--sidebar-color);
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+/* Topbar Styling */
+section[data-css="topbar"] {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Dashboard Cards */
+[data-css="dashboard"] .stat-card {
+  background-color: var(--card-bg);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-css="dashboard"] .stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+[data-css="dashboard"] .stat-card.primary {
+  border-left: 4px solid var(--primary-color);
+}
+
+[data-css="dashboard"] .stat-card.success {
+  border-left: 4px solid var(--success-color);
+}
+
+[data-css="dashboard"] .stat-card.warning {
+  border-left: 4px solid var(--warning-color);
+}
+
+[data-css="dashboard"] .stat-card.info {
+  border-left: 4px solid var(--info-color);
+}
+
+/* Quick Links */
+[data-css="dashboard"] .quick-link {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid #e5e7eb;
+}
+
+[data-css="dashboard"] .quick-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary-color);
+}
+
+/* Form Styling */
+[data-css$="-form"] {
+  background-color: var(--card-bg);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem !important;
+}
+
+[data-css$="-form"] label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+[data-css$="-form"] input, 
+[data-css$="-form"] select, 
+[data-css$="-form"] textarea {
+  border-radius: 6px !important;
+  border: 1px solid #d1d5db !important;
+  padding: 0.625rem 0.75rem !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-css$="-form"] input:focus, 
+[data-css$="-form"] select:focus, 
+[data-css$="-form"] textarea:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Buttons */
+button[data-css$="-button"] {
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+button[data-css$="-button"]:hover {
+  transform: translateY(-1px);
+}
+
+button[data-css$="-button-primary"] {
+  background-color: var(--primary-color) !important;
+}
+
+button[data-css$="-button-primary"]:hover {
+  background-color: var(--primary-hover) !important;
+}
+
+/* Tables */
+table[data-css$="-table"] {
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+}
+
+table[data-css$="-table"] thead th {
+  background-color: #f9fafb !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.05em;
+}
+
+table[data-css$="-table"] tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+table[data-css$="-table"] tbody tr:hover {
+  background-color: #f9fafb !important;
+}
+
+/* Login Page */
+[data-css="login"] {
+  background-color: #f9fafb !important;
+}
+
+[data-css="login-card"] {
+  border-radius: var(--card-radius) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  border: none !important;
+  overflow: hidden;
+}
+
+[data-css="login-card"] h1 {
+  color: var(--primary-color) !important;
+}
+
+/* General UI improvements */
+* {
+  font-family: var(--font-main) !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600 !important;
+}
+
+/* Pagination */
+[data-css$="-pagination"] button {
+  border-radius: 6px !important;
+}
+
+/* Notifications */
+[data-css="notifications"] > div {
+  border-radius: var(--card-radius) !important;
+  box-shadow: var(--card-shadow) !important;
+}
+
+/* MODERN ADMINJS CUSTOMIZATION */
+
+/* Import Inter font for consistency */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Global AdminJS styling */
+.adminjs {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
+/* Header customization */
+.adminjs .navbar {
+    background: #1e293b !important;
+    border-bottom: 1px solid #334155 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.adminjs .navbar-brand {
+    color: white !important;
+    font-weight: 700 !important;
+    font-size: 20px !important;
+}
+
+.adminjs .navbar-nav .nav-link {
+    color: #94a3b8 !important;
+    font-weight: 500 !important;
+    transition: color 0.2s ease !important;
+}
+
+.adminjs .navbar-nav .nav-link:hover {
+    color: white !important;
+}
+
+/* Sidebar customization */
+.adminjs .sidebar {
+    background: #f8fafc !important;
+    border-right: 1px solid #e2e8f0 !important;
+}
+
+.adminjs .sidebar .nav-link {
+    color: #64748b !important;
+    font-weight: 500 !important;
+    padding: 12px 16px !important;
+    border-radius: 8px !important;
+    margin: 4px 8px !important;
+    transition: all 0.2s ease !important;
+}
+
+.adminjs .sidebar .nav-link:hover {
+    background: #e2e8f0 !important;
+    color: #1e293b !important;
+}
+
+.adminjs .sidebar .nav-link.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+}
+
+/* Main content area */
+.adminjs .content {
+    background: #f8fafc !important;
+    padding: 24px !important;
+}
+
+/* Page headers - Ultra Modern */
+.adminjs .page-header {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+    border-radius: 20px !important;
+    padding: 32px !important;
+    margin-bottom: 32px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08) !important;
+    border: 1px solid #e2e8f0 !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.adminjs .page-header::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 4px !important;
+    background: linear-gradient(90deg, #667eea, #764ba2) !important;
+}
+
+.adminjs .page-header h1 {
+    color: #1e293b !important;
+    font-weight: 800 !important;
+    font-size: 32px !important;
+    margin: 0 !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+
+/* List title styling */
+.adminjs .list-title {
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    margin-bottom: 24px !important;
+}
+
+.adminjs .list-title h1 {
+    font-size: 28px !important;
+    font-weight: 700 !important;
+    color: #1e293b !important;
+    margin: 0 !important;
+}
+
+.adminjs .list-title .badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    font-size: 14px !important;
+    padding: 8px 16px !important;
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+}
+
+/* Action buttons container */
+.adminjs .action-buttons {
+    display: flex !important;
+    gap: 12px !important;
+    align-items: center !important;
+    margin-bottom: 24px !important;
+}
+
+/* Tables - Ultra Modern styling */
+.adminjs .table {
+    background: white !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+    border: 1px solid #e2e8f0 !important;
+    margin-top: 20px !important;
+}
+
+.adminjs .table thead th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    border: none !important;
+    padding: 20px 16px !important;
+    position: relative !important;
+}
+
+.adminjs .table thead th:first-child {
+    border-top-left-radius: 16px !important;
+}
+
+.adminjs .table thead th:last-child {
+    border-top-right-radius: 16px !important;
+}
+
+.adminjs .table tbody td {
+    border: none !important;
+    padding: 20px 16px !important;
+    color: #1e293b !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    font-size: 14px !important;
+    vertical-align: middle !important;
+}
+
+.adminjs .table tbody tr {
+    transition: all 0.2s ease !important;
+    position: relative !important;
+}
+
+.adminjs .table tbody tr:hover {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+}
+
+.adminjs .table tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
+/* Enhanced table styling */
+.adminjs .table-container {
+    background: #f8fafc !important;
+    padding: 24px !important;
+    border-radius: 16px !important;
+    margin: 0 !important;
+}
+
+/* Table wrapper */
+.adminjs .table-wrapper {
+    background: white !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Badges - Ultra Modern styling */
+.adminjs .badge {
+    border-radius: 25px !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    padding: 8px 16px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    border: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 60px !important;
+}
+
+.adminjs .badge.bg-success {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: white !important;
+}
+
+.adminjs .badge.bg-primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+    color: white !important;
+}
+
+.adminjs .badge.bg-secondary {
+    background: linear-gradient(135deg, #6b7280, #4b5563) !important;
+    color: white !important;
+}
+
+/* Custom badge styling for specific values */
+.adminjs .table tbody td:contains("Student") {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    color: white !important;
+    border-radius: 25px !important;
+    padding: 8px 16px !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    display: inline-block !important;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+}
+
+.adminjs .table tbody td:contains("Yes") {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: white !important;
+    border-radius: 25px !important;
+    padding: 8px 16px !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    display: inline-block !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+}
+
+.adminjs .table tbody td:contains("No") {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+    color: white !important;
+    border-radius: 25px !important;
+    padding: 8px 16px !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    display: inline-block !important;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Buttons - Ultra Modern styling */
+.adminjs .btn {
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    padding: 12px 24px !important;
+    transition: all 0.3s ease !important;
+    border: none !important;
+    font-size: 14px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.adminjs .btn::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent) !important;
+    transition: left 0.5s !important;
+}
+
+.adminjs .btn:hover::before {
+    left: 100% !important;
+}
+
+.adminjs .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
+    color: white !important;
+}
+
+.adminjs .btn-primary:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6) !important;
+}
+
+.adminjs .btn-secondary {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+    color: #64748b !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.adminjs .btn-secondary:hover {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%) !important;
+    color: #1e293b !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Create new button styling */
+.adminjs .btn[href*="new"] {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4) !important;
+}
+
+.adminjs .btn[href*="new"]:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6) !important;
+}
+
+/* Filter button styling */
+.adminjs .btn[data-testid*="filter"] {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4) !important;
+}
+
+.adminjs .btn[data-testid*="filter"]:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.6) !important;
+}
+
+/* Form controls */
+.adminjs .form-control {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+}
+
+.adminjs .form-control:focus {
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
+/* Cards */
+.adminjs .card {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    background: white !important;
+}
+
+.adminjs .card-header {
+    background: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+}
+
+/* Pagination */
+.adminjs .pagination .page-link {
+    border: 1px solid #e2e8f0 !important;
+    color: #64748b !important;
+    padding: 8px 12px !important;
+    margin: 0 2px !important;
+    border-radius: 6px !important;
+}
+
+.adminjs .pagination .page-link:hover {
+    background: #f1f5f9 !important;
+    color: #1e293b !important;
+}
+
+.adminjs .pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border-color: #667eea !important;
+    color: white !important;
+}
+
+/* Dropdown menus */
+.adminjs .dropdown-menu {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    padding: 8px !important;
+}
+
+.adminjs .dropdown-item {
+    padding: 8px 12px !important;
+    border-radius: 6px !important;
+    color: #64748b !important;
+    transition: all 0.2s ease !important;
+}
+
+.adminjs .dropdown-item:hover {
+    background: #f1f5f9 !important;
+    color: #1e293b !important;
+}
+
+/* Search and filter controls */
+.adminjs .search-box {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 12px 16px !important;
+    background: white !important;
+}
+
+.adminjs .filter-box {
+    background: white !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 16px !important;
+    margin-bottom: 16px !important;
+}
+
+/* Action buttons in table rows */
+.adminjs .table .btn-sm {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    border-radius: 6px !important;
+}
+
+/* Loading states */
+.adminjs .loading {
+    color: #94a3b8 !important;
+    font-style: italic !important;
+}
+
+/* Error states */
+.adminjs .alert {
+    border-radius: 8px !important;
+    border: none !important;
+    padding: 16px !important;
+}
+
+.adminjs .alert-danger {
+    background: #fef2f2 !important;
+    color: #dc2626 !important;
+}
+
+.adminjs .alert-success {
+    background: #f0fdf4 !important;
+    color: #059669 !important;
+}
+
+/* Enhanced data styling with modern badges */
+.adminjs .table tbody td {
+    position: relative !important;
+}
+
+/* Role column styling */
+.adminjs .table tbody td[data-property-name="role"] {
+    font-weight: 600 !important;
+}
+
+.adminjs .table tbody td[data-property-name="role"]:contains("Student") {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    color: white !important;
+    border-radius: 25px !important;
+    padding: 8px 16px !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    display: inline-block !important;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+    margin: 4px 0 !important;
+}
+
+.adminjs .table tbody td[data-property-name="role"]:contains("Admin") {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
+    color: white !important;
+    border-radius: 25px !important;
+    padding: 8px 16px !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    display: inline-block !important;
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3) !important;
+    margin: 4px 0 !important;
+}
+
+/* Boolean column styling */
+.adminjs .table tbody td[data-property-name="isActivated"] {
+    font-weight: 600 !important;
+}
+
+.adminjs .table tbody td[data-property-name="isActivated"]:contains("true"),
+.adminjs .table tbody td[data-property-name="isActivated"]:contains("Yes") {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: white !important;
+    border-radius: 25px !important;
+    padding: 8px 16px !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    display: inline-block !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+    margin: 4px 0 !important;
+}
+
+.adminjs .table tbody td[data-property-name="isActivated"]:contains("false"),
+.adminjs .table tbody td[data-property-name="isActivated"]:contains("No") {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+    color: white !important;
+    border-radius: 25px !important;
+    padding: 8px 16px !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    display: inline-block !important;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
+    margin: 4px 0 !important;
+}
+
+/* Status column styling */
+.adminjs .table tbody td[data-property-name="status"] {
+    font-weight: 600 !important;
+}
+
+.adminjs .table tbody td[data-property-name="status"]:contains("active"),
+.adminjs .table tbody td[data-property-name="status"]:contains("enrolled") {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: white !important;
+    border-radius: 25px !important;
+    padding: 8px 16px !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    display: inline-block !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+    margin: 4px 0 !important;
+}
+
+/* Type column styling */
+.adminjs .table tbody td[data-property-name="type"] {
+    font-weight: 600 !important;
+}
+
+.adminjs .table tbody td[data-property-name="type"]:contains("multiple"),
+.adminjs .table tbody td[data-property-name="type"]:contains("single") {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    color: white !important;
+    border-radius: 25px !important;
+    padding: 8px 16px !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    display: inline-block !important;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3) !important;
+    margin: 4px 0 !important;
+}
+
+/* Number values styling */
+.adminjs .table tbody td[data-property-name="score"],
+.adminjs .table tbody td[data-property-name="percentage"] {
+    font-weight: 700 !important;
+    color: #1e293b !important;
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0) !important;
+    border-radius: 8px !important;
+    padding: 6px 12px !important;
+    display: inline-block !important;
+    min-width: 40px !important;
+    text-align: center !important;
+}
+
+/* Datetime values styling */
+.adminjs .table tbody td[data-property-name="createdAt"],
+.adminjs .table tbody td[data-property-name="submittedAt"],
+.adminjs .table tbody td[data-property-name="enrolledAt"] {
+    color: #64748b !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    background: #f8fafc !important;
+    border-radius: 8px !important;
+    padding: 6px 12px !important;
+    display: inline-block !important;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .adminjs .content {
+        padding: 16px !important;
+    }
+    
+    .adminjs .table {
+        font-size: 14px !important;
+    }
+    
+    .adminjs .table thead th,
+    .adminjs .table tbody td {
+        padding: 12px 8px !important;
+    }
+}

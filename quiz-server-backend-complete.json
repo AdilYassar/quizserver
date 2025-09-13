@@ -1,0 +1,792 @@
+{
+  "app_name": "Quiz Server Backend - Complete System",
+  "description": "A comprehensive quiz and learning management system with video calls, course enrollment, and real-time features",
+  "version": "1.0.0",
+  "what_this_app_does": "This is like a digital school where students can take courses, take quizzes, get grades, track their learning progress, and even have video calls with teachers!",
+  
+  "main_components": {
+    "authentication_system": {
+      "what_it_does": "Like a secure school ID card system - students and teachers need to log in to use the app",
+      "security_features": {
+        "uuid_based": "Every user gets a unique identifier (UUID) for secure identification",
+        "password_protection": "All passwords are securely hashed and never stored as plain text",
+        "account_lockout": "Accounts are temporarily locked after multiple failed login attempts",
+        "rate_limiting": "Limits how many login attempts can be made to prevent hacking",
+        "input_validation": "Ensures all user information meets security requirements"
+      },
+      "types_of_users": {
+        "students": {
+          "description": "People who want to learn and take courses",
+          "can_do": ["enroll in courses", "take quizzes", "see their grades", "track learning progress", "join video calls"],
+          "authentication": "Register with email, password, and optional phone number"
+        },
+        "admins": {
+          "description": "Teachers and school staff who manage everything",
+          "can_do": ["create courses", "make quizzes", "see all student grades", "manage the system"],
+          "authentication": "Register with email, password, and optional phone number with admin privileges"
+        }
+      }
+    },
+    
+    "course_management": {
+      "what_it_does": "Like a school catalog - shows all available courses students can take",
+      "features": {
+        "course_catalog": "Shows all available courses with descriptions",
+        "enrollment_system": "Students can sign up for courses they want",
+        "progress_tracking": "Keeps track of which courses each student is taking"
+      }
+    },
+    
+    "quiz_system": {
+      "what_it_does": "Like taking tests in school - students answer questions and get grades",
+      "features": {
+        "question_bank": "Stores all quiz questions with multiple choice answers",
+        "automatic_grading": "The computer checks answers and gives scores",
+        "grade_calculation": "Converts scores to letter grades (A+, A, B+, etc.)",
+        "attempt_tracking": "Remembers how many times a student tried a quiz"
+      }
+    },
+    
+    "video_call_system": {
+      "what_it_does": "Like having a video meeting with teachers - students and teachers can see and talk to each other",
+      "features": {
+        "real_time_video": "Live video calls between students and teachers",
+        "chat_messaging": "Text messages during video calls",
+        "session_management": "Creates and manages video call rooms"
+      }
+    },
+    
+    "learning_materials": {
+      "what_it_does": "Like a digital library - stores books, theory content, and study materials",
+      "features": {
+        "digital_books": "PDF books students can read",
+        "theory_content": "Written lessons and explanations",
+        "chapter_organization": "Organizes content by course chapters"
+      }
+    },
+    
+    "progress_tracking_system": {
+      "what_it_does": "Like a personal learning diary - tracks how much students have learned and how much time they spent",
+      "features": {
+        "chapter_completion": "Tracks which chapters students have finished",
+        "reading_sessions": "Records how long students spend reading each chapter",
+        "learning_streaks": "Shows how many days in a row students have been learning",
+        "progress_statistics": "Gives students detailed reports on their learning progress",
+        "leaderboards": "Shows top-performing students to encourage friendly competition"
+      }
+    }
+  },
+
+  "database_models": {
+    "Student": {
+      "what_it_is": "A student's profile - like their school record",
+      "important_info": {
+        "identification": ["uuid", "mongodb_id"],
+        "security": ["password (hashed)", "login_attempts", "lock_until", "is_activated"],
+        "personal_details": ["name", "email", "phone_number"],
+        "account_tracking": ["created_at", "last_login"],
+        "learning_progress": ["enrolled_courses", "quiz_performance", "total_quizzes_taken"],
+        "achievements": ["average_score", "enrollment_count"],
+        "progress_tracking": ["total_chapters_completed", "total_time_spent", "average_course_completion", "learning_streak", "longest_learning_streak", "last_learning_activity", "total_learning_days"]
+      },
+      "relationships": {
+        "enrolled_in": "many courses",
+        "taken": "many quizzes",
+        "has": "many quiz_submissions"
+      },
+      "security_features": {
+        "unique_identification": "UUID-based identification",
+        "password_protection": "Bcrypt hashing with salt rounds",
+        "account_lockout": "Temporary lockout after failed login attempts"
+      }
+    },
+    
+    "Admin": {
+      "what_it_is": "A teacher or staff member's profile",
+      "important_info": {
+        "identification": ["uuid", "mongodb_id"],
+        "security": ["password (hashed)", "login_attempts", "lock_until", "is_activated"],
+        "personal_details": ["name", "email", "phone_number"],
+        "account_tracking": ["created_at", "last_login"],
+        "role": "admin_privileges"
+      },
+      "security_features": {
+        "unique_identification": "UUID-based identification",
+        "password_protection": "Bcrypt hashing with salt rounds",
+        "account_lockout": "Temporary lockout after failed login attempts"
+      }
+    },
+    
+    "Course": {
+      "what_it_is": "A learning subject - like 'Math 101' or 'Science'",
+      "important_info": {
+        "course_details": ["title", "description", "estimated_time"],
+        "requirements": ["materials_needed"],
+        "structure": ["learning_steps"]
+      },
+      "relationships": {
+        "has": "many quizzes",
+        "enrolled_by": "many students",
+        "contains": "theory_content"
+      }
+    },
+    
+    "Quiz": {
+      "what_it_is": "A test with questions - like a school exam",
+      "important_info": {
+        "quiz_details": ["title", "difficulty_level", "time_limit"],
+        "availability": ["is_published", "expires_at"],
+        "questions": ["list_of_questions"]
+      },
+      "relationships": {
+        "belongs_to": "one category",
+        "has": "many questions",
+        "taken_by": "many students"
+      }
+    },
+    
+    "Question": {
+      "what_it_is": "A single quiz question with multiple choice answers",
+      "important_info": {
+        "question_text": "the actual question",
+        "answer_options": ["choice_a", "choice_b", "choice_c", "choice_d"],
+        "correct_answer": "the right answer"
+      },
+      "relationships": {
+        "belongs_to": "one quiz"
+      }
+    },
+    
+    "QuizSubmission": {
+      "what_it_is": "A student's completed quiz - like a turned-in test paper",
+      "important_info": {
+        "student_answers": ["what the student chose for each question"],
+        "scoring": ["score", "percentage", "grade"],
+        "timing": ["time_spent", "started_at", "completed_at"],
+        "attempt_info": ["attempt_number", "status"]
+      },
+      "relationships": {
+        "submitted_by": "one student",
+        "for_quiz": "one quiz",
+        "in_course": "one course (optional)"
+      }
+    },
+    
+    "MarksSummary": {
+      "what_it_is": "A summary of a student's performance on a quiz",
+      "important_info": {
+        "performance": ["total_marks", "obtained_marks", "percentage", "grade"],
+        "context": ["which_quiz", "which_course", "which_student"]
+      },
+      "relationships": {
+        "belongs_to": "one student",
+        "for_quiz": "one quiz",
+        "in_course": "one course"
+      }
+    },
+    
+    "EnrolledCourse": {
+      "what_it_is": "A record that a student is taking a specific course",
+      "important_info": {
+        "enrollment_date": "when the student joined the course",
+        "student": "which student",
+        "course": "which course"
+      },
+      "relationships": {
+        "student": "one student",
+        "course": "one course"
+      }
+    },
+    
+    "UserProgress": {
+      "what_it_is": "A detailed record of a student's progress through a specific chapter",
+      "important_info": {
+        "progress_details": ["user", "course", "chapter", "chapter_title"],
+        "completion_status": ["is_completed", "completion_percentage", "status"],
+        "time_tracking": ["time_spent", "last_accessed_at", "completed_at"],
+        "reading_sessions": ["session_start", "session_end", "duration", "progress_at_end"]
+      },
+      "relationships": {
+        "belongs_to": "one student",
+        "belongs_to": "one course",
+        "belongs_to": "one chapter"
+      }
+    },
+    
+    "Category": {
+      "what_it_is": "A subject area for organizing quizzes - like 'Mathematics' or 'Science'",
+      "important_info": {
+        "category_name": "the subject area name",
+        "category_image": "a picture representing the category",
+        "is_quiz_category": "whether it's used for quizzes"
+      },
+      "relationships": {
+        "contains": "many quizzes"
+      }
+    },
+    
+    "Branch": {
+      "what_it_is": "A physical location or department - like 'Main Campus' or 'Science Department'",
+      "important_info": {
+        "branch_name": "the location name",
+        "location": "where it is",
+        "courses": "which courses are offered there"
+      },
+      "relationships": {
+        "offers": "many courses"
+      }
+    },
+    
+    "Book": {
+      "what_it_is": "A digital book that students can read",
+      "important_info": {
+        "book_details": ["title", "author", "published_date", "pages"],
+        "content": ["genre", "language", "pdf_file"],
+        "file": "the actual book content as a PDF"
+      }
+    },
+    
+    "Theory": {
+      "what_it_is": "Written lessons and explanations for a course",
+      "important_info": {
+        "course_title": "which course this theory is for",
+        "description": "what the theory covers",
+        "chapters": "different sections of the theory"
+      },
+      "relationships": {
+        "belongs_to": "one course",
+        "has": "many chapters"
+      }
+    },
+    
+    "Chapter": {
+      "what_it_is": "A section of theory content - like a chapter in a textbook",
+      "important_info": {
+        "chapter_title": "the chapter name",
+        "content": "the actual lesson text",
+        "course": "which course it belongs to"
+      },
+      "relationships": {
+        "belongs_to": "one theory",
+        "belongs_to": "one course"
+      }
+    },
+    
+    "Session": {
+      "what_it_is": "A video call room where students and teachers can meet",
+      "important_info": {
+        "session_id": "unique room identifier",
+        "participants": "who is in the call",
+        "chat_messages": "text messages during the call",
+        "expires": "when the room closes"
+      },
+      "relationships": {
+        "has": "many participants",
+        "has": "many chat_messages"
+      }
+    }
+  },
+
+  "api_endpoints": {
+    "authentication": {
+      "student_registration": {
+        "endpoint": "POST /api/student/register",
+        "what_it_does": "Students register with email, password, and optional details",
+        "returns": "access token, refresh token, and student info",
+        "security": "Validates password strength, email format, and prevents duplicates"
+      },
+      "student_login": {
+        "endpoint": "POST /api/student/login",
+        "what_it_does": "Students log in with email and password",
+        "returns": "access token, refresh token, and student info",
+        "security": "Rate limited, tracks failed attempts, implements account lockout"
+      },
+      "admin_registration": {
+        "endpoint": "POST /api/admin/register",
+        "what_it_does": "Teachers/staff register with email, password, and optional details",
+        "returns": "access token, refresh token, and admin info",
+        "security": "Validates password strength, email format, and prevents duplicates"
+      },
+      "admin_login": {
+        "endpoint": "POST /api/admin/login", 
+        "what_it_does": "Teachers/staff log in with email and password",
+        "returns": "access token, refresh token, and admin info",
+        "security": "Rate limited, tracks failed attempts, implements account lockout"
+      },
+      "refresh_token": {
+        "endpoint": "POST /api/refresh-token",
+        "what_it_does": "Gets a new access token when old one expires",
+        "returns": "new access token and refresh token",
+        "security": "Rate limited, validates refresh token"
+      },
+      "logout": {
+        "endpoint": "POST /api/logout",
+        "what_it_does": "Logs out the user",
+        "requires": "authentication"
+      },
+      "change_password": {
+        "endpoint": "PATCH /api/user/password",
+        "what_it_does": "Changes user's password",
+        "requires": "authentication",
+        "security": "Validates current password, ensures new password strength"
+      }
+    },
+    
+    "user_management": {
+      "get_user_profile": {
+        "endpoint": "GET /api/user",
+        "what_it_does": "Gets student's profile with enrolled courses and quiz performance",
+        "requires": "authentication"
+      },
+      "update_user": {
+        "endpoint": "PATCH /api/user",
+        "what_it_does": "Updates student's profile information",
+        "requires": "authentication"
+      },
+      "get_enrollment_stats": {
+        "endpoint": "GET /api/user/enrollment-stats",
+        "what_it_does": "Gets statistics about student's course enrollments",
+        "requires": "authentication"
+      }
+    },
+    
+    "course_management": {
+      "get_all_courses": {
+        "endpoint": "GET /api/courses",
+        "what_it_does": "Shows all available courses students can take"
+      },
+      "create_course": {
+        "endpoint": "POST /api/courses",
+        "what_it_does": "Creates a new course (admin only)"
+      },
+      "enroll_in_course": {
+        "endpoint": "POST /api/enrollCourses",
+        "what_it_does": "Student signs up for a course",
+        "requires": "authentication"
+      },
+      "get_enrolled_courses": {
+        "endpoint": "GET /api/my-enrolled-courses",
+        "what_it_does": "Shows courses the student is taking",
+        "requires": "authentication"
+      },
+      "get_all_enrollments": {
+        "endpoint": "GET /api/enrolled-courses",
+        "what_it_does": "Shows all course enrollments (admin view)"
+      }
+    },
+    
+    "quiz_system": {
+      "get_all_quizzes": {
+        "endpoint": "GET /api/allquiz",
+        "what_it_does": "Shows all available quizzes"
+      },
+      "get_quiz_details": {
+        "endpoint": "GET /api/quiz/:quizId",
+        "what_it_does": "Gets details about a specific quiz"
+      },
+      "get_quiz_questions": {
+        "endpoint": "GET /api/quiz/:quizId/questions",
+        "what_it_does": "Gets all questions for a quiz"
+      },
+      "submit_quiz": {
+        "endpoint": "POST /api/quiz-submission",
+        "what_it_does": "Student submits their quiz answers",
+        "requires": "authentication",
+        "automatically": "calculates score and grade"
+      },
+      "get_my_submissions": {
+        "endpoint": "GET /api/my-submissions",
+        "what_it_does": "Shows student's quiz submission history",
+        "requires": "authentication"
+      },
+      "get_submission_details": {
+        "endpoint": "GET /api/submission/:submissionId",
+        "what_it_does": "Gets details about a specific quiz submission"
+      },
+      "get_quiz_marks": {
+        "endpoint": "GET /api/quiz/:quizId/marks",
+        "what_it_does": "Shows performance statistics for a quiz"
+      }
+    },
+    
+    "question_management": {
+      "create_question": {
+        "endpoint": "POST /api/quiz/:quizId/question",
+        "what_it_does": "Adds a new question to a quiz",
+        "requires": "authentication"
+      },
+      "get_question": {
+        "endpoint": "GET /api/question/:questionId",
+        "what_it_does": "Gets details about a specific question"
+      },
+      "update_question": {
+        "endpoint": "PATCH /api/question/:questionId",
+        "what_it_does": "Updates a question",
+        "requires": "authentication"
+      },
+      "delete_question": {
+        "endpoint": "DELETE /api/question/:questionId",
+        "what_it_does": "Removes a question from a quiz",
+        "requires": "authentication"
+      }
+    },
+    
+    "learning_materials": {
+      "get_books": {
+        "endpoint": "GET /api/books",
+        "what_it_does": "Gets all available digital books"
+      },
+      "get_theory_content": {
+        "endpoint": "GET /api/theory/:courseId",
+        "what_it_does": "Gets written lessons for a course"
+      }
+    },
+    
+    "categories_and_branches": {
+      "get_quiz_categories": {
+        "endpoint": "GET /api/categories",
+        "what_it_does": "Gets all quiz subject categories"
+      },
+      "get_branches": {
+        "endpoint": "GET /api/branches",
+        "what_it_does": "Gets all school locations/departments"
+      }
+    },
+    
+    "video_calls": {
+      "create_session": {
+        "endpoint": "POST /api/create-session",
+        "what_it_does": "Creates a new video call room"
+      },
+      "check_session": {
+        "endpoint": "GET /api/is-alive",
+        "what_it_does": "Checks if a video call room is still active"
+      },
+      "get_session_details": {
+        "endpoint": "GET /api/session/:sessionId",
+        "what_it_does": "Gets details about a video call room"
+      },
+      "delete_session": {
+        "endpoint": "DELETE /api/session/:sessionId",
+        "what_it_does": "Closes a video call room"
+      }
+    },
+    
+    "progress_tracking": {
+      "mark_chapter_completed": {
+        "endpoint": "POST /api/progress/course/:courseId/chapter/:chapterId/complete",
+        "what_it_does": "Marks a chapter as completed by the student",
+        "requires": "authentication"
+      },
+      "start_reading_session": {
+        "endpoint": "POST /api/progress/course/:courseId/chapter/:chapterId/start-reading",
+        "what_it_does": "Starts tracking how long a student reads a chapter",
+        "requires": "authentication"
+      },
+      "end_reading_session": {
+        "endpoint": "PUT /api/progress/course/:courseId/chapter/:chapterId/end-reading",
+        "what_it_does": "Ends a reading session and records the time spent",
+        "requires": "authentication"
+      },
+      "update_chapter_progress": {
+        "endpoint": "PUT /api/progress/course/:courseId/chapter/:chapterId/update-progress",
+        "what_it_does": "Updates a student's progress percentage in a chapter",
+        "requires": "authentication"
+      },
+      "get_course_progress": {
+        "endpoint": "GET /api/progress/course/:courseId",
+        "what_it_does": "Gets detailed progress for a specific course",
+        "requires": "authentication"
+      },
+      "get_user_progress_stats": {
+        "endpoint": "GET /api/progress/user-stats",
+        "what_it_does": "Gets comprehensive progress statistics for the student",
+        "requires": "authentication"
+      },
+      "get_all_courses_progress": {
+        "endpoint": "GET /api/progress/all-courses",
+        "what_it_does": "Gets progress summary for all enrolled courses",
+        "requires": "authentication"
+      },
+      "get_learning_streak": {
+        "endpoint": "GET /api/progress/learning-streak",
+        "what_it_does": "Gets the student's current and longest learning streak",
+        "requires": "authentication"
+      },
+      "get_progress_leaderboard": {
+        "endpoint": "GET /api/progress/leaderboard",
+        "what_it_does": "Gets a ranking of top-performing students",
+        "requires": "authentication"
+      },
+      "get_detailed_chapter_progress": {
+        "endpoint": "GET /api/progress/course/:courseId/chapter/:chapterId",
+        "what_it_does": "Gets detailed progress information for a specific chapter",
+        "requires": "authentication"
+      }
+    }
+  },
+
+  "user_journey_flow": {
+    "student_journey": {
+      "step_1_login": {
+        "action": "Student logs in with phone and email",
+        "endpoint": "POST /api/student/login",
+        "result": "Gets access token and student profile"
+      },
+      "step_2_browse_courses": {
+        "action": "Student looks at available courses",
+        "endpoint": "GET /api/courses",
+        "result": "Sees list of courses they can take"
+      },
+      "step_3_enroll": {
+        "action": "Student picks a course and enrolls",
+        "endpoint": "POST /api/enrollCourses",
+        "result": "Student is now taking the course"
+      },
+      "step_4_take_quiz": {
+        "action": "Student takes a quiz for the course",
+        "endpoints": [
+          "GET /api/quiz/:quizId/questions",
+          "POST /api/quiz-submission"
+        ],
+        "result": "Student gets a grade automatically"
+      },
+      "step_5_check_progress": {
+        "action": "Student checks their grades and progress",
+        "endpoints": [
+          "GET /api/user",
+          "GET /api/my-submissions",
+          "GET /api/progress/user-stats"
+        ],
+        "result": "Student sees their performance"
+      },
+      "step_5b_track_learning": {
+        "action": "Student tracks their chapter progress and reading time",
+        "endpoints": [
+          "POST /api/progress/course/:courseId/chapter/:chapterId/start-reading",
+          "PUT /api/progress/course/:courseId/chapter/:chapterId/end-reading",
+          "POST /api/progress/course/:courseId/chapter/:chapterId/complete",
+          "GET /api/progress/course/:courseId",
+          "GET /api/progress/learning-streak"
+        ],
+        "result": "Student sees detailed learning progress and can track their improvement"
+      },
+      "step_6_video_call": {
+        "action": "Student joins a video call with teacher",
+        "endpoints": [
+          "POST /api/create-session",
+          "WebSocket connection for real-time video"
+        ],
+        "result": "Student can see and talk to teacher"
+      },
+      "step_7_leaderboard": {
+        "action": "Student checks their ranking and compares with others",
+        "endpoints": [
+          "GET /api/progress/leaderboard"
+        ],
+        "result": "Student sees how they compare with other students and gets motivated to improve"
+      }
+    },
+    
+    "admin_journey": {
+      "step_1_login": {
+        "action": "Admin logs in",
+        "endpoint": "POST /api/admin/login",
+        "result": "Gets admin access"
+      },
+      "step_2_create_course": {
+        "action": "Admin creates a new course",
+        "endpoint": "POST /api/courses",
+        "result": "Course is available for students"
+      },
+      "step_3_create_quiz": {
+        "action": "Admin creates quiz questions",
+        "endpoints": [
+          "POST /api/quiz/:quizId/question"
+        ],
+        "result": "Quiz is ready for students"
+      },
+      "step_4_monitor_progress": {
+        "action": "Admin checks student performance",
+        "endpoints": [
+          "GET /api/quiz/:quizId/marks",
+          "GET /api/enrolled-courses",
+          "GET /api/progress/leaderboard"
+        ],
+        "result": "Admin sees how students are doing and can identify top performers"
+      }
+    }
+  },
+
+  "data_relationships": {
+    "student_connections": {
+      "enrolled_courses": "Student can be in many courses",
+      "quiz_submissions": "Student can take many quizzes",
+      "marks_summaries": "Student has performance records for each quiz",
+      "progress_records": "Student has detailed progress tracking for each chapter"
+    },
+    "course_connections": {
+      "enrolled_students": "Course can have many students",
+      "quizzes": "Course can have many quizzes",
+      "theory_content": "Course has written lessons",
+      "branch": "Course belongs to a school location",
+      "progress_records": "Course has progress tracking for each student and chapter"
+    },
+    "quiz_connections": {
+      "questions": "Quiz has many questions",
+      "submissions": "Quiz can be taken by many students",
+      "category": "Quiz belongs to a subject area",
+      "course": "Quiz can belong to a course"
+    }
+  },
+
+  "real_time_features": {
+    "video_calls": {
+      "what_it_does": "Live video meetings between students and teachers",
+      "features": [
+        "real-time video streaming",
+        "audio communication",
+        "text chat during calls",
+        "screen sharing capability",
+        "participant management"
+      ],
+      "technology": "WebRTC and Socket.IO"
+    },
+    "live_updates": {
+      "what_it_does": "Instant updates when things change",
+      "examples": [
+        "new quiz submissions appear immediately",
+        "grades update in real-time",
+        "video call participants join/leave",
+        "chat messages appear instantly"
+      ]
+    }
+  },
+
+  "security_features": {
+    "authentication": {
+      "jwt_tokens": {
+        "description": "Enhanced secure login system",
+        "features": [
+          "Short-lived access tokens (15 minutes)",
+          "Long-lived refresh tokens (7 days)",
+          "UUID-based user identification",
+          "Token validation with issuer/audience checks"
+        ]
+      },
+      "password_security": {
+        "description": "Advanced password protection",
+        "features": [
+          "Bcrypt hashing with 12 salt rounds",
+          "Password strength validation",
+          "Secure password comparison",
+          "No plain text passwords stored"
+        ]
+      },
+      "account_protection": {
+        "description": "Comprehensive account security",
+        "features": [
+          "Account lockout after 5 failed login attempts",
+          "2-hour lockout duration",
+          "Login attempt tracking",
+          "Secure password reset mechanism"
+        ]
+      },
+      "session_management": "Automatic token refresh and logout after inactivity"
+    },
+    "authorization": {
+      "role_based_access": "Students and admins have different permissions",
+      "protected_routes": "All sensitive features require authentication",
+      "data_isolation": "Students only see their own data",
+      "uuid_based_identification": "All users have unique UUIDs for secure identification"
+    },
+    "rate_limiting": {
+      "description": "Protection against brute force attacks",
+      "limits": {
+        "general_api": "100 requests per 15 minutes per IP",
+        "login": "5 attempts per 15 minutes per IP",
+        "registration": "5 attempts per hour per IP",
+        "password_reset": "3 attempts per hour per IP",
+        "token_refresh": "10 attempts per 15 minutes per IP"
+      }
+    },
+    "input_validation": {
+      "description": "Comprehensive input security",
+      "features": [
+        "Email format validation",
+        "Phone number validation",
+        "XSS protection through input sanitization",
+        "Data validation for all inputs"
+      ]
+    }
+  },
+
+  "performance_features": {
+    "automatic_grading": {
+      "instant_results": "Quiz scores calculated immediately",
+      "grade_assignment": "Automatic A+, A, B+ grade calculation",
+      "progress_tracking": "Keeps track of student improvement"
+    },
+    "data_optimization": {
+      "efficient_queries": "Fast database searches",
+      "caching": "Quick access to frequently used data",
+      "pagination": "Handles large amounts of data efficiently"
+    }
+  },
+
+  "what_makes_this_special": {
+    "complete_learning_system": "Everything a student needs in one place",
+    "real_time_interaction": "Live video calls with teachers",
+    "automatic_assessment": "Computer grades quizzes instantly",
+    "detailed_progress_tracking": "Students can see exactly how much they've learned, time spent, and completion percentages",
+    "learning_analytics": "Comprehensive statistics, streaks, and leaderboards to motivate learning",
+    "flexible_content": "Supports courses, quizzes, books, and theory",
+    "scalable_design": "Can handle many students and courses"
+  },
+
+  "technical_stack": {
+    "backend_framework": "Node.js with Fastify",
+    "database": "MongoDB with Mongoose",
+    "authentication": {
+      "primary": "JWT tokens with access and refresh token system",
+      "security": "Bcrypt password hashing with salt rounds",
+      "identification": "UUID-based user tracking",
+      "protection": "Rate limiting and account lockout"
+    },
+    "validation": {
+      "input": "Comprehensive input validation and sanitization",
+      "data": "Schema validation with Mongoose"
+    },
+    "real_time": "Socket.IO and WebRTC",
+    "file_handling": "PDF storage and retrieval",
+    "api_design": "RESTful API with clear endpoints"
+  },
+
+  "summary": {
+    "what_this_is": "A secure, complete digital school system",
+    "who_uses_it": "Students who want to learn and teachers who want to teach",
+    "main_purpose": "Make learning interactive, trackable, accessible, and secure",
+    "key_benefits": [
+      "Students can learn at their own pace",
+      "Teachers can monitor student progress",
+      "Everything is digital and organized",
+      "Real-time interaction through video calls",
+      "Automatic grading saves time",
+      "Complete learning history for each student",
+      "Detailed progress tracking motivates students to keep learning",
+      "Learning streaks and leaderboards encourage healthy competition",
+      "Time tracking helps students understand their learning patterns",
+      "Enterprise-grade security protects user data and privacy",
+      "Secure authentication prevents unauthorized access",
+      "UUID-based identification ensures consistent user tracking"
+    ],
+    "security_highlights": [
+      "Comprehensive user authentication and authorization",
+      "Password security with bcrypt hashing",
+      "Protection against brute force attacks with rate limiting",
+      "Account lockout after failed login attempts",
+      "Input validation and sanitization",
+      "Secure token-based authentication system"
+    ]
+  }
+}

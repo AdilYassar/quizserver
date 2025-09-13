@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizServer Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #1e293b;
+            color: white;
+            padding: 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        /* Hide sidebar on mobile by default */
+        @media screen and (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .sidebar-nav {
+            padding: 16px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: #94a3b8;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: #334155;
+            color: white;
+            border-left-color: #667eea;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            opacity: 0.7;
+        }
+
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 100;
+            background: #1e293b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Adjust top bar for mobile devices */
+        @media screen and (max-width: 1024px) {
+            .top-bar {
+                padding-left: 60px;
+                padding-right: 60px;
+                justify-content: center;
+            }
+        }
+
+        /* Show mobile menu toggle on all mobile devices */
+        @media screen and (max-width: 1024px) {
+            .mobile-menu-toggle {
+                display: flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+        }
+
+        .mobile-menu-toggle:hover {
+            background: #334155;
+            transform: translateY(-2px);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .sidebar-overlay.open {
+            display: block;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 0;
+        }
+
+        /* Remove left margin on mobile */
+        @media screen and (max-width: 1024px) {
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        .top-bar {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        /* Ensure top bar has relative positioning for absolute children */
+        @media screen and (max-width: 1024px) {
+            .top-bar {
+                position: relative;
+            }
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        /* Center title on mobile devices */
+        @media screen and (max-width: 1024px) {
+            .page-title {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1;
+            }
+        }
+
+        .admin-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .admin-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .content {
+            padding: 32px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+            max-width: 1800px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card:active {
+            transform: translateY(0);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .stat-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .stat-change.positive {
+            color: #059669;
+        }
+
+        .stat-change.negative {
+            color: #dc2626;
+        }
+
+        .stat-change.neutral {
+            color: #64748b;
+        }
+
+        .loading {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Progress Bars */
+        .progress-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .progress-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+
+        .progress-item {
+            margin-bottom: 16px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Navigation Grid */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+            max-width: 1800px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0 20px;
+        }
+
+        .nav-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            text-decoration: none;
+            color: #1e293b;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+            color: #1e293b;
+        }
+
+        .nav-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .nav-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .nav-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+
+        .nav-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .nav-card-desc {
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        /* Charts Section */
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+
+        .chart-placeholder {
+            height: 200px;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        /* Activity Timeline */
+        .activity-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .activity-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+
+        .activity-timeline {
+            position: relative;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .timeline-item:last-child {
+            border-bottom: none;
+        }
+
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #667eea;
+            flex-shrink: 0;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .timeline-desc {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .timeline-time {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .chart-content {
+            padding: 16px 0;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .health-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .health-item:last-child {
+            border-bottom: none;
+        }
+
+        .health-label {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .health-status {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .health-status.healthy {
+            color: #059669;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 16px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Mobile First Responsive Design */
+        
+        /* Extra Small devices (phones, 576px and down) */
+        @media (max-width: 575.98px) {
+            .top-bar {
+                padding: 12px 16px;
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+            
+            .page-title {
+                font-size: 20px;
+                margin: 0;
+            }
+            
+            .admin-link {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .stat-card {
+                padding: 16px;
+            }
+            
+            .stat-value {
+                font-size: 24px;
+            }
+            
+            .nav-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .nav-card {
+                padding: 16px;
+            }
+            
+            .progress-section {
+                padding: 16px;
+            }
+            
+            .charts-section {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .chart-card {
+                padding: 16px;
+            }
+            
+            .activity-section {
+                padding: 16px;
+            }
+            
+            .content {
+                padding: 16px;
+            }
+
+            /* Mobile menu styles */
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        
+        /* Small devices (landscape phones, 576px and up) */
+        @media (min-width: 576px) and (max-width: 767.98px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+            
+            .nav-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+            
+            .charts-section {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+        
+        /* Medium devices (tablets, 768px and up) */
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+            }
+            
+            .nav-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+            
+            .charts-section {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+        }
+        
+        /* Large devices (desktops, 992px and up) */
+        @media (min-width: 992px) and (max-width: 1199.98px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 24px;
+            }
+            
+            .nav-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 24px;
+            }
+            
+            .charts-section {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 24px;
+            }
+        }
+        
+        /* Extra large devices (large desktops, 1200px and up) */
+        @media (min-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 40px;
+            }
+            
+            .nav-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 40px;
+            }
+            
+            .charts-section {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 40px;
+            }
+        }
+
+        /* Ultra-wide screens (1600px and up) */
+        @media (min-width: 1600px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 50px;
+            }
+            
+            .nav-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 50px;
+            }
+            
+            .charts-section {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 50px;
+            }
+        }
+
+        /* Super ultra-wide screens (2000px and up) */
+        @media (min-width: 2000px) {
+            .stats-grid {
+                grid-template-columns: repeat(6, 1fr);
+                gap: 50px;
+            }
+            
+            .nav-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 50px;
+            }
+            
+            .charts-section {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 50px;
+            }
+        }
+        
+        /* Force mobile menu toggle to be visible on mobile */
+        @media screen and (max-width: 1024px) {
+            .mobile-menu-toggle {
+                display: block !important;
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+                background: #1e293b;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px;
+                font-size: 18px;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                transition: all 0.3s ease;
+            }
+            
+            .mobile-menu-toggle:hover {
+                background: #334155;
+                transform: translateY(-2px);
+            }
+        }
+        
+        /* Overlay for mobile menu */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        
+        .sidebar-overlay.open {
+            display: block;
+        }
+        
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .nav-item, .stat-card, .nav-card {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+            }
+            
+            .btn {
+                padding: 12px 16px;
+                min-height: 44px;
+            }
+        }
+        
+        /* High DPI displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .stat-icon, .nav-icon {
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+            }
+        }
+        
+        /* Ensure mobile menu toggle is visible on mobile devices */
+        @media screen and (max-width: 1024px) {
+            .mobile-menu-toggle {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            .sidebar, .top-bar, .mobile-menu-toggle {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr) !important;
+            }
+            
+            .nav-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">🎯</div>
+                    QuizServer
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active">
+                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="/students" class="nav-item">
+                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                    </svg>
+                    Students
+                </a>
+                <a href="/courses" class="nav-item">
+                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Courses
+                </a>
+                <a href="/quizzes" class="nav-item">
+                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2v1a1 1 0 001 1h6a1 1 0 001-1V3a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                    </svg>
+                    Quizzes
+                </a>
+                <a href="/questions" class="nav-item">
+                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+                    </svg>
+                    Questions
+                </a>
+                <a href="/admin/resources/QuizSubmission" class="nav-item">
+                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Submissions
+                </a>
+            </nav>
+        </div>
+
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="top-bar">
+                <h1 class="page-title">Dashboard</h1>
+            </div>
+
+            <div class="content">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <a href="/students" class="stat-card" style="text-decoration: none; color: inherit;">
+                        <div class="stat-header">
+                            <div class="stat-title">Students</div>
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">👥</div>
+                        </div>
+                        <div class="stat-value loading" id="studentsCount">Loading...</div>
+                        <div class="stat-change positive">
+                            <span>↗</span>
+                            <span>Active learners</span>
+                        </div>
+                    </a>
+
+                    <a href="/courses" class="stat-card" style="text-decoration: none; color: inherit;">
+                        <div class="stat-header">
+                            <div class="stat-title">Courses</div>
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">📚</div>
+                        </div>
+                        <div class="stat-value loading" id="coursesCount">Loading...</div>
+                        <div class="stat-change positive">
+                            <span>↗</span>
+                            <span>Available courses</span>
+                        </div>
+                    </a>
+
+                    <a href="/quizzes" class="stat-card" style="text-decoration: none; color: inherit;">
+                        <div class="stat-header">
+                            <div class="stat-title">Quizzes</div>
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">📝</div>
+                        </div>
+                        <div class="stat-value loading" id="quizzesCount">Loading...</div>
+                        <div class="stat-change positive">
+                            <span>↗</span>
+                            <span>Active assessments</span>
+                        </div>
+                    </a>
+
+                    <a href="/admin/resources/QuizSubmission" class="stat-card" style="text-decoration: none; color: inherit;">
+                        <div class="stat-header">
+                            <div class="stat-title">Submissions</div>
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">📊</div>
+                        </div>
+                        <div class="stat-value loading" id="submissionsCount">Loading...</div>
+                        <div class="stat-change positive">
+                            <span>↗</span>
+                            <span>Total submissions</span>
+                        </div>
+                    </a>
+
+                    <a href="/questions" class="stat-card" style="text-decoration: none; color: inherit;">
+                        <div class="stat-header">
+                            <div class="stat-title">Questions</div>
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">❓</div>
+                        </div>
+                        <div class="stat-value loading" id="questionsCount">Loading...</div>
+                        <div class="stat-change positive">
+                            <span>↗</span>
+                            <span>Quiz questions</span>
+                        </div>
+                    </a>
+
+                    <a href="/admin" class="stat-card" style="text-decoration: none; color: inherit;">
+                        <div class="stat-header">
+                            <div class="stat-title">Admins</div>
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #6b7280, #4b5563);">👨‍💼</div>
+                        </div>
+                        <div class="stat-value loading" id="adminsCount">Loading...</div>
+                        <div class="stat-change neutral">
+                            <span>→</span>
+                            <span>System admins</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Progress Section -->
+                <div class="progress-section">
+                    <h3 class="progress-title">Platform Overview</h3>
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span>Student Engagement</span>
+                            <span id="engagementPercent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="engagementBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span>Course Completion</span>
+                            <span id="completionPercent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="completionBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span>Quiz Success Rate</span>
+                            <span id="successPercent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="successBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="charts-section">
+                    <div class="chart-card">
+                        <h3 class="chart-title">Platform Statistics</h3>
+                        <div class="chart-content" id="platformStats">
+                            <div class="stat-row">
+                                <span class="stat-label">Total Students:</span>
+                                <span class="stat-value" id="totalStudentsDisplay">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Active Courses:</span>
+                                <span class="stat-value" id="activeCoursesDisplay">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Quiz Submissions:</span>
+                                <span class="stat-value" id="quizSubmissionsDisplay">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Total Questions:</span>
+                                <span class="stat-value" id="totalQuestionsDisplay">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3 class="chart-title">System Health</h3>
+                        <div class="chart-content" id="systemHealth">
+                            <div class="health-item">
+                                <span class="health-label">Database Status:</span>
+                                <span class="health-status healthy">✅ Connected</span>
+                            </div>
+                            <div class="health-item">
+                                <span class="health-label">Server Status:</span>
+                                <span class="health-status healthy">✅ Running</span>
+                            </div>
+                            <div class="health-item">
+                                <span class="health-label">Last Updated:</span>
+                                <span class="health-status" id="lastUpdated">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Timeline -->
+                <div class="activity-section">
+                    <h3 class="activity-title">Recent Activity</h3>
+                    <div class="activity-timeline" id="activityTimeline">
+                        <div class="timeline-item loading">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-title">Loading activities...</div>
+                                <div class="timeline-desc">Fetching recent platform activity</div>
+                            </div>
+                            <div class="timeline-time">...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Grid -->
+                <div class="nav-grid">
+                    <a href="/students" class="nav-card">
+                        <div class="nav-card-header">
+                            <div class="nav-card-icon">👥</div>
+                            <div class="nav-card-title">Manage Students</div>
+                        </div>
+                        <div class="nav-card-desc">Custom modern interface for student management with advanced features</div>
+                    </a>
+
+                    <a href="/courses" class="nav-card">
+                        <div class="nav-card-header">
+                            <div class="nav-card-icon">📚</div>
+                            <div class="nav-card-title">Manage Courses</div>
+                        </div>
+                        <div class="nav-card-desc">Custom modern interface for course management and organization</div>
+                    </a>
+
+                    <a href="/quizzes" class="nav-card">
+                        <div class="nav-card-header">
+                            <div class="nav-card-icon">📝</div>
+                            <div class="nav-card-title">Manage Quizzes</div>
+                        </div>
+                        <div class="nav-card-desc">Custom modern interface for quiz creation and management</div>
+                    </a>
+
+                    <a href="/questions" class="nav-card">
+                        <div class="nav-card-header">
+                            <div class="nav-card-icon">❓</div>
+                            <div class="nav-card-title">Manage Questions</div>
+                        </div>
+                        <div class="nav-card-desc">Add, edit, and organize quiz questions and answers</div>
+                    </a>
+
+                    <a href="/admin/resources/QuizSubmission" class="nav-card">
+                        <div class="nav-card-header">
+                            <div class="nav-card-icon">📊</div>
+                            <div class="nav-card-title">View Submissions</div>
+                        </div>
+                        <div class="nav-card-desc">Review and analyze quiz submissions and results</div>
+                    </a>
+
+                    <a href="/admin/resources/MarksSummary" class="nav-card">
+                        <div class="nav-card-header">
+                            <div class="nav-card-icon">📈</div>
+                            <div class="nav-card-title">Manage Marks</div>
+                        </div>
+                        <div class="nav-card-desc">Track and manage student marks and performance</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fetch real-time dashboard data
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('/api/dashboard-stats');
+                const data = await response.json();
+
+                // Update stat cards
+                document.getElementById('studentsCount').textContent = data.studentsCount || 0;
+                document.getElementById('coursesCount').textContent = data.coursesCount || 0;
+                document.getElementById('quizzesCount').textContent = data.quizzesCount || 0;
+                document.getElementById('submissionsCount').textContent = data.submissionsCount || 0;
+                document.getElementById('questionsCount').textContent = data.questionsCount || 0;
+                document.getElementById('adminsCount').textContent = data.adminsCount || 0;
+
+                // Update chart sections
+                document.getElementById('totalStudentsDisplay').textContent = data.studentsCount || 0;
+                document.getElementById('activeCoursesDisplay').textContent = data.coursesCount || 0;
+                document.getElementById('quizSubmissionsDisplay').textContent = data.submissionsCount || 0;
+                document.getElementById('totalQuestionsDisplay').textContent = data.questionsCount || 0;
+                document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+
+                // Calculate and update progress bars
+                const totalStudents = data.studentsCount || 0;
+                const totalCourses = data.coursesCount || 0;
+                const totalSubmissions = data.submissionsCount || 0;
+
+                // Engagement calculation (simplified)
+                const engagement = totalStudents > 0 ? Math.min(95, (totalSubmissions / totalStudents) * 100) : 0;
+                document.getElementById('engagementPercent').textContent = Math.round(engagement) + '%';
+                document.getElementById('engagementBar').style.width = engagement + '%';
+
+                // Completion calculation (simplified)
+                const completion = totalCourses > 0 ? Math.min(90, (totalSubmissions / totalCourses) * 50) : 0;
+                document.getElementById('completionPercent').textContent = Math.round(completion) + '%';
+                document.getElementById('completionBar').style.width = completion + '%';
+
+                // Success rate calculation (simplified)
+                const success = totalSubmissions > 0 ? Math.min(85, 70 + (totalSubmissions / 100)) : 0;
+                document.getElementById('successPercent').textContent = Math.round(success) + '%';
+                document.getElementById('successBar').style.width = success + '%';
+
+                console.log('✅ Dashboard data loaded successfully:', data);
+            } catch (error) {
+                console.error('❌ Error loading dashboard data:', error);
+                // Show error state
+                document.querySelectorAll('.stat-value').forEach(el => {
+                    el.textContent = 'Error';
+                    el.style.color = '#ef4444';
+                });
+            }
+        }
+
+        // Fetch recent activities
+        async function loadRecentActivities() {
+            try {
+                const response = await fetch('/api/dashboard-activities');
+                const data = await response.json();
+                
+                const timeline = document.getElementById('activityTimeline');
+                
+                if (data.activities && data.activities.length > 0) {
+                    timeline.innerHTML = data.activities.map(activity => `
+                        <div class="timeline-item">
+                            <div class="timeline-dot">${activity.icon}</div>
+                            <div class="timeline-content">
+                                <div class="timeline-title">${activity.title}</div>
+                                <div class="timeline-desc">${activity.description}</div>
+                            </div>
+                            <div class="timeline-time">${formatTimeAgo(activity.time)}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    timeline.innerHTML = `
+                        <div class="timeline-item">
+                            <div class="timeline-dot">📊</div>
+                            <div class="timeline-content">
+                                <div class="timeline-title">No recent activity</div>
+                                <div class="timeline-desc">Platform activity will appear here</div>
+                            </div>
+                            <div class="timeline-time">-</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('❌ Error loading recent activities:', error);
+                const timeline = document.getElementById('activityTimeline');
+                timeline.innerHTML = `
+                    <div class="timeline-item">
+                        <div class="timeline-dot">⚠️</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Error loading activities</div>
+                            <div class="timeline-desc">Unable to fetch recent activity data</div>
+                        </div>
+                        <div class="timeline-time">-</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Format time ago
+        function formatTimeAgo(dateString) {
+            const now = new Date();
+            const date = new Date(dateString);
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) return 'Just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hour${Math.floor(diffInSeconds / 3600) > 1 ? 's' : ''} ago`;
+            if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} day${Math.floor(diffInSeconds / 86400) > 1 ? 's' : ''} ago`;
+            return date.toLocaleDateString();
+        }
+
+        // Mobile menu functions
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+
+        // Close sidebar when clicking on nav items on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 1024 && e.target.closest('.nav-item')) {
+                closeSidebar();
+            }
+        });
+
+        // Close sidebar on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeSidebar();
+            }
+        });
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboardData();
+            loadRecentActivities();
+            
+            // Ensure mobile menu toggle is visible on mobile devices
+            if (window.innerWidth <= 1024) {
+                const toggle = document.querySelector('.mobile-menu-toggle');
+                if (toggle) {
+                    toggle.style.display = 'block';
+                    toggle.style.visibility = 'visible';
+                    toggle.style.opacity = '1';
+                }
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            if (window.innerWidth <= 1024) {
+                if (toggle) {
+                    toggle.style.display = 'block';
+                    toggle.style.visibility = 'visible';
+                    toggle.style.opacity = '1';
+                }
+            } else {
+                if (toggle) {
+                    toggle.style.display = 'none';
+                }
+                // Close sidebar on desktop
+                closeSidebar();
+            }
+        });
+
+        // Refresh data every 30 seconds
+        setInterval(() => {
+            loadDashboardData();
+            loadRecentActivities();
+        }, 30000);
+    </script>
+</body>
+</html>

@@ -4,22 +4,14 @@ import { createQuestion, getQuestionsByQuizId, getQuestionById, updateQuestion, 
 import { verifyToken } from "../middleware/auth.js";
 
 export const quizRoutes = async (fastify, options) => {
-    fastify.addHook("preHandler", async (request, reply) => {
-        // const isAuthenticated = await verifyToken(request, reply);
-        // if (!isAuthenticated) {
-        //     return reply.code(401).send({ message: "Unauthenticated" });
-        // }
-    });
-
-    // Quiz routes
-   // fastify.get('/quiz/:categoryId', getQuizByCategoryId);
+    // Quiz routes (public - no auth required)
     fastify.get('/quiz/:quizId', getQuizById);
     fastify.get('/allquiz', getAllQuizzes);
-
-    // Question routes
-    fastify.post('/quiz/:quizId/question', createQuestion);
     fastify.get('/quiz/:quizId/questions', getQuestionsByQuizId);
     fastify.get('/question/:questionId', getQuestionById);
-    fastify.patch('/question/:questionId', updateQuestion);
-    fastify.delete('/question/:questionId', deleteQuestion);
+
+    // Question management routes (require authentication)
+    fastify.post('/quiz/:quizId/question', { preHandler: [verifyToken] }, createQuestion);
+    fastify.patch('/question/:questionId', { preHandler: [verifyToken] }, updateQuestion);
+    fastify.delete('/question/:questionId', { preHandler: [verifyToken] }, deleteQuestion);
 };

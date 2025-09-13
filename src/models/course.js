@@ -5,12 +5,7 @@ const courseSchema = new mongoose.Schema({
     description: { type: String, required: true },
     estimatedTime: { type: String },
     materialsNeeded: { type: String },
-    steps: [{
-        stepNumber: { type: Number },
-        title: { type: String, required: true },
-        description: { type: String, required: true
-        }
-    }],
+    steps: [String],
     
 });
 

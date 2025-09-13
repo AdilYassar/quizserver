@@ -1,9 +1,13 @@
-import { getQuizSubmissionById } from "../controllers/QuizSubmission/quizSubmissionController.js";
-import { postQuizSubmission } from "../controllers/QuizSubmission/quizSubmissionController.js";
-
-
+import { getQuizSubmissionById, postQuizSubmission, getUserQuizSubmissions } from "../controllers/QuizSubmission/quizSubmissionController.js";
+import { verifyToken } from "../middleware/auth.js";
 
 export const quizSubmissionroutes = async (fastify, options) => {
-    fastify.get("/submissionId", getQuizSubmissionById);
-    fastify.post("/quiz-submission", postQuizSubmission);
+    // Get specific submission by ID
+    fastify.get("/submission/:submissionId", getQuizSubmissionById);
+    
+    // Submit quiz (requires authentication)
+    fastify.post("/quiz-submission", { preHandler: [verifyToken] }, postQuizSubmission);
+    
+    // Get user's quiz submissions (requires authentication)
+    fastify.get("/my-submissions", { preHandler: [verifyToken] }, getUserQuizSubmissions);
 };
