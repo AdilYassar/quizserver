@@ -20,7 +20,12 @@ const start = async () => {
         await connectDB(process.env.MONGO_URI);
         console.log("Connected to the database");
 
-        const app = Fastify();
+        const app = Fastify({
+            // Increase body size limit to handle PDF uploads (30MB to account for base64 encoding)
+            bodyLimit: 30 * 1024 * 1024, // 30MB in bytes
+            // Increase request timeout for large file uploads
+            requestTimeout: 120000 // 2 minutes
+        });
         
         // Set up static file serving
         const __filename = fileURLToPath(import.meta.url);
@@ -77,6 +82,7 @@ const start = async () => {
         app.get('/js/branches.js', serveJS('branches.js'));
         app.get('/js/enrolled-courses.js', serveJS('enrolled-courses.js'));
         app.get('/js/quiz-submissions.js', serveJS('quiz-submissions.js'));
+        app.get('/js/marks-summary.js', serveJS('marks-summary.js'));
         app.get('/js/theory.js', serveJS('theory.js'));
         app.get('/js/user-progress.js', serveJS('user-progress.js'));
         app.get('/js/admin-login.js', serveJS('admin-login.js'));
@@ -489,6 +495,19 @@ const start = async () => {
             } catch (error) {
                 reply.code(404);
                 return 'Quiz submissions management page not found';
+            }
+        });
+
+        app.get('/marks-summary', async (request, reply) => {
+            try {
+                const htmlPath = path.join(__dirname, 'public', 'marks-summary.html');
+                const fs = await import('fs');
+                const htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
+                reply.type('text/html');
+                return htmlContent;
+            } catch (error) {
+                reply.code(404);
+                return 'Marks summary management page not found';
             }
         });
 

@@ -39,6 +39,7 @@ export const createQuestion = async (req, reply) => {
 
         const savedQuestion = await newQuestion.save();
         quiz.questions.push(savedQuestion._id);
+        quiz.totalQuestions = quiz.questions.length; // Update totalQuestions to match actual count
         await quiz.save();
 
         return reply.status(201).send(savedQuestion);
@@ -150,6 +151,13 @@ export const deleteQuestion = async (req, reply) => {
             { _id: question.quiz },
             { $pull: { questions: questionId } }
         );
+
+        // Update totalQuestions count after removing the question
+        const updatedQuiz = await Quiz.findById(question.quiz);
+        if (updatedQuiz) {
+            updatedQuiz.totalQuestions = updatedQuiz.questions.length;
+            await updatedQuiz.save();
+        }
 
         return reply.status(200).send({
             message: "Question deleted successfully"

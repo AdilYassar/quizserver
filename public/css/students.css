@@ -1,34 +1,42 @@
 /* Students Management Specific Styles */
+:root {
+    --color-slate-900: #1e293b;
+    --color-slate-700: #334155;
+    --color-indigo-600: #4f46e5;
+    --color-coral-400: #ffa586;
+    --color-red-600: #dc2626;
+    --color-red-900: #7f1d1d;
+}
 
 /* Status badges */
 .status-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 12px;
-    border-radius: 20px;
+    padding: 4px 8px;
+    border-radius: 4px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .status-active {
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: var(--color-indigo-600);
     color: white;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    box-shadow: none;
 }
 
 .status-inactive {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
+    background: var(--color-red-600);
     color: white;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    box-shadow: none;
 }
 
 .status-pending {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
+    background: #f59e0b;
     color: white;
-    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    box-shadow: none;
 }
 
 /* Role badges */
@@ -37,15 +45,15 @@
     align-items: center;
     gap: 4px;
     padding: 4px 8px;
-    border-radius: 12px;
+    border-radius: 4px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .role-student {
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    background: var(--color-slate-700);
     color: white;
 }
 

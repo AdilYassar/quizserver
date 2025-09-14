@@ -155,6 +155,22 @@
                         <textarea id="description" name="description" class="form-control" rows="3"></textarea>
                         <div class="invalid-feedback" id="descriptionError"></div>
                     </div>
+
+                    <!-- Chapters Management Section -->
+                    <div class="form-group">
+                        <label class="form-label">Chapters</label>
+                        <div class="chapters-management">
+                            <div class="chapters-header">
+                                <span class="chapters-count-text">No chapters added yet</span>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="theoryManager.addChapter()">
+                                    <i class="fas fa-plus"></i> Add Chapter
+                                </button>
+                            </div>
+                            <div class="chapters-list" id="chaptersList">
+                                <!-- Chapters will be dynamically added here -->
+                            </div>
+                        </div>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -162,6 +178,38 @@
                 <button type="button" class="btn btn-primary" onclick="saveTheory()">
                     <i class="fas fa-save"></i>
                     Save Theory
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chapter Edit Modal -->
+    <div id="chapterModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="chapterModalTitle">Add Chapter</h2>
+                <span class="close" onclick="theoryManager.closeChapterModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="chapterForm">
+                    <div class="form-group">
+                        <label for="chapterTitle" class="form-label">Chapter Title *</label>
+                        <input type="text" id="chapterTitle" name="chapterTitle" class="form-control" required>
+                        <div class="invalid-feedback" id="chapterTitleError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="chapterContent" class="form-label">Chapter Content *</label>
+                        <textarea id="chapterContent" name="chapterContent" class="form-control" rows="8" required 
+                                  placeholder="Enter the chapter content here..."></textarea>
+                        <div class="invalid-feedback" id="chapterContentError"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="theoryManager.closeChapterModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="theoryManager.saveChapter()">
+                    <i class="fas fa-save"></i>
+                    Save Chapter
                 </button>
             </div>
         </div>

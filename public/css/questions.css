@@ -1,9 +1,17 @@
 /* Questions Management Specific Styles */
+:root {
+    --color-slate-900: #1e293b;
+    --color-slate-700: #334155;
+    --color-indigo-600: #4f46e5;
+    --color-coral-400: #ffa586;
+    --color-red-600: #dc2626;
+    --color-red-900: #7f1d1d;
+}
 
 /* Question text styling */
 .question-text {
     font-weight: 500;
-    color: #1e293b;
+    color: var(--color-slate-900);
     font-size: 14px;
     line-height: 1.4;
     max-width: 300px;
@@ -11,6 +19,7 @@
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
 }
 
@@ -20,25 +29,25 @@
     align-items: center;
     gap: 4px;
     padding: 4px 8px;
-    border-radius: 12px;
+    border-radius: 4px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .type-multiple-choice {
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    background: var(--color-indigo-600);
     color: white;
 }
 
 .type-true-false {
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: #10b981;
     color: white;
 }
 
 .type-short-answer {
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    background: var(--color-slate-700);
     color: white;
 }
 
@@ -218,11 +227,13 @@
 
 .form-group input[type="number"] {
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 .form-group input[type="number"]::-webkit-outer-spin-button,
 .form-group input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
+    appearance: none;
     margin: 0;
 }
 

@@ -1,11 +1,12 @@
 import EnrolledCourse from "../../models/enrolledCourses.js";
 import { Course } from "../../models/course.js";
 import { Student } from "../../models/user.js";
+import { initializeChapterProgress } from "../../utils/progressUtils.js";
 
 export const enrollCourse = async (req, reply) => {
   try {
     const { courseId } = req.body; // Extract courseId from the request body
-    const userPhone = req.user.phone; // Extract userPhone from the authenticated user
+    const userId = req.user.userId; // Extract userId from the authenticated user
 
     // Input validation
     if (!courseId) {
@@ -14,8 +15,8 @@ export const enrollCourse = async (req, reply) => {
       });
     }
 
-    // Find the student by phone number to get their ObjectId
-    const student = await Student.findOne({ phone: userPhone });
+    // Find the student by userId (more reliable than phone lookup)
+    const student = await Student.findById(userId);
     if (!student) {
       return reply.status(404).send({
         message: "Student not found",
@@ -61,6 +62,11 @@ export const enrollCourse = async (req, reply) => {
     student.enrollmentCount = student.enrolledCourses.length;
     await student.save();
 
+    // Initialize chapter progress for the newly enrolled course
+    console.log(`🔄 Initializing chapter progress for student ${student._id} in course ${courseId}`);
+    const progressResult = await initializeChapterProgress(student._id, courseId);
+    console.log(`📊 Progress initialization result:`, progressResult);
+
     // Populate the response with course and student details
     await newEnrollment.populate('course', 'title description');
     await newEnrollment.populate('user', 'name phone email enrollmentCount');
@@ -76,6 +82,11 @@ export const enrollCourse = async (req, reply) => {
         phone: student.phone,
         enrollmentCount: student.enrollmentCount,
         enrolledCourses: student.enrolledCourses
+      },
+      chapterProgress: {
+        initialized: progressResult.success,
+        chaptersCreated: progressResult.chaptersCreated || 0,
+        message: progressResult.message
       }
     });
   } catch (error) {

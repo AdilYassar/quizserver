@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marks Management - Quiz Server</title>
+    <link rel="stylesheet" href="css/management-shared.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="management-container">
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <h1 class="page-title">Marks Management</h1>
+                <a href="/custom-dashboard" class="admin-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+
+            <div class="content">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <h1>Marks Management</h1>
+                    <p>Track and manage student marks and performance across all quizzes.</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Total Records</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalRecords">-</div>
+                        <div class="stat-change">All marks records</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">High Performers</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="highPerformers">-</div>
+                        <div class="stat-change">Above 80%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Average Score</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-percentage"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="averageScore">-</div>
+                        <div class="stat-change">Overall average</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Failed</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="failedCount">-</div>
+                        <div class="stat-change">Below 50%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Recent</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="recentMarks">-</div>
+                        <div class="stat-change">This Week</div>
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="action-bar">
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search by student name, email, course, or quiz...">
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-danger" onclick="bulkDelete()" id="bulkDeleteBtn" disabled>
+                            <i class="fas fa-trash"></i>
+                            Delete Selected
+                        </button>
+                        <button class="btn btn-success" onclick="exportMarks()">
+                            <i class="fas fa-download"></i>
+                            Export CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Marks Table -->
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                                </th>
+                                <th>
+                                    <button class="sort-btn" onclick="sort('user.name')">
+                                        Student <i class="fas fa-sort"></i>
+                                    </button>
+                                </th>
+                                <th>
+                                    <button class="sort-btn" onclick="sort('course.title')">
+                                        Course <i class="fas fa-sort"></i>
+                                    </button>
+                                </th>
+                                <th>
+                                    <button class="sort-btn" onclick="sort('quiz.title')">
+                                        Quiz <i class="fas fa-sort"></i>
+                                    </button>
+                                </th>
+                                <th>
+                                    <button class="sort-btn" onclick="sort('obtainedMarks')">
+                                        Score <i class="fas fa-sort"></i>
+                                    </button>
+                                </th>
+                                <th>
+                                    <button class="sort-btn" onclick="sort('percentage')">
+                                        Percentage <i class="fas fa-sort"></i>
+                                    </button>
+                                </th>
+                                <th>
+                                    <button class="sort-btn" onclick="sort('grade')">
+                                        Grade <i class="fas fa-sort"></i>
+                                    </button>
+                                </th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="marksTableBody">
+                            <tr>
+                                <td colspan="8" class="loading">
+                                    <div class="spinner"></div>
+                                    Loading marks...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="pagination">
+                    <!-- Pagination buttons will be generated here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Mark Details Modal -->
+    <div id="markModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Mark Details</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="mark-details">
+                    <div class="detail-group">
+                        <label>Student:</label>
+                        <span id="studentName">-</span>
+                    </div>
+                    <div class="detail-group">
+                        <label>Email:</label>
+                        <span id="studentEmail">-</span>
+                    </div>
+                    <div class="detail-group">
+                        <label>Course:</label>
+                        <span id="courseName">-</span>
+                    </div>
+                    <div class="detail-group">
+                        <label>Quiz:</label>
+                        <span id="quizName">-</span>
+                    </div>
+                    <div class="detail-group">
+                        <label>Total Marks:</label>
+                        <span id="totalMarks">-</span>
+                    </div>
+                    <div class="detail-group">
+                        <label>Obtained Marks:</label>
+                        <span id="obtainedMarks">-</span>
+                    </div>
+                    <div class="detail-group">
+                        <label>Percentage:</label>
+                        <span id="percentage">-</span>
+                    </div>
+                    <div class="detail-group">
+                        <label>Grade:</label>
+                        <span id="grade" class="grade-badge">-</span>
+                    </div>
+                    <div class="detail-group">
+                        <label>Date:</label>
+                        <span id="submissionDate">-</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/marks-summary.js"></script>
+</body>
+</html>

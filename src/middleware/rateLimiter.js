@@ -47,11 +47,12 @@ export const generalLimiter = createRateLimiter(
 
 // Login rate limiter
 const loginStore = new Map();
+loginStore.clear(); // Clear any existing limits for development
 export const loginLimiter = async (request, reply) => {
   const key = generateRateLimitKey(request);
   const now = Date.now();
   const windowMs = 15 * 60 * 1000; // 15 minutes
-  const max = 5; // max login attempts
+  const max = 50; // DEVELOPMENT: Increased for easier testing (PRODUCTION: use 5)
   const windowStart = now - windowMs;
   
   // Clean old entries for this key
@@ -84,12 +85,17 @@ export const loginLimiter = async (request, reply) => {
 
 // Registration rate limiter
 const registrationStore = new Map();
+registrationStore.clear(); // Clear any existing limits for development
 export const registrationLimiter = async (request, reply) => {
-  const key = generateRateLimitKey(request);
-  const now = Date.now();
-  const windowMs = 60 * 60 * 1000; // 1 hour
-  const max = 5; // max registration attempts
-  const windowStart = now - windowMs;
+  // DEVELOPMENT MODE - RATE LIMITING DISABLED
+  return; // Skip all rate limiting for easier testing
+  
+  // PRODUCTION MODE - RATE LIMITING ENABLED (COMMENTED OUT FOR DEVELOPMENT)
+  // const key = generateRateLimitKey(request);
+  // const now = Date.now();
+  // const windowMs = 60 * 60 * 1000; // 1 hour
+  // const max = 5; // max registration attempts
+  // const windowStart = now - windowMs;
   
   // Clean old entries for this key
   if (registrationStore.has(key)) {

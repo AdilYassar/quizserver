@@ -66,10 +66,27 @@ export const postQuizSubmission = async (req, reply) => {
         let correctAnswers = 0;
         const totalQuestions = quiz.questions.length;
         const processedAnswers = [];
+        
+        // Create a Set of quiz question IDs for validation
+        const quizQuestionIds = new Set(quiz.questions.map(q => q._id.toString()));
 
+        // Validate that all submitted answers are for questions in this quiz
+        for (const answer of answers) {
+            if (!quizQuestionIds.has(answer.question.toString())) {
+                return reply.status(400).send({
+                    message: `Question ${answer.question} does not belong to this quiz`,
+                    error: "Invalid question submission"
+                });
+            }
+        }
+
+        // Process all answers (now validated to be part of this quiz)
         for (const answer of answers) {
             const question = await Question.findById(answer.question);
-            if (!question) continue;
+            if (!question) {
+                console.log(`Question ${answer.question} not found in database`);
+                continue;
+            }
 
             const isCorrect = question.correctAnswer === answer.answer;
             if (isCorrect) correctAnswers++;
@@ -81,8 +98,11 @@ export const postQuizSubmission = async (req, reply) => {
             });
         }
 
+        // Update totalQuestions to match the actual number of questions answered
+        const actualTotalQuestions = processedAnswers.length;
+
         const score = correctAnswers;
-        const percentage = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
+        const percentage = actualTotalQuestions > 0 ? (correctAnswers / actualTotalQuestions) * 100 : 0;
         const grade = calculateGrade(percentage);
 
         // Create a new quiz submission
@@ -92,7 +112,7 @@ export const postQuizSubmission = async (req, reply) => {
             course: courseId,
             answers: processedAnswers,
             score,
-            totalQuestions,
+            totalQuestions: actualTotalQuestions,
             correctAnswers,
             percentage: Math.round(percentage * 100) / 100,
             grade,
@@ -112,7 +132,7 @@ export const postQuizSubmission = async (req, reply) => {
                 user: user._id,
                 course: courseId,
                 quiz: quizId,
-                totalMarks: totalQuestions,
+                totalMarks: actualTotalQuestions,
                 obtainedMarks: score,
                 percentage: Math.round(percentage * 100) / 100,
                 grade
@@ -133,6 +153,15 @@ export const postQuizSubmission = async (req, reply) => {
             completedAt: new Date()
         });
 
+        // Update quiz statistics - use array length for consistency
+        user.totalQuizzesTaken = user.quizPerformance.length;
+        
+        // Calculate new average score
+        const allScores = user.quizPerformance.map(perf => perf.percentage || 0);
+        user.averageScore = allScores.length > 0 
+            ? Math.round((allScores.reduce((sum, score) => sum + score, 0) / allScores.length) * 100) / 100
+            : 0;
+
         await user.save();
 
         return reply.status(201).send({
@@ -140,7 +169,7 @@ export const postQuizSubmission = async (req, reply) => {
             submission: {
                 _id: newSubmission._id,
                 score,
-                totalQuestions,
+                totalQuestions: actualTotalQuestions,
                 correctAnswers,
                 percentage: Math.round(percentage * 100) / 100,
                 grade,

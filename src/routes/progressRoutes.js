@@ -5,7 +5,14 @@ import {
     getCourseProgress,
     getUserProgressStats,
     getAllCoursesProgress,
-    getProgressLeaderboard
+    getProgressLeaderboard,
+    // New comprehensive chapter management endpoints
+    updateChapterProgressStatus,
+    getCourseChaptersWithProgress,
+    markChapterAsStarted,
+    markChapterAsInProgress,
+    markChapterAsCompleted,
+    resetChapterProgress
 } from "../controllers/Progress/progressController.js";
 import { verifyToken } from "../middleware/auth.js";
 
@@ -265,5 +272,48 @@ export const progressRoutes = async (fastify, options) => {
                 });
             }
         }
+    );
+
+    // ============================================================================
+    // NEW COMPREHENSIVE CHAPTER STATUS MANAGEMENT ROUTES
+    // ============================================================================
+
+    // Universal endpoint to update chapter status (not_started, started, in_progress, completed)
+    fastify.put(
+        '/progress/course/:courseId/chapter/:chapterId/status',
+        { preHandler: [verifyToken] },
+        updateChapterProgressStatus
+    );
+
+    // Get all chapters for a course with their progress status
+    fastify.get(
+        '/progress/course/:courseId/chapters',
+        { preHandler: [verifyToken] },
+        getCourseChaptersWithProgress
+    );
+
+    // Quick action endpoints for common status changes
+    fastify.post(
+        '/progress/course/:courseId/chapter/:chapterId/start',
+        { preHandler: [verifyToken] },
+        markChapterAsStarted
+    );
+
+    fastify.put(
+        '/progress/course/:courseId/chapter/:chapterId/progress',
+        { preHandler: [verifyToken] },
+        markChapterAsInProgress
+    );
+
+    fastify.post(
+        '/progress/course/:courseId/chapter/:chapterId/complete-new',
+        { preHandler: [verifyToken] },
+        markChapterAsCompleted
+    );
+
+    fastify.post(
+        '/progress/course/:courseId/chapter/:chapterId/reset',
+        { preHandler: [verifyToken] },
+        resetChapterProgress
     );
 };

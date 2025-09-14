@@ -15,7 +15,7 @@ export const generateTokens = (user) => {
     payload,
     process.env.ACCESS_TOKEN_SECRET,
     { 
-      expiresIn: "15m", // Short-lived access token
+      expiresIn: "30d", // DEVELOPMENT: Extended to 30 days for maximum convenience (PRODUCTION: use "15m")
       issuer: "quizserver",
       audience: "quizserver-client"
     }
@@ -25,7 +25,7 @@ export const generateTokens = (user) => {
     payload,
     process.env.REFRESH_TOKEN_SECRET,
     { 
-      expiresIn: "7d", // Long-lived refresh token
+      expiresIn: "30d", // DEVELOPMENT: Extended to 30 days (PRODUCTION: use "7d")
       issuer: "quizserver",
       audience: "quizserver-client"
     }

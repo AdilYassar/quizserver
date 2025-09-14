@@ -2,6 +2,7 @@ import UserProgress from "../../models/userProgress.js";
 import Theory from "../../models/theory.js";
 import { Student } from "../../models/user.js";
 import EnrolledCourse from "../../models/enrolledCourses.js";
+import { updateChapterStatus } from "../../utils/progressUtils.js";
 
 // Helper function to find the correct user and enrollment using UUID
 const findCorrectUserAndEnrollment = async (req, courseId, populateCourse = false) => {
@@ -261,7 +262,7 @@ export const getCourseProgress = async (req, reply) => {
 
         // Get detailed progress records
         const progressRecords = await UserProgress.find({
-            user: userId,
+            user: correctUserId,
             course: courseId
         }).sort({ createdAt: -1 });
 
@@ -320,22 +321,12 @@ export const getUserProgressStats = async (req, reply) => {
         let user = await Student.findById(userId)
             .select('name email enrolledCourses quizPerformance totalQuizzesTaken averageScore');
         
-        // If user not found by userId, try by phone
-        if (!user && req.user.phone) {
-            user = await Student.findOne({ phone: req.user.phone })
+        // If user not found by userId, try by email (more reliable fallback)
+        if (!user && req.user.email) {
+            user = await Student.findOne({ email: req.user.email })
                 .select('name email enrolledCourses quizPerformance totalQuizzesTaken averageScore');
             if (user) {
                 userId = user._id; // Update userId to the correct ID
-            }
-        }
-
-        // If still not found, try to find any user with this phone number
-        if (!user && req.user.phone) {
-            const allStudentsWithPhone = await Student.find({ phone: req.user.phone })
-                .select('name email enrolledCourses quizPerformance totalQuizzesTaken averageScore');
-            if (allStudentsWithPhone.length > 0) {
-                user = allStudentsWithPhone[0]; // Use the first one found
-                userId = user._id;
             }
         }
 
@@ -396,16 +387,15 @@ export const getAllCoursesProgress = async (req, reply) => {
             }
         }
 
-        // If still no courses found, try to find any enrollment for this phone number
-        if (enrolledCourses.length === 0 && req.user.phone) {
-            const allStudentsWithPhone = await Student.find({ phone: req.user.phone });
-            for (const student of allStudentsWithPhone) {
+        // If still no courses found, try to find by email (more reliable than phone)
+        if (enrolledCourses.length === 0 && req.user.email) {
+            const student = await Student.findOne({ email: req.user.email });
+            if (student) {
                 const courses = await EnrolledCourse.find({ user: student._id })
                     .populate('course', 'title description estimatedTime');
                 if (courses.length > 0) {
                     enrolledCourses = courses;
                     userId = student._id;
-                    break;
                 }
             }
         }
@@ -528,4 +518,195 @@ export const getProgressLeaderboard = async (req, reply) => {
             error: error.message
         });
     }
+};
+
+// ============================================================================
+// NEW COMPREHENSIVE CHAPTER STATUS MANAGEMENT ENDPOINTS
+// ============================================================================
+
+/**
+ * Update chapter status - Universal endpoint for all status changes
+ * Statuses: 'not_started', 'in_progress', 'completed'
+ */
+export const updateChapterProgressStatus = async (req, reply) => {
+    try {
+        const { courseId, chapterId } = req.params;
+        const { status, progress, timeSpent } = req.body;
+
+        // Validate status
+        const validStatuses = ['not_started', 'in_progress', 'completed'];
+        if (!status || !validStatuses.includes(status)) {
+            return reply.status(400).send({
+                message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`
+            });
+        }
+
+        // Verify enrollment
+        const { enrollment, correctUserId } = await findCorrectUserAndEnrollment(req, courseId);
+
+        if (!enrollment) {
+            return reply.status(403).send({
+                message: "You are not enrolled in this course"
+            });
+        }
+
+        // Update chapter status using utility function
+        const result = await updateChapterStatus(correctUserId, courseId, chapterId, status, {
+            progress,
+            timeSpent
+        });
+
+        if (!result.success) {
+            return reply.status(500).send({
+                message: "Failed to update chapter status",
+                error: result.error
+            });
+        }
+
+        // Update user statistics
+        await updateUserProgressStats(correctUserId);
+
+        return reply.status(200).send({
+            message: `Chapter status updated to '${status}' successfully`,
+            previousStatus: result.previousStatus,
+            currentStatus: status,
+            progress: result.progressRecord
+        });
+
+    } catch (error) {
+        console.error("Error updating chapter status:", error);
+        return reply.status(500).send({
+            message: "An error occurred while updating chapter status",
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Get all chapters for a course with their current progress status
+ */
+export const getCourseChaptersWithProgress = async (req, reply) => {
+    try {
+        const { courseId } = req.params;
+
+        // Verify enrollment
+        const { enrollment, correctUserId } = await findCorrectUserAndEnrollment(req, courseId, true);
+
+        if (!enrollment) {
+            return reply.status(403).send({
+                message: "You are not enrolled in this course"
+            });
+        }
+
+        // Get theory chapters for the course
+        const theory = await Theory.findOne({ course: courseId });
+        
+        if (!theory || !theory.chapters || theory.chapters.length === 0) {
+            return reply.status(200).send({
+                message: "No chapters found for this course",
+                course: enrollment.course,
+                chapters: [],
+                summary: {
+                    totalChapters: 0,
+                    completedChapters: 0,
+                    inProgressChapters: 0,
+                    notStartedChapters: 0,
+                    overallProgress: 0
+                }
+            });
+        }
+
+        // Get user's progress for all chapters
+        const progressRecords = await UserProgress.find({
+            user: correctUserId,
+            course: courseId
+        });
+
+        // Create a map for quick lookup
+        const progressMap = new Map();
+        progressRecords.forEach(record => {
+            progressMap.set(record.chapter.toString(), record);
+        });
+
+        // Build chapters with progress information
+        const chaptersWithProgress = theory.chapters.map(chapter => {
+            const progressRecord = progressMap.get(chapter._id.toString());
+            
+            return {
+                _id: chapter._id,
+                title: chapter.title,
+                content: chapter.content,
+                status: progressRecord ? progressRecord.status : 'not_started',
+                progress: progressRecord ? progressRecord.progress : 0,
+                timeSpent: progressRecord ? progressRecord.timeSpent : 0,
+                startedAt: progressRecord ? progressRecord.startedAt : null,
+                completedAt: progressRecord ? progressRecord.completedAt : null,
+                lastAccessedAt: progressRecord ? progressRecord.lastAccessedAt : null
+            };
+        });
+
+        // Calculate summary statistics
+        const totalChapters = chaptersWithProgress.length;
+        const completedChapters = chaptersWithProgress.filter(ch => ch.status === 'completed').length;
+        const inProgressChapters = chaptersWithProgress.filter(ch => ch.status === 'in_progress').length;
+        const startedChapters = chaptersWithProgress.filter(ch => ch.status === 'started').length;
+        const notStartedChapters = totalChapters - completedChapters - inProgressChapters - startedChapters;
+
+        const overallProgress = totalChapters > 0 
+            ? Math.round((chaptersWithProgress.reduce((sum, ch) => sum + ch.progress, 0) / totalChapters))
+            : 0;
+
+        return reply.status(200).send({
+            message: "Course chapters with progress fetched successfully",
+            course: enrollment.course,
+            chapters: chaptersWithProgress,
+            summary: {
+                totalChapters,
+                completedChapters,
+                inProgressChapters,
+                startedChapters,
+                notStartedChapters,
+                overallProgress,
+                completionPercentage: totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0
+            }
+        });
+
+    } catch (error) {
+        console.error("Error fetching course chapters with progress:", error);
+        return reply.status(500).send({
+            message: "An error occurred while fetching course chapters",
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Quick action endpoints for common status changes
+ */
+export const markChapterAsStarted = async (req, reply) => {
+    const { courseId, chapterId } = req.params;
+    req.body = { status: 'in_progress', progress: 25 }; // Use in_progress instead of started
+    return updateChapterProgressStatus(req, reply);
+};
+
+export const markChapterAsInProgress = async (req, reply) => {
+    const { courseId, chapterId } = req.params;
+    const { progress } = req.body;
+    req.body = { status: 'in_progress', progress: progress || 50 };
+    return updateChapterProgressStatus(req, reply);
+};
+
+export const markChapterAsCompleted = async (req, reply) => {
+    const { courseId, chapterId } = req.params;
+    req.body = { status: 'completed', progress: 100 };
+    return updateChapterProgressStatus(req, reply);
+};
+
+/**
+ * Reset chapter progress (for testing or admin purposes)
+ */
+export const resetChapterProgress = async (req, reply) => {
+    const { courseId, chapterId } = req.params;
+    req.body = { status: 'not_started', progress: 0, timeSpent: 0 };
+    return updateChapterProgressStatus(req, reply);
 };

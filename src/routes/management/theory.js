@@ -2,6 +2,51 @@ import Theory from '../../models/theory.js';
 import { Course } from '../../models/course.js';
 
 export default async function registerTheoryRoutes(app) {
+    // Get theory statistics
+    app.get('/api/management/theory/stats', async (request, reply) => {
+        try {
+            const [totalTheories, totalChapters, theoriesByCourse] = await Promise.all([
+                Theory.countDocuments(),
+                Theory.aggregate([
+                    { $unwind: '$chapters' },
+                    { $count: 'total' }
+                ]),
+                Theory.aggregate([
+                    {
+                        $lookup: {
+                            from: 'courses',
+                            localField: 'course',
+                            foreignField: '_id',
+                            as: 'courseInfo'
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            uniqueCourses: { $addToSet: '$course' }
+                        }
+                    },
+                    {
+                        $project: {
+                            coursesCovered: { $size: '$uniqueCourses' }
+                        }
+                    }
+                ])
+            ]);
+
+            reply.type('application/json');
+            return {
+                totalTheories,
+                totalChapters: totalChapters[0]?.total || 0,
+                coursesCovered: theoriesByCourse[0]?.coursesCovered || 0
+            };
+        } catch (error) {
+            console.error('Error fetching theory stats:', error);
+            reply.code(500);
+            return { error: 'Failed to fetch theory statistics' };
+        }
+    });
+
     // Get all theories with pagination and search
     app.get('/api/management/theory', async (request, reply) => {
         try {
@@ -31,7 +76,7 @@ export default async function registerTheoryRoutes(app) {
 
             const [theories, total] = await Promise.all([
                 Theory.find(searchQuery)
-                    .populate('course', 'title')
+                    .populate('course', 'title description estimatedTime')
                     .select('courseTitle description course chapters')
                     .sort(sort)
                     .skip(skip)

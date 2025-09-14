@@ -228,4 +228,55 @@ export default async function registerMarksSummaryRoutes(app) {
             return { error: 'Failed to delete marks summaries' };
         }
     });
+
+    // Export marks summaries as CSV
+    app.get('/api/management/marks-summary/export', async (request, reply) => {
+        try {
+            const marksSummaries = await MarksSummary.find({})
+                .populate('user', 'name email')
+                .populate('course', 'title')
+                .populate('quiz', 'title')
+                .select('user course quiz totalMarks obtainedMarks percentage grade createdAt')
+                .lean();
+
+            // Create CSV header
+            const csvHeaders = [
+                'Student Name',
+                'Student Email', 
+                'Course',
+                'Quiz',
+                'Total Marks',
+                'Obtained Marks',
+                'Percentage',
+                'Grade',
+                'Date'
+            ];
+
+            // Create CSV rows
+            const csvRows = marksSummaries.map(mark => [
+                mark.user?.name || 'N/A',
+                mark.user?.email || 'N/A',
+                mark.course?.title || 'N/A',
+                mark.quiz?.title || 'N/A',
+                mark.totalMarks || 0,
+                mark.obtainedMarks || 0,
+                `${mark.percentage || 0}%`,
+                mark.grade || 'F',
+                mark.createdAt ? new Date(mark.createdAt).toLocaleDateString() : 'N/A'
+            ]);
+
+            // Combine headers and rows
+            const csvContent = [csvHeaders, ...csvRows]
+                .map(row => row.map(field => `"${field}"`).join(','))
+                .join('\n');
+
+            reply.type('text/csv');
+            reply.header('Content-Disposition', 'attachment; filename="marks-summary.csv"');
+            return csvContent;
+        } catch (error) {
+            console.error('Error exporting marks summaries:', error);
+            reply.code(500);
+            return { error: 'Failed to export marks summaries' };
+        }
+    });
 }

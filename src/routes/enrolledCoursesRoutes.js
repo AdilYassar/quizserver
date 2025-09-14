@@ -12,11 +12,11 @@ export const enrolledCourseRoutes = async (fastify, options) => {
     // Get enrolled courses for the authenticated user
     fastify.get('/my-enrolled-courses', { preHandler: [verifyToken] }, async (req, reply) => {
         try {
-            const userPhone = req.user.phone;
+            const userId = req.user.userId; // Use userId from token instead of phone
             const { Student } = await import("../models/user.js");
             
-            // Find the student by phone number
-            const student = await Student.findOne({ phone: userPhone });
+            // Find the student by userId (more reliable than phone lookup)
+            const student = await Student.findById(userId);
             if (!student) {
                 return reply.status(404).send({
                     message: "Student not found",

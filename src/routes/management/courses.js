@@ -1,4 +1,5 @@
 import { Course } from '../../models/course.js';
+import Theory from '../../models/theory.js';
 
 export default async function registerCourseRoutes(app) {
     // Get all courses
@@ -29,9 +30,37 @@ export default async function registerCourseRoutes(app) {
                 Course.countDocuments(searchQuery)
             ]);
 
+            // Get theory counts for each course
+            const courseIds = courses.map(course => course._id);
+            const theoryCounts = await Theory.aggregate([
+                { $match: { course: { $in: courseIds } } },
+                { 
+                    $group: { 
+                        _id: '$course', 
+                        theoryCount: { $sum: 1 },
+                        chapterCount: { $sum: { $size: '$chapters' } }
+                    } 
+                }
+            ]);
+
+            // Map theory counts to courses
+            const theoryMap = {};
+            theoryCounts.forEach(count => {
+                theoryMap[count._id.toString()] = {
+                    theories: count.theoryCount,
+                    chapters: count.chapterCount
+                };
+            });
+
+            // Add theory info to courses
+            const coursesWithTheories = courses.map(course => ({
+                ...course,
+                theoryInfo: theoryMap[course._id.toString()] || { theories: 0, chapters: 0 }
+            }));
+
             reply.type('application/json');
             return {
-                data: courses,
+                data: coursesWithTheories,
                 pagination: {
                     page: parseInt(page),
                     limit: parseInt(limit),

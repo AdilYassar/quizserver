@@ -79,7 +79,7 @@ class CoursesManager {
         if (this.courses.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="empty-state">
+                    <td colspan="8" class="empty-state">
                         <i class="fas fa-book"></i>
                         <h3>No courses found</h3>
                         <p>Try adjusting your search criteria or add a new course.</p>
@@ -108,6 +108,23 @@ class CoursesManager {
                         <i class="fas fa-clock"></i>
                         ${course.estimatedTime || 0}h
                     </span>
+                </td>
+                <td>
+                    <div class="course-theories-info">
+                        ${course.theoryInfo && course.theoryInfo.theories > 0 ? 
+                            `<div class="course-theories-count">
+                                <span class="course-theories-badge">
+                                    <i class="fas fa-book-open"></i>
+                                    ${course.theoryInfo.theories} theory
+                                </span>
+                                <span class="chapters-count">${course.theoryInfo.chapters} chapters</span>
+                            </div>` :
+                            `<span class="no-theories-badge">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                No theory
+                            </span>`
+                        }
+                    </div>
                 </td>
                 <td>
                     <div class="materials-cell" title="${course.materialsNeeded || 'No materials specified'}">
@@ -185,8 +202,13 @@ class CoursesManager {
                     return created > monthAgo;
                 }).length;
 
+                // Calculate theory-related stats
+                const coursesWithTheory = courses.filter(course => 
+                    course.theoryInfo && course.theoryInfo.theories > 0
+                ).length;
+
                 document.getElementById('totalCourses').textContent = totalCourses;
-                document.getElementById('activeCourses').textContent = activeCourses;
+                document.getElementById('activeCourses').textContent = `${activeCourses} (${coursesWithTheory} with theory)`;
                 document.getElementById('newCourses').textContent = newCourses;
             }
         } catch (error) {

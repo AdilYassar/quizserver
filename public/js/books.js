@@ -1,3 +1,27 @@
+// Define genre categories
+const GENRE_CATEGORIES = {
+    fiction: [
+        'Mystery', 'Romance', 'Science Fiction', 'Fantasy', 'Thriller', 
+        'Horror', 'Historical Fiction', 'Adventure', 'Crime', 'Drama', 'Literary Fiction'
+    ],
+    nonFiction: [
+        'Biography', 'Autobiography', 'History', 'Science', 'Technology', 
+        'Business', 'Self-Help', 'Health & Fitness', 'Cooking', 'Travel', 
+        'Politics', 'Philosophy', 'Religion', 'Psychology'
+    ],
+    educational: [
+        'Textbook', 'Mathematics', 'Computer Science', 'Engineering', 'Medicine', 
+        'Law', 'Economics', 'Physics', 'Chemistry', 'Biology', 'Literature', 
+        'Language Learning', 'Art & Design', 'Music', 'Programming', 'Database Systems'
+    ],
+    children: [
+        'Picture Books', 'Early Readers', 'Middle Grade', 'Young Adult'
+    ],
+    reference: [
+        'Dictionary', 'Encyclopedia', 'Manual', 'Guide'
+    ]
+};
+
 class BooksManager {
     constructor() {
         this.books = [];
@@ -31,6 +55,94 @@ class BooksManager {
                 this.loadBooks();
             }, 500);
         });
+
+        // File upload functionality
+        this.setupFileUpload();
+    }
+
+    setupFileUpload() {
+        const fileInput = document.getElementById('pdfFile');
+        const uploadContainer = document.querySelector('.file-upload-container');
+        const uploadInfo = document.querySelector('.file-upload-info');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+
+        if (!fileInput || !uploadContainer) return;
+
+        // File input change event
+        fileInput.addEventListener('change', (e) => {
+            this.handleFileSelect(e.target.files[0]);
+        });
+
+        // Drag and drop functionality
+        uploadContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadContainer.classList.add('dragover');
+        });
+
+        uploadContainer.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadContainer.classList.remove('dragover');
+        });
+
+        uploadContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadContainer.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                this.handleFileSelect(files[0]);
+                fileInput.files = files; // Update the input
+            }
+        });
+    }
+
+    handleFileSelect(file) {
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const uploadInfo = document.querySelector('.file-upload-info');
+        const pdfFileError = document.getElementById('pdfFileError');
+
+        // Clear previous errors
+        pdfFileError.textContent = '';
+        document.getElementById('pdfFile').classList.remove('is-invalid');
+
+        if (!file) {
+            fileInfo.style.display = 'none';
+            uploadInfo.style.display = 'flex';
+            return;
+        }
+
+        // Validate file type
+        if (file.type !== 'application/pdf') {
+            this.showFieldError('pdfFile', 'Please select a PDF file');
+            return;
+        }
+
+        // Validate file size (25MB)
+        const maxSize = 25 * 1024 * 1024;
+        if (file.size > maxSize) {
+            this.showFieldError('pdfFile', 'File size must be less than 25MB');
+            return;
+        }
+
+        // Show file info
+        fileName.textContent = file.name;
+        fileSize.textContent = this.formatFileSize(file.size);
+        fileInfo.style.display = 'flex';
+        uploadInfo.style.display = 'none';
+
+        // Clear validation error if any
+        document.getElementById('pdfFile').classList.remove('is-invalid');
+    }
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
     async loadBooks() {
@@ -106,10 +218,13 @@ class BooksManager {
                 </td>
                 <td class="date-cell">${this.formatDate(book.publishedDate)}</td>
                 <td class="action-buttons-cell">
-                    <button class="btn btn-sm btn-primary" onclick="booksManager.editBook('${book._id}')">
+                    <button class="btn btn-sm btn-secondary" onclick="booksManager.viewPDF('${book._id}')" title="View PDF">
+                        <i class="fas fa-file-pdf"></i>
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="booksManager.editBook('${book._id}')" title="Edit">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-sm btn-danger" onclick="booksManager.deleteBook('${book._id}')">
+                    <button class="btn btn-sm btn-danger" onclick="booksManager.deleteBook('${book._id}')" title="Delete">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
@@ -170,6 +285,27 @@ class BooksManager {
         this.editingBook = null;
         document.getElementById('modalTitle').textContent = 'Add New Book';
         document.getElementById('bookForm').reset();
+        
+        // Reset and show file upload UI for new books
+        const fileUploadContainer = document.querySelector('.file-upload-container');
+        const fileInfo = document.getElementById('fileInfo');
+        const uploadInfo = document.querySelector('.file-upload-info');
+        const progressContainer = document.getElementById('uploadProgress');
+        const pdfFileInput = document.getElementById('pdfFile');
+        
+        // Show file upload container
+        if (fileUploadContainer) fileUploadContainer.style.display = 'block';
+        
+        // Hide file info and show upload prompt
+        if (fileInfo) fileInfo.style.display = 'none';
+        if (uploadInfo) uploadInfo.style.display = 'flex';
+        if (progressContainer) progressContainer.style.display = 'none';
+        
+        // Make PDF field required for new books
+        if (pdfFileInput) {
+            pdfFileInput.setAttribute('required', 'required');
+        }
+        
         this.clearFormValidation();
         document.getElementById('bookModal').style.display = 'block';
     }
@@ -189,59 +325,174 @@ class BooksManager {
         document.getElementById('pages').value = book.pages;
         document.getElementById('publishedDate').value = new Date(book.publishedDate).toISOString().split('T')[0];
         
+        // Hide file upload section for editing and show current PDF info
+        const fileUploadContainer = document.querySelector('.file-upload-container');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const pdfFileInput = document.getElementById('pdfFile');
+        
+        if (fileUploadContainer) fileUploadContainer.style.display = 'none';
+        
+        // Show current PDF info
+        if (fileInfo && fileName && fileSize) {
+            fileName.textContent = `${book.title}.pdf (Current PDF)`;
+            fileSize.textContent = 'Stored in database';
+            fileInfo.style.display = 'flex';
+            
+            // Add view current PDF link
+            const existingLink = fileInfo.querySelector('.view-current-pdf');
+            if (existingLink) existingLink.remove();
+            
+            const viewLink = document.createElement('button');
+            viewLink.className = 'btn btn-sm btn-secondary view-current-pdf';
+            viewLink.innerHTML = '<i class="fas fa-eye"></i> View Current PDF';
+            viewLink.style.marginLeft = 'auto';
+            viewLink.onclick = (e) => {
+                e.preventDefault();
+                this.viewPDF(book._id);
+            };
+            fileInfo.appendChild(viewLink);
+        }
+        
+        // Make PDF field not required for editing
+        if (pdfFileInput) {
+            pdfFileInput.removeAttribute('required');
+        }
+        
         this.clearFormValidation();
         document.getElementById('bookModal').style.display = 'block';
     }
 
+    viewPDF(bookId) {
+        const book = this.books.find(b => b._id === bookId);
+        if (!book) return;
+
+        // Open PDF in a new tab
+        const pdfUrl = `/api/management/books/${bookId}/pdf`;
+        window.open(pdfUrl, '_blank');
+    }
+
     async saveBook() {
         const form = document.getElementById('bookForm');
-        const formData = new FormData(form);
-
+        const fileInput = document.getElementById('pdfFile');
+        
+        // Create book data object
         const bookData = {
-            title: formData.get('title'),
-            author: formData.get('author'),
-            genre: formData.get('genre'),
-            language: formData.get('language'),
-            pages: parseInt(formData.get('pages')),
-            publishedDate: formData.get('publishedDate')
+            title: document.getElementById('title').value,
+            author: document.getElementById('author').value,
+            genre: document.getElementById('genre').value,
+            language: document.getElementById('language').value,
+            pages: parseInt(document.getElementById('pages').value),
+            publishedDate: document.getElementById('publishedDate').value
         };
 
         // Validation
-        if (!this.validateForm(bookData)) {
+        if (!this.validateForm(bookData, !this.editingBook)) {
             return;
         }
 
         try {
-            const url = this.editingBook 
-                ? `/api/management/books/${this.editingBook._id}`
-                : '/api/management/books';
-            
-            const method = this.editingBook ? 'PUT' : 'POST';
+            let url, method, requestBody, headers;
 
+            if (this.editingBook) {
+                // Update existing book (without PDF for now)
+                url = `/api/management/books/${this.editingBook._id}`;
+                method = 'PUT';
+                headers = { 'Content-Type': 'application/json' };
+                requestBody = JSON.stringify(bookData);
+            } else {
+                // Create new book with PDF
+                url = '/api/admin/management/books';
+                method = 'POST';
+                headers = { 'Content-Type': 'application/json' };
+                
+                // Convert PDF file to base64
+                if (fileInput.files[0]) {
+                    this.showUploadProgress(10);
+                    
+                    try {
+                        const pdfBase64 = await this.fileToBase64(fileInput.files[0]);
+                        bookData.pdf = pdfBase64; // Add base64 PDF to the data
+                        
+                        this.showUploadProgress(50);
+                        console.log('PDF converted to base64, size:', pdfBase64.length, 'characters');
+                    } catch (conversionError) {
+                        this.hideUploadProgress();
+                        this.showMessage('Failed to process PDF file: ' + conversionError.message, 'error');
+                        return;
+                    }
+                }
+                
+                requestBody = JSON.stringify(bookData);
+            }
+
+            // Show progress for file uploads
+            if (!this.editingBook && fileInput.files[0]) {
+                this.showUploadProgress(70);
+            }
+
+            console.log(`Making ${method} request to ${url}`);
             const response = await fetch(url, {
                 method: method,
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(bookData)
+                headers: headers,
+                body: requestBody
             });
 
+            console.log('Response status:', response.status);
             const data = await response.json();
+            console.log('Response data:', data);
 
             if (response.ok) {
+                this.hideUploadProgress();
                 this.showMessage(data.message, 'success');
                 this.closeModal();
                 await this.loadBooks();
             } else {
+                this.hideUploadProgress();
                 this.showMessage('Error: ' + data.error, 'error');
             }
         } catch (error) {
             console.error('Error saving book:', error);
+            this.hideUploadProgress();
             this.showMessage('Failed to save book', 'error');
         }
     }
 
-    validateForm(data) {
+    showUploadProgress(percent) {
+        const progressContainer = document.getElementById('uploadProgress');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        
+        if (progressContainer && progressFill && progressText) {
+            progressContainer.style.display = 'block';
+            progressFill.style.width = percent + '%';
+            progressText.textContent = Math.round(percent) + '%';
+        }
+    }
+
+    hideUploadProgress() {
+        const progressContainer = document.getElementById('uploadProgress');
+        if (progressContainer) {
+            progressContainer.style.display = 'none';
+        }
+    }
+
+    // Helper function to convert file to base64
+    fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                // Remove the data:application/pdf;base64, prefix
+                const base64 = reader.result.split(',')[1];
+                resolve(base64);
+            };
+            reader.onerror = (error) => reject(error);
+            reader.readAsDataURL(file);
+        });
+    }
+
+    validateForm(data, requirePdf = false) {
         let isValid = true;
         this.clearFormValidation();
 
@@ -281,6 +532,25 @@ class BooksManager {
             isValid = false;
         }
 
+        // PDF file validation (only for new books)
+        if (requirePdf) {
+            const fileInput = document.getElementById('pdfFile');
+            if (!fileInput.files || !fileInput.files[0]) {
+                this.showFieldError('pdfFile', 'PDF file is required');
+                isValid = false;
+            } else {
+                const file = fileInput.files[0];
+                if (file.type !== 'application/pdf') {
+                    this.showFieldError('pdfFile', 'Please select a PDF file');
+                    isValid = false;
+                }
+                if (file.size > 20 * 1024 * 1024) {
+                    this.showFieldError('pdfFile', 'File size must be less than 20MB');
+                    isValid = false;
+                }
+            }
+        }
+
         return isValid;
     }
 
@@ -315,6 +585,24 @@ class BooksManager {
         this.editingBook = null;
         document.getElementById('bookModal').style.display = 'none';
         document.getElementById('bookForm').reset();
+        
+        // Reset file upload UI to default state
+        const fileUploadContainer = document.querySelector('.file-upload-container');
+        const fileInfo = document.getElementById('fileInfo');
+        const uploadInfo = document.querySelector('.file-upload-info');
+        const progressContainer = document.getElementById('uploadProgress');
+        const pdfFileInput = document.getElementById('pdfFile');
+        
+        if (fileUploadContainer) fileUploadContainer.style.display = 'block';
+        if (fileInfo) fileInfo.style.display = 'none';
+        if (uploadInfo) uploadInfo.style.display = 'flex';
+        if (progressContainer) progressContainer.style.display = 'none';
+        if (pdfFileInput) pdfFileInput.setAttribute('required', 'required');
+        
+        // Remove any view PDF buttons
+        const viewButtons = document.querySelectorAll('.view-current-pdf');
+        viewButtons.forEach(btn => btn.remove());
+        
         this.clearFormValidation();
     }
 
@@ -481,7 +769,52 @@ class BooksManager {
     }
 
     updateStats() {
-        // Update any stats if needed
+        const totalBooks = this.books.length;
+        
+        // Categorize books by genre
+        let fictionCount = 0;
+        let nonFictionCount = 0;
+        let educationalCount = 0;
+        let recentCount = 0;
+        
+        const now = new Date();
+        const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        this.books.forEach(book => {
+            const genre = book.genre || '';
+            
+            // Check categories - including children's and reference in appropriate categories
+            if (GENRE_CATEGORIES.fiction.includes(genre) || GENRE_CATEGORIES.children.includes(genre)) {
+                fictionCount++;
+            } else if (GENRE_CATEGORIES.nonFiction.includes(genre) || GENRE_CATEGORIES.reference.includes(genre)) {
+                nonFictionCount++;
+            } else if (GENRE_CATEGORIES.educational.includes(genre)) {
+                educationalCount++;
+            } else if (genre) {
+                // For custom genres, try to categorize based on common patterns
+                const lowerGenre = genre.toLowerCase();
+                if (lowerGenre.includes('fiction') || lowerGenre.includes('novel') || lowerGenre.includes('story')) {
+                    fictionCount++;
+                } else if (lowerGenre.includes('textbook') || lowerGenre.includes('academic') || lowerGenre.includes('education')) {
+                    educationalCount++;
+                } else {
+                    // Default custom genres to non-fiction
+                    nonFictionCount++;
+                }
+            }
+            
+            // Count recent books (this month)
+            if (book.createdAt && new Date(book.createdAt) >= thisMonth) {
+                recentCount++;
+            }
+        });
+        
+        // Update UI
+        document.getElementById('totalBooks').textContent = totalBooks;
+        document.getElementById('fictionBooks').textContent = fictionCount;
+        document.getElementById('nonFictionBooks').textContent = nonFictionCount;
+        document.getElementById('educationalBooks').textContent = educationalCount;
+        document.getElementById('recentBooks').textContent = recentCount;
     }
 }
 

@@ -37,36 +37,47 @@
                             </div>
                         </div>
                         <div class="stat-value" id="totalBooks">-</div>
-                        <div class="stat-change">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>All books</span>
-                        </div>
+                        <div class="stat-change">All books</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-header">
-                            <span class="stat-title">Fiction Books</span>
+                            <span class="stat-title">Educational</span>
                             <div class="stat-icon">
-                                <i class="fas fa-book-open"></i>
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="educationalBooks">-</div>
+                        <div class="stat-change">Textbooks, Academic</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Fiction</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-magic"></i>
                             </div>
                         </div>
                         <div class="stat-value" id="fictionBooks">-</div>
-                        <div class="stat-change">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>Fiction genre</span>
-                        </div>
+                        <div class="stat-change">Stories, Novels</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-header">
                             <span class="stat-title">Non-Fiction</span>
                             <div class="stat-icon">
-                                <i class="fas fa-graduation-cap"></i>
+                                <i class="fas fa-info-circle"></i>
                             </div>
                         </div>
                         <div class="stat-value" id="nonFictionBooks">-</div>
-                        <div class="stat-change">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>Educational</span>
+                        <div class="stat-change">Facts, Real Life</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Recent</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
                         </div>
+                        <div class="stat-value" id="recentBooks">-</div>
+                        <div class="stat-change">This Month</div>
                     </div>
                 </div>
 
@@ -146,12 +157,89 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="genre" class="form-label">Genre *</label>
-                            <input type="text" id="genre" name="genre" class="form-control" required>
+                            <input type="text" id="genre" name="genre" class="form-control" list="genreOptions" placeholder="Select from list or enter custom genre" required>
+                            <datalist id="genreOptions">
+                                <!-- Fiction Genres -->
+                                <option value="Mystery">
+                                <option value="Romance">
+                                <option value="Science Fiction">
+                                <option value="Fantasy">
+                                <option value="Thriller">
+                                <option value="Horror">
+                                <option value="Historical Fiction">
+                                <option value="Adventure">
+                                <option value="Crime">
+                                <option value="Drama">
+                                <option value="Literary Fiction">
+                                <!-- Non-Fiction Genres -->
+                                <option value="Biography">
+                                <option value="Autobiography">
+                                <option value="History">
+                                <option value="Science">
+                                <option value="Technology">
+                                <option value="Business">
+                                <option value="Self-Help">
+                                <option value="Health & Fitness">
+                                <option value="Cooking">
+                                <option value="Travel">
+                                <option value="Politics">
+                                <option value="Philosophy">
+                                <option value="Religion">
+                                <option value="Psychology">
+                                <!-- Educational Genres -->
+                                <option value="Textbook">
+                                <option value="Mathematics">
+                                <option value="Computer Science">
+                                <option value="Engineering">
+                                <option value="Medicine">
+                                <option value="Law">
+                                <option value="Economics">
+                                <option value="Physics">
+                                <option value="Chemistry">
+                                <option value="Biology">
+                                <option value="Literature">
+                                <option value="Language Learning">
+                                <option value="Art & Design">
+                                <option value="Music">
+                                <option value="Programming">
+                                <option value="Database Systems">
+                                <!-- Children's Books -->
+                                <option value="Picture Books">
+                                <option value="Early Readers">
+                                <option value="Middle Grade">
+                                <option value="Young Adult">
+                                <!-- Reference -->
+                                <option value="Dictionary">
+                                <option value="Encyclopedia">
+                                <option value="Manual">
+                                <option value="Guide">
+                            </datalist>
                             <div class="invalid-feedback" id="genreError"></div>
                         </div>
                         <div class="form-group">
                             <label for="language" class="form-label">Language *</label>
-                            <input type="text" id="language" name="language" class="form-control" required>
+                            <select id="language" name="language" class="form-control" required>
+                                <option value="">Select a language</option>
+                                <option value="English">English</option>
+                                <option value="Spanish">Spanish</option>
+                                <option value="French">French</option>
+                                <option value="German">German</option>
+                                <option value="Italian">Italian</option>
+                                <option value="Portuguese">Portuguese</option>
+                                <option value="Chinese">Chinese</option>
+                                <option value="Japanese">Japanese</option>
+                                <option value="Korean">Korean</option>
+                                <option value="Arabic">Arabic</option>
+                                <option value="Russian">Russian</option>
+                                <option value="Hindi">Hindi</option>
+                                <option value="Urdu">Urdu</option>
+                                <option value="Bengali">Bengali</option>
+                                <option value="Dutch">Dutch</option>
+                                <option value="Swedish">Swedish</option>
+                                <option value="Norwegian">Norwegian</option>
+                                <option value="Danish">Danish</option>
+                                <option value="Other">Other</option>
+                            </select>
                             <div class="invalid-feedback" id="languageError"></div>
                         </div>
                     </div>
@@ -165,6 +253,28 @@
                             <label for="publishedDate" class="form-label">Published Date *</label>
                             <input type="date" id="publishedDate" name="publishedDate" class="form-control" required>
                             <div class="invalid-feedback" id="publishedDateError"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="pdfFile" class="form-label">PDF File *</label>
+                        <div class="file-upload-container">
+                            <input type="file" id="pdfFile" name="pdfFile" class="form-control file-input" accept=".pdf">
+                            <div class="file-upload-info">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>Choose PDF file (Max 20MB)</span>
+                            </div>
+                            <div class="file-upload-progress" id="uploadProgress" style="display: none;">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progressFill"></div>
+                                </div>
+                                <span class="progress-text" id="progressText">0%</span>
+                            </div>
+                        </div>
+                        <div class="invalid-feedback" id="pdfFileError"></div>
+                        <div class="file-info" id="fileInfo" style="display: none;">
+                            <i class="fas fa-file-pdf"></i>
+                            <span id="fileName"></span>
+                            <span id="fileSize"></span>
                         </div>
                     </div>
                 </form>

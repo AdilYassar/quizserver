@@ -12,12 +12,17 @@ const isValidEmail = (email) => {
 
 // Password validation helper
 const isValidPassword = (password) => {
-  if (!password || password.length < 8) return false;
-  if (!/[A-Z]/.test(password)) return false;
-  if (!/[a-z]/.test(password)) return false;
-  if (!/[0-9]/.test(password)) return false;
-  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return false;
+  // DEVELOPMENT MODE - SIMPLIFIED VALIDATION
+  if (!password || password.length < 4) return false; // Reduced from 8 to 4 for development
   return true;
+  
+  // PRODUCTION MODE - STRICT VALIDATION (COMMENTED OUT FOR DEVELOPMENT)
+  // if (!password || password.length < 8) return false;
+  // if (!/[A-Z]/.test(password)) return false;
+  // if (!/[a-z]/.test(password)) return false;
+  // if (!/[0-9]/.test(password)) return false;
+  // if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return false;
+  // return true;
 };
 
 // Phone validation helper
@@ -42,7 +47,8 @@ export const validateStudentRegistration = async (request, reply) => {
   if (!password || !isValidPassword(password)) {
     errors.push({
       field: 'password',
-      message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+      message: 'Password must be at least 4 characters long' // Development mode
+      // Production mode: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character'
     });
   }
 

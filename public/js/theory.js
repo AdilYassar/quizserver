@@ -8,6 +8,8 @@ class TheoryManager {
         this.sortOrder = 'asc';
         this.selectedTheories = new Set();
         this.editingTheory = null;
+        this.chapters = [];
+        this.editingChapterIndex = -1;
         
         this.init();
     }
@@ -15,6 +17,7 @@ class TheoryManager {
     async init() {
         await this.loadTheories();
         await this.loadCourses();
+        await this.loadStats();
         this.setupEventListeners();
     }
 
@@ -77,6 +80,29 @@ class TheoryManager {
         }
     }
 
+    async loadStats() {
+        try {
+            const response = await fetch('/api/management/theory/stats');
+            const data = await response.json();
+            
+            if (response.ok) {
+                this.updateStatsDisplay(data);
+            }
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        }
+    }
+
+    updateStatsDisplay(stats) {
+        const totalTheoriesEl = document.getElementById('totalTheories');
+        const totalChaptersEl = document.getElementById('totalChapters');
+        const coursesCoveredEl = document.getElementById('coursesCovered');
+
+        if (totalTheoriesEl) totalTheoriesEl.textContent = stats.totalTheories || '0';
+        if (totalChaptersEl) totalChaptersEl.textContent = stats.totalChapters || '0';
+        if (coursesCoveredEl) coursesCoveredEl.textContent = stats.coursesCovered || '0';
+    }
+
     populateCourseSelect() {
         const select = document.getElementById('courseId');
         if (!select || !this.courses) return;
@@ -118,13 +144,37 @@ class TheoryManager {
                     <div class="theory-title">${this.highlightSearch(theory.courseTitle)}</div>
                 </td>
                 <td>
-                    <div class="course-title">${theory.course ? theory.course.title : 'N/A'}</div>
+                    <div class="course-info">
+                        <div class="course-title">${theory.course ? theory.course.title : 'N/A'}</div>
+                        ${theory.course && theory.course.estimatedTime ? 
+                            `<div class="course-duration"><i class="fas fa-clock"></i> ${theory.course.estimatedTime} hrs</div>` : 
+                            ''
+                        }
+                        ${theory.course && theory.course.description ? 
+                            `<div class="course-description">${theory.course.description.substring(0, 60)}${theory.course.description.length > 60 ? '...' : ''}</div>` : 
+                            ''
+                        }
+                    </div>
                 </td>
                 <td>
-                    <span class="chapters-count">
-                        <i class="fas fa-list"></i>
-                        ${theory.chapters ? theory.chapters.length : 0}
-                    </span>
+                    <div class="chapters-info">
+                        <span class="chapters-count">
+                            <i class="fas fa-list"></i>
+                            ${theory.chapters ? theory.chapters.length : 0} chapters
+                        </span>
+                        ${theory.chapters && theory.chapters.length > 0 ? 
+                            `<div class="chapters-preview">
+                                ${theory.chapters.slice(0, 2).map(chapter => 
+                                    `<span class="chapter-badge">${chapter.title}</span>`
+                                ).join('')}
+                                ${theory.chapters.length > 2 ? 
+                                    `<span class="more-chapters">+${theory.chapters.length - 2} more</span>` : 
+                                    ''
+                                }
+                            </div>` : 
+                            '<div class="no-chapters">No chapters yet</div>'
+                        }
+                    </div>
                 </td>
                 <td>
                     <div class="theory-description">${theory.description || 'No description'}</div>
@@ -189,8 +239,10 @@ class TheoryManager {
 
     openCreateModal() {
         this.editingTheory = null;
+        this.chapters = [];
         document.getElementById('modalTitle').textContent = 'Add New Theory';
         document.getElementById('theoryForm').reset();
+        this.renderChaptersList();
         this.clearFormValidation();
         document.getElementById('theoryModal').style.display = 'block';
     }
@@ -206,6 +258,10 @@ class TheoryManager {
         document.getElementById('courseId').value = theory.course ? theory.course._id : '';
         document.getElementById('description').value = theory.description || '';
         
+        // Load existing chapters
+        this.chapters = theory.chapters || [];
+        this.renderChaptersList();
+        
         this.clearFormValidation();
         document.getElementById('theoryModal').style.display = 'block';
     }
@@ -218,7 +274,7 @@ class TheoryManager {
             courseTitle: formData.get('courseTitle'),
             courseId: formData.get('courseId'),
             description: formData.get('description'),
-            chapters: []
+            chapters: this.chapters
         };
 
         if (!this.validateForm(theoryData)) {
@@ -246,6 +302,7 @@ class TheoryManager {
                 this.showMessage(data.message, 'success');
                 this.closeModal();
                 await this.loadTheories();
+                await this.loadStats(); // Refresh stats after save
             } else {
                 this.showMessage('Error: ' + data.error, 'error');
             }
@@ -321,6 +378,7 @@ class TheoryManager {
             if (response.ok) {
                 this.showMessage(data.message, 'success');
                 await this.loadTheories();
+                await this.loadStats(); // Refresh stats after delete
             } else {
                 this.showMessage('Error: ' + data.error, 'error');
             }
@@ -349,6 +407,7 @@ class TheoryManager {
                 this.selectedTheories.clear();
                 this.updateBulkActions();
                 await this.loadTheories();
+                await this.loadStats(); // Refresh stats after bulk delete
             } else {
                 this.showMessage('Error: ' + data.error, 'error');
             }
@@ -433,6 +492,166 @@ class TheoryManager {
         
         const regex = new RegExp(`(${this.searchTerm})`, 'gi');
         return text.replace(regex, '<span class="search-highlight">$1</span>');
+    }
+
+    // Chapter Management Methods
+    renderChaptersList() {
+        const chaptersList = document.getElementById('chaptersList');
+        const chaptersCountText = document.querySelector('.chapters-count-text');
+        
+        if (this.chapters.length === 0) {
+            chaptersList.innerHTML = '';
+            chaptersCountText.textContent = 'No chapters added yet';
+            return;
+        }
+
+        chaptersCountText.textContent = `${this.chapters.length} chapter${this.chapters.length === 1 ? '' : 's'}`;
+        
+        chaptersList.innerHTML = this.chapters.map((chapter, index) => `
+            <div class="chapter-item" data-index="${index}">
+                <div class="chapter-content">
+                    <div class="chapter-header">
+                        <span class="chapter-number">${index + 1}</span>
+                        <span class="chapter-title">${chapter.title}</span>
+                    </div>
+                    <div class="chapter-preview">${this.truncateText(chapter.content, 100)}</div>
+                </div>
+                <div class="chapter-actions">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="theoryManager.editChapter(${index})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="theoryManager.deleteChapter(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    ${index > 0 ? `<button type="button" class="btn btn-sm btn-outline-secondary" onclick="theoryManager.moveChapter(${index}, 'up')">
+                        <i class="fas fa-arrow-up"></i>
+                    </button>` : ''}
+                    ${index < this.chapters.length - 1 ? `<button type="button" class="btn btn-sm btn-outline-secondary" onclick="theoryManager.moveChapter(${index}, 'down')">
+                        <i class="fas fa-arrow-down"></i>
+                    </button>` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    addChapter() {
+        this.editingChapterIndex = -1;
+        document.getElementById('chapterModalTitle').textContent = 'Add Chapter';
+        document.getElementById('chapterForm').reset();
+        this.clearChapterFormValidation();
+        document.getElementById('chapterModal').style.display = 'block';
+    }
+
+    editChapter(index) {
+        const chapter = this.chapters[index];
+        if (!chapter) return;
+
+        this.editingChapterIndex = index;
+        document.getElementById('chapterModalTitle').textContent = 'Edit Chapter';
+        document.getElementById('chapterTitle').value = chapter.title;
+        document.getElementById('chapterContent').value = chapter.content;
+        this.clearChapterFormValidation();
+        document.getElementById('chapterModal').style.display = 'block';
+    }
+
+    saveChapter() {
+        const form = document.getElementById('chapterForm');
+        const formData = new FormData(form);
+
+        const chapterData = {
+            title: formData.get('chapterTitle'),
+            content: formData.get('chapterContent'),
+            course: document.getElementById('courseId').value // Get course from main form
+        };
+
+        if (!this.validateChapterForm(chapterData)) {
+            return;
+        }
+
+        if (this.editingChapterIndex >= 0) {
+            // Edit existing chapter
+            this.chapters[this.editingChapterIndex] = chapterData;
+        } else {
+            // Add new chapter
+            this.chapters.push(chapterData);
+        }
+
+        this.renderChaptersList();
+        this.closeChapterModal();
+    }
+
+    deleteChapter(index) {
+        if (confirm('Are you sure you want to delete this chapter?')) {
+            this.chapters.splice(index, 1);
+            this.renderChaptersList();
+        }
+    }
+
+    moveChapter(index, direction) {
+        const newIndex = direction === 'up' ? index - 1 : index + 1;
+        
+        if (newIndex >= 0 && newIndex < this.chapters.length) {
+            const temp = this.chapters[index];
+            this.chapters[index] = this.chapters[newIndex];
+            this.chapters[newIndex] = temp;
+            this.renderChaptersList();
+        }
+    }
+
+    closeChapterModal() {
+        this.editingChapterIndex = -1;
+        document.getElementById('chapterModal').style.display = 'none';
+        document.getElementById('chapterForm').reset();
+        this.clearChapterFormValidation();
+    }
+
+    validateChapterForm(data) {
+        let isValid = true;
+        this.clearChapterFormValidation();
+
+        if (!data.title || data.title.trim().length === 0) {
+            this.showChapterFieldError('chapterTitle', 'Chapter title is required');
+            isValid = false;
+        }
+
+        if (!data.content || data.content.trim().length === 0) {
+            this.showChapterFieldError('chapterContent', 'Chapter content is required');
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    showChapterFieldError(fieldName, message) {
+        const field = document.getElementById(fieldName);
+        const errorDiv = document.getElementById(fieldName + 'Error');
+        
+        if (field) {
+            field.classList.add('is-invalid');
+        }
+        if (errorDiv) {
+            errorDiv.textContent = message;
+        }
+    }
+
+    clearChapterFormValidation() {
+        const fields = ['chapterTitle', 'chapterContent'];
+        fields.forEach(fieldName => {
+            const field = document.getElementById(fieldName);
+            const errorDiv = document.getElementById(fieldName + 'Error');
+            
+            if (field) {
+                field.classList.remove('is-invalid', 'is-valid');
+            }
+            if (errorDiv) {
+                errorDiv.textContent = '';
+            }
+        });
+    }
+
+    truncateText(text, maxLength) {
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
     }
 
     showMessage(message, type = 'info') {
