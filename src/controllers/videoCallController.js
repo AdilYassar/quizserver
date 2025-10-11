@@ -1,354 +1,285 @@
 import Session from "../models/session.js";
 
 const webRTCSignalingSocket = (io) => {
-    console.log("🚀 WebRTC Signaling Socket Controller Initialized");
-    
-    // Track connected clients
-    const connectedClients = new Map();
-    
-    io.on("connection", (socket) => {
-        console.log("✅ userConnected:", socket.id);
-        connectedClients.set(socket.id, { 
-            socketId: socket.id, 
-            connectedAt: new Date(),
-            userId: null,
-            sessionId: null 
-        });
-        console.log(`📊 Total connected clients: ${connectedClients.size}`);
+  io.on("connection", (socket) => {
+    console.log("User connected:", socket.id);
 
-        // Event: Prepare Session
-        socket.on("prepare-session", async ({ sessionId, userId }) => {
-            console.log(`📋 user ${userId} is preparing session ${sessionId}`);
-            
-            // Update client tracking
-            if (connectedClients.has(socket.id)) {
-                connectedClients.get(socket.id).userId = userId;
-                connectedClients.get(socket.id).sessionId = sessionId;
-            }
-            
-            if (sessionId) {
-                socket.join(sessionId);
-                console.log(`🚪 user ${userId} joined session ${sessionId}`);
+    socket.on("prepare-session", async ({ sessionId, userId }) => {
+      console.log(`User ${userId} is preparing to join session ${sessionId}`);
 
-                const session = await findSessionById(sessionId);
-                if (session) {
-                    console.log(`✅ Session ${sessionId} found with ${session.participants.length} participants`);
-                    // Emit session info to the user
-                    socket.emit("session-info", {
-                        participants: session.participants,
-                    });
-                } else {
-                    console.log(`❌ Session ${sessionId} not found for user ${userId}`);
-                    socket.emit("error", { message: "Session not found" });
-                }
+      const session = await Session.findOne({ sessionId });
+      if (session) {
+        socket.join(sessionId);
+        console.log(`User ${userId} is observing session ${sessionId}`);
 
-                // Handle user disconnect
-                socket.on("disconnect", async () => {
-                    console.log(`🔌 user ${userId} disconnected from session ${sessionId}`);
-                    await handleUserDisconnect(sessionId, userId, socket.id);
-                });
-            } else {
-                console.log(`❌ user ${userId} - invalid session ${sessionId}`);
-                socket.emit("error", { message: "Session not found" });
-            }
+        socket.emit("session-info", {
+          participants: session?.participants,
         });
 
-        // Event: Join Session
-        socket.on("join-session", async ({ sessionId, userId, name, photo, micOn, videoOn }) => {
-            console.log(`📞 user ${userId} is joining session ${sessionId}`);
-            console.log(`👤 User details: name="${name}", micOn=${micOn}, videoOn=${videoOn}`);
-            
-            const session = await findSessionById(sessionId);
-            if (session) {
-                console.log(`🎯 Session ${sessionId} found, adding participant...`);
-                
-                // Add or update the participant in the session
-                await addOrUpdateParticipant(session, userId, name, photo, micOn, videoOn, socket.id);
-                socket.join(sessionId);
-                console.log(`✅ user ${userId} successfully joined session ${sessionId}`);
-
-                // Update client tracking
-                if (connectedClients.has(socket.id)) {
-                    const client = connectedClients.get(socket.id);
-                    client.userId = userId;
-                    client.sessionId = sessionId;
-                    client.name = name;
-                }
-
-                // Get updated session
-                const updatedSession = await findSessionById(sessionId);
-                const newParticipant = updatedSession.participants?.find((i) => i.userId === userId);
-                
-                console.log(`📢 Broadcasting new participant to session ${sessionId}:`, {
-                    userId,
-                    name,
-                    socketId: socket.id
-                });
-
-                // Notify all participants about the new participant
-                io.to(sessionId).emit("new-participant", newParticipant);
-
-                // Send session info to the user
-                socket.emit("session-info", { participants: updatedSession.participants });
-                console.log(`📊 Session ${sessionId} now has ${updatedSession.participants.length} participants`);
-            } else {
-                console.log(`❌ user ${userId} - session ${sessionId} not found`);
-                socket.emit("error", { message: "Session not found" });
-            }
-        });
-
-        // Event: Get Current Room Info
-        socket.on("current-room", async ({ sessionId }) => {
-            console.log(`📊 Getting current room info for session ${sessionId}`);
-            const session = await findSessionById(sessionId);
-            if (session) {
-                // Send current room info to the user
-                socket.emit("current-room-info", {
-                    participants: session.participants,
-                    chat: session.chat,
-                });
-                console.log(`✅ Sent current room info for session ${sessionId}`);
-            } else {
-                console.log(`❌ Session ${sessionId} not found for current-room request`);
-                socket.emit("error", { message: "Session not found" });
-            }
-        });
-
-        // Event: Send Offer (WebRTC)
-        socket.on("send-offer", ({ sessionId, offer, toUserId }) => {
-            console.log(`📡 WebRTC OFFER: ${socket.id} → ${toUserId} in session ${sessionId}`);
-            console.log(`🔄 Offer type: ${offer?.type}, SDP length: ${offer?.sdp?.length || 0} chars`);
-            
-            // Forward the offer to the recipient
-            socket.to(toUserId).emit("receive-offer", { offer, fromUserId: socket.id });
-            console.log(`✅ Offer forwarded to ${toUserId}`);
-        });
-
-        // Event: Send Answer (WebRTC)
-        socket.on("send-answer", ({ sessionId, answer, toUserId }) => {
-            console.log(`📡 WebRTC ANSWER: ${socket.id} → ${toUserId} in session ${sessionId}`);
-            console.log(`🔄 Answer type: ${answer?.type}, SDP length: ${answer?.sdp?.length || 0} chars`);
-            
-            // Forward the answer to the recipient
-            socket.to(toUserId).emit("receive-answer", { answer, fromUserId: socket.id });
-            console.log(`✅ Answer forwarded to ${toUserId}`);
-        });
-
-        // Event: Send ICE Candidate (WebRTC)
-        socket.on("send-ice-candidate", ({ sessionId, candidate, toUserId }) => {
-            console.log(`🧊 ICE CANDIDATE: ${socket.id} → ${toUserId} in session ${sessionId}`);
-            console.log(`🔄 Candidate: ${candidate?.candidate?.substring(0, 50)}...`);
-            
-            // Forward the ICE candidate to the recipient
-            socket.to(toUserId).emit("receive-ice-candidate", { candidate, fromUserId: socket.id });
-            console.log(`✅ ICE candidate forwarded to ${toUserId}`);
-        });
-
-        // Event: Hang Up (End Call)
-        socket.on("hang-up", async ({ sessionId, userId }) => {
-            console.log(`📵 HANG UP: user ${userId} hung up in session ${sessionId}`);
-            console.log(`🔄 Cleaning up connection for ${userId} (${socket.id})`);
-            
-            // Handle user disconnect and update the session
-            await handleUserDisconnect(sessionId, userId, socket.id);
-            socket.emit("call-ended");
-            console.log(`✅ Call ended for user ${userId}`);
-        });
-
-        // Event: Toggle Microphone
-        socket.on("toggle-mic", async ({ sessionId, userId, micOn }) => {
-            console.log(`🎤 MIC TOGGLE: user ${userId} toggled mic to ${micOn} in session ${sessionId}`);
-            
-            const session = await findSessionById(sessionId);
-            if (session) {
-                // Update the participant's mic state in the session
-                await updateParticipant(session, userId, { micOn });
-                const updatedParticipant = session.participants.find((p) => p.userId === userId);
-                
-                // Notify all participants about the update
-                io.to(sessionId).emit("participant-updated", updatedParticipant);
-                console.log(`✅ Mic state updated and broadcasted for ${userId}`);
-            } else {
-                console.log(`❌ Session ${sessionId} not found for mic toggle`);
-            }
-        });
-
-        // Event: Toggle Video
-        socket.on("toggle-video", async ({ sessionId, userId, videoOn }) => {
-            console.log(`📹 VIDEO TOGGLE: user ${userId} toggled video to ${videoOn} in session ${sessionId}`);
-            
-            const session = await findSessionById(sessionId);
-            if (session) {
-                // Update the participant's video state in the session
-                await updateParticipant(session, userId, { videoOn });
-                const updatedParticipant = session.participants.find((p) => p.userId === userId);
-                
-                // Notify all participants about the update
-                io.to(sessionId).emit("participant-updated", updatedParticipant);
-                console.log(`✅ Video state updated and broadcasted for ${userId}`);
-            } else {
-                console.log(`❌ Session ${sessionId} not found for video toggle`);
-            }
-        });
-
-        // Event: Send Message
-        socket.on("send-message", async ({ sessionId, userId, message }) => {
-            console.log(`💬 CHAT MESSAGE: user ${userId} in session ${sessionId}`);
-            console.log(`📝 Message: "${message}"`);
-            
-            const session = await findSessionById(sessionId);
-            if (session) {
-                const participant = session.participants.find((p) => p.userId === userId);
-                if (participant) {
-                    // Add the message to the session's chat
-                    const chatMessage = {
-                        userId,
-                        name: participant.name,
-                        photo: participant.photo,
-                        message,
-                        timestamp: new Date(),
-                    };
-                    session.chat.push(chatMessage);
-                    await session.save();
-
-                    // Broadcast the message to all participants
-                    io.to(sessionId).emit("new-message", chatMessage);
-                    console.log(`✅ Message broadcasted to ${session.participants.length} participants in session ${sessionId}`);
-                } else {
-                    console.log(`❌ Participant ${userId} not found in session ${sessionId}`);
-                }
-            } else {
-                console.log(`❌ Session ${sessionId} not found for message`);
-            }
-        });
-
-        // Event: Leave Session
-        socket.on("leave-session", async ({ sessionId, userId }) => {
-            console.log(`🚪 LEAVE SESSION: user ${userId} leaving session ${sessionId}`);
-            
-            // Handle user disconnect and update the session
-            await handleUserDisconnect(sessionId, userId, socket.id);
-            console.log(`✅ User ${userId} successfully left session ${sessionId}`);
-        });
-
-        // Event: Disconnect
         socket.on("disconnect", async () => {
-            console.log(`🔌 DISCONNECT: user disconnected: ${socket.id}`);
-            
-            // Get client info before removing
-            const clientInfo = connectedClients.get(socket.id);
-            if (clientInfo) {
-                console.log(`📊 Disconnected client info:`, {
-                    socketId: socket.id,
-                    userId: clientInfo.userId,
-                    sessionId: clientInfo.sessionId,
-                    connectedDuration: Date.now() - clientInfo.connectedAt.getTime()
-                });
-                
-                // If user was in a session, handle disconnect
-                if (clientInfo.sessionId && clientInfo.userId) {
-                    await handleUserDisconnect(clientInfo.sessionId, clientInfo.userId, socket.id);
-                }
-                
-                connectedClients.delete(socket.id);
-            }
-            
-            console.log(`📊 Remaining connected clients: ${connectedClients.size}`);
+          console.log(
+            `Observer ${userId} disconnected from session ${sessionId}`
+          );
         });
+      } else {
+        console.log(`Session with ID ${sessionId} not found`);
+        socket.emit("error", { message: "Session not found" });
+      }
     });
 
-    // Helper function to find a session by ID
-    const findSessionById = async (sessionId) => {
-        return await Session.findOne({ sessionId });
-    };
-
-    // Helper function to add or update a participant in a session
-    const addOrUpdateParticipant = async (session, userId, name, photo, micOn, videoOn, socketId) => {
-        console.log(`🔄 Adding/updating participant ${userId} in session ${session.sessionId}`);
-        
-        const existingParticipant = session.participants.findIndex(
-            (p) => p.userId === userId
+    socket.on(
+      "join-session",
+      async ({ sessionId, userId, name, photo, micOn, videoOn }) => {
+        console.log(
+          `User ${name} (${userId}) is attempting to join session ${sessionId}`
         );
-        
-        if (existingParticipant !== -1) {
-            console.log(`🔄 Updating existing participant ${userId}`);
-            // Update existing participant
-            session.participants[existingParticipant] = {
-                ...session.participants[existingParticipant],
-                name: name || session.participants[existingParticipant].name,
-                photo: photo || session.participants[existingParticipant].photo,
-                micOn: micOn !== undefined ? micOn : session.participants[existingParticipant].micOn,
-                videoOn: videoOn !== undefined ? videoOn : session.participants[existingParticipant].videoOn,
-                socketId: socketId,
+
+        const session = await Session.findOne({ sessionId });
+        if (session) {
+          const existingParticipantIndex = session.participants.findIndex(
+            (p) => p.userId === userId
+          );
+
+          if (existingParticipantIndex !== -1) {
+            session.participants[existingParticipantIndex] = {
+              ...session.participants[existingParticipantIndex],
+              name: name || session.participants[existingParticipantIndex].name,
+              photo:
+                photo || session.participants[existingParticipantIndex].photo,
+              micOn: micOn,
+              videoOn: videoOn,
+              socketId: socket.id,
             };
-        } else {
-            console.log(`➕ Adding new participant ${userId}`);
-            // Add new participant
+          } else {
             const participant = {
-                userId,
-                name,
-                photo,
-                micOn,
-                videoOn,
-                socketId: socketId,
+              userId,
+              name,
+              photo,
+              socketId: socket.id,
+              micOn: micOn,
+              videoOn: videoOn,
             };
             session.participants.push(participant);
-        }
-        
-        await session.save(); // Save the updated session to the database
-        console.log(`✅ Participant ${userId} saved to session ${session.sessionId}`);
-    };
+          }
 
-    // Helper function to update a participant's properties
-    const updateParticipant = async (session, userId, updates) => {
-        console.log(`🔄 Updating participant ${userId} in session ${session.sessionId}:`, updates);
-        
-        const participant = session.participants.find((p) => p.userId === userId);
-        if (participant) {
-            // Update participant properties
-            Object.assign(participant, updates);
-            await session.save(); // Save the updated session to the database
-            console.log(`✅ Participant ${userId} updated successfully`);
+          await session.save();
+          socket.join(sessionId);
+
+          console.log(
+            `User ${name} (${userId}) has joined session ${sessionId}`
+          );
+
+          io.to(sessionId).emit(
+            "new-participant",
+            session.participants?.find((i) => i.userId === userId)
+          );
+          io.to(sessionId).emit("session-info", {
+            participants: session.participants,
+          });
         } else {
-            console.log(`❌ Participant ${userId} not found for update`);
+          console.log(`Session with ID ${sessionId} not found`);
+          socket.emit("error", { message: "Session not found" });
         }
-    };
+      }
+    );
 
-    // Helper function to handle user disconnect
-    const handleUserDisconnect = async (sessionId, userId, socketId) => {
-        try {
-            console.log(`🔄 HANDLING DISCONNECT: ${userId} from session ${sessionId}`);
-            
-            const session = await findSessionById(sessionId);
-            if (session) {
-                const participantIndex = session.participants.findIndex((p) => p.userId === userId);
-                if (participantIndex !== -1) {
-                    // Remove the participant from the session
-                    const [participant] = session.participants.splice(participantIndex, 1);
-                    
-                    console.log(`👋 Removing participant: ${participant.name} (${userId})`);
-                    
-                    // Use findOneAndUpdate to avoid version conflicts
-                    const updatedSession = await Session.findOneAndUpdate(
-                        { sessionId },
-                        { $pull: { participants: { userId } } },
-                        { new: true }
-                    );
+    socket.on("current-room", async ({ sessionId }) => {
+      console.log(`Asking for room participants`);
+      const session = await Session.findOne({ sessionId });
 
-                    // Notify all participants about the participant leaving
-                    io.to(sessionId).emit("participant-left", participant);
-                    console.log(`� Broadcasted participant-left event for ${userId} to session ${sessionId}`);
-                    console.log(`📊 Session ${sessionId} now has ${updatedSession?.participants.length || 0} participants`);
-                } else {
-                    console.log(`⚠️ Participant ${userId} not found in session ${sessionId} participants list`);
-                }
-            } else {
-                console.log(`⚠️ Session ${sessionId} not found during disconnect`);
-            }
-        } catch (error) {
-            console.error(`❌ Error handling user disconnect for ${userId}:`, error.message);
+      io.to(sessionId).emit("all-participants", session?.participants);
+    });
+
+    socket.on("send-offer", async ({ sessionId, sender, receiver, offer }) => {
+      console.log(
+        `User ${sender} is sending an offer ${receiver} to session ${sessionId}`
+      );
+      io.to(sessionId).emit("receive-offer", { sender, receiver, offer });
+    });
+
+    socket.on(
+      "send-answer",
+      async ({ sessionId, sender, receiver, answer }) => {
+        console.log(
+          `User ${sender} is sending an answer to ${receiver} session ${sessionId}`
+        );
+        io.to(sessionId).emit("receive-answer", { sender, receiver, answer });
+      }
+    );
+
+    socket.on(
+      "send-ice-candidate",
+      async ({ sessionId, sender, receiver, candidate }) => {
+        console.log(
+          `User ${sender} is sending ICE candidate  to  ${receiver}  session ${sessionId}`
+        );
+        io.to(sessionId).emit("receive-ice-candidate", {
+          sender,
+          receiver,
+          candidate,
+        });
+      }
+    );
+
+    socket.on("toggle-mute", async ({ sessionId, userId }) => {
+      console.log(`User ${userId} is toggling mute in session ${sessionId}`);
+      const session = await Session.findOne({ sessionId });
+      if (session) {
+        const participant = session.participants.find(
+          (p) => p.userId === userId
+        );
+        if (participant) {
+          participant.micOn = !participant.micOn;
+          await session.save();
+          console.log(
+            `User ${userId} is now ${participant.micOn ? "micOn" : "unmicOn"}`
+          );
+          io.to(sessionId).emit("participant-update", participant);
         }
-    };
+      }
+    });
+
+    socket.on("toggle-video", async ({ sessionId, userId }) => {
+      console.log(`User ${userId} is toggling video in session ${sessionId}`);
+      const session = await Session.findOne({ sessionId });
+      if (session) {
+        const participant = session.participants.find(
+          (p) => p.userId === userId
+        );
+        if (participant) {
+          participant.videoOn = !participant.videoOn;
+          await session.save();
+          console.log(
+            `User ${userId} has turned their video ${
+              participant.videoOn ? "off" : "on"
+            }`
+          );
+
+          io.to(sessionId).emit("participant-update", participant);
+        }
+      }
+    });
+
+    socket.on("send-emoji", async ({ sessionId, userId, emoji }) => {
+      console.log(
+        `User ${userId} is sending emoji "${emoji}" in session ${sessionId}`
+      );
+      const session = await Session.findOne({ sessionId });
+      if (session) {
+        const participant = session.participants.find(
+          (p) => p.userId === userId
+        );
+        if (participant) {
+          io.to(sessionId).emit("emoji-update", {
+            name: participant?.name,
+            emoji: emoji,
+          });
+          console.log(`Emoji "${emoji}" sent by user ${userId}`);
+        }
+      }
+    });
+
+    socket.on("send-chat", async ({ sessionId, userId, message }) => {
+      console.log(
+        `User ${userId} is sending chat "${message}" in session ${sessionId}`
+      );
+      const session = await Session.findOne({ sessionId });
+      if (session) {
+        const participant = session.participants.find(
+          (p) => p.userId === userId
+        );
+        if (participant) {
+          io.to(sessionId).emit("receive-chat", {
+            userId: userId,
+            name: participant?.name,
+            message: message,
+          });
+          console.log(`Message "${message}" sent by user ${userId}`);
+        }
+      }
+    });
+
+    socket.on("hang-up", async () => {
+      console.log("User Hang Up:", socket.id);
+
+      const sessions = await Session.find();
+
+      for (const session of sessions) {
+        const participantIndex = session?.participants?.findIndex(
+          (p) => p?.socketId === socket?.id
+        );
+
+        if (participantIndex !== -1) {
+          const participant = session?.participants[participantIndex];
+          session.participants.splice(participantIndex, 1);
+          await session.save();
+
+          console.log(
+            `User ${participant.name} (${participant.userId}) left session ${session.sessionId}`
+          );
+          io.to(session.sessionId).emit("session-info", {
+            participants: session?.participants,
+          });
+          io.to(session.sessionId).emit("participant-left", participant.userId);
+
+          break;
+        }
+      }
+    });
+
+    socket.on("disconnect", async () => {
+      console.log("User disconnected:", socket.id);
+
+      const sessions = await Session.find();
+      for (const session of sessions) {
+        const participantIndex = session?.participants?.findIndex(
+          (p) => p?.socketId === socket?.id
+        );
+
+        if (participantIndex !== -1) {
+          const participant = session?.participants[participantIndex];
+          session.participants.splice(participantIndex, 1);
+          await session.save();
+
+          console.log(
+            `User ${participant.name} (${participant.userId}) left session ${session.sessionId}`
+          );
+          io.to(session.sessionId).emit("session-info", {
+            participants: session?.participants,
+          });
+          io.to(session.sessionId).emit("participant-left", participant.userId);
+
+          break;
+        }
+      }
+    });
+  });
 };
 
+// Create a new session
+const createSession = async (request, reply) => {
+  try {
+    const sessionId = Math.random().toString(36).substr(2, 9);
+    const session = new Session({ sessionId, participants: [] });
+    await session.save();
+    return reply.send({ sessionId });
+  } catch (error) {
+    console.log(error);
+    return reply.status(500).send({ error: "Failed to create session" });
+  }
+};
+
+// Check if session is alive
+const isSessionAlive = async (request, reply) => {
+  try {
+    const { sessionId } = request.query;
+    const session = await Session.findOne({ sessionId });
+    return reply.send({ isAlive: !!session });
+  } catch (error) {
+    console.log(error);
+    return reply.status(500).send({ error: "Failed to check session" });
+  }
+};
+
+export { createSession, isSessionAlive };
 export default webRTCSignalingSocket;

@@ -24,7 +24,7 @@ export const registerRoutes = async (fastify) => {
     fastify.register(bookRoutes, { prefix: prefix });
     fastify.register(Branches, { prefix: prefix });
     fastify.register(theoryRoutes);
-    fastify.register(videoCallRoutes, { prefix: prefix });
+    fastify.register(videoCallRoutes); // Removed prefix so endpoints are /create-session and /is-alive
 
     
 };

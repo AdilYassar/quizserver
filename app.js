@@ -17,7 +17,7 @@ import webRTCSignalingSocket from "./src/controllers/videoCallController.js";
 import notFoundMiddleware from "./src/middleware/notFoundMiddleware.js";
 import errorHandlerMiddleware from "./src/middleware/errorHandlerMiddleware.js";
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 const start = async () => {
     try {
