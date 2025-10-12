@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Submissions Management - Quiz Server</title>
+    <link rel="stylesheet" href="css/management-shared.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="management-container">
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <h1 class="page-title">Quiz Submissions Management</h1>
+                <a href="/custom-dashboard" class="admin-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+
+            <div class="content">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <h1>Quiz Submissions Management</h1>
+                    <p>Review and manage quiz submissions in the system.</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Total Submissions</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalSubmissions">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>All submissions</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Completed</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="completedSubmissions">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Finished quizzes</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Average Score</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="averageScore">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Overall performance</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="action-bar">
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search by student, course, or quiz...">
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-danger" onclick="bulkDelete()" id="bulkDeleteBtn" disabled>
+                            <i class="fas fa-trash"></i>
+                            Delete Selected
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Submissions Table -->
+                <div class="table-container">
+                    <table class="table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                            </th>
+                            <th>Student</th>
+                            <th>Course</th>
+                            <th>Quiz</th>
+                            <th>Score</th>
+                            <th>Grade</th>
+                            <th>Status</th>
+                            <th>Started At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="submissionsTableBody">
+                        <tr>
+                            <td colspan="9" class="loading">
+                                <div class="spinner"></div>
+                                Loading submissions...
+                            </td>
+                        </tr>
+                    </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="pagination">
+                    <!-- Pagination buttons will be generated here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination">
+                <!-- Pagination buttons will be generated here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- View Submission Modal -->
+    <div id="submissionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Quiz Submission Details</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="submissionDetails">
+                    <!-- Submission details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/quiz-submissions.js"></script>
+</body>
+</html>

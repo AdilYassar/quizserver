@@ -1,0 +1,421 @@
+/* Courses Management Specific Styles */
+:root {
+    --color-slate-900: #1e293b;
+    --color-slate-700: #334155;
+    --color-indigo-600: #4f46e5;
+    --color-coral-400: #ffa586;
+    --color-red-600: #dc2626;
+    --color-red-900: #7f1d1d;
+}
+
+/* Course title styling */
+.course-title {
+    font-weight: 500;
+    color: var(--color-slate-900);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Description styling */
+.course-description {
+    color: var(--color-slate-700);
+    font-size: 13px;
+    line-height: 1.4;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* Duration badge */
+.duration-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--color-indigo-600);
+    color: white;
+}
+
+/* Materials styling */
+.materials-cell {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--color-slate-700);
+    font-size: 13px;
+}
+
+/* Steps container */
+.steps-container {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    background: #f8fafc;
+}
+
+.step-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.step-item:last-child {
+    margin-bottom: 0;
+}
+
+.step-input {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/* Course cards for mobile view */
+.course-cards {
+    display: none;
+}
+
+.course-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.course-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.course-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.course-card-title {
+    font-weight: 500;
+    color: var(--color-slate-900);
+    font-size: 16px;
+    line-height: 1.3;
+    margin: 0;
+}
+
+.course-card-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.course-card-body {
+    margin-bottom: 16px;
+}
+
+.course-card-description {
+    color: var(--color-slate-700);
+    font-size: 14px;
+    line-height: 1.4;
+    margin-bottom: 12px;
+}
+
+.course-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.course-card-duration {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--color-indigo-600);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.course-card-materials {
+    color: var(--color-slate-700);
+    font-size: 12px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.course-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.course-card-date {
+    color: #64748b;
+    font-size: 12px;
+}
+
+/* Table responsive behavior */
+@media (max-width: 1024px) {
+    .table-container {
+        display: none;
+    }
+    
+    .course-cards {
+        display: block;
+    }
+}
+
+/* Form enhancements */
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-group input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.form-group input[type="number"]::-webkit-outer-spin-button,
+.form-group input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+/* Step management */
+.step-item {
+    position: relative;
+}
+
+.step-item .btn {
+    padding: 6px 8px;
+    min-width: auto;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Course status indicators */
+.course-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.course-status.active {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.course-status.draft {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.course-status.archived {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: white;
+}
+
+/* Loading states for course cards */
+.course-card.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.course-card.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e2e8f0;
+    border-top: 2px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Search highlighting for course content */
+.search-highlight {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+/* Empty state for courses */
+.empty-state i {
+    font-size: 48px;
+    color: #cbd5e1;
+    margin-bottom: 16px;
+}
+
+.empty-state h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 24px;
+}
+
+/* Course preview modal */
+.course-preview {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.course-preview h3 {
+    color: #1e293b;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.course-preview p {
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+.course-preview .course-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.course-preview .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.course-preview .steps-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.course-preview .steps-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.course-preview .steps-list li:last-child {
+    border-bottom: none;
+}
+
+.course-preview .steps-list li::before {
+    content: counter(step-counter);
+    counter-increment: step-counter;
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 24px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 12px;
+}
+
+.course-preview .steps-list {
+    counter-reset: step-counter;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .course-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .course-card-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .course-card-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .course-card-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+}
+
+/* Animation for course cards */
+@keyframes slideInFromBottom {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.course-card {
+    animation: slideInFromBottom 0.3s ease;
+}
+
+/* Custom scrollbar for steps container */
+.steps-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.steps-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.steps-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 3px;
+}
+
+.steps-container::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #5a67d8, #6b46c1);
+}

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sessions Management - Quiz Server</title>
+    <link rel="stylesheet" href="css/management-shared.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="management-container">
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <h1 class="page-title">Sessions Management</h1>
+                <a href="/custom-dashboard" class="admin-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+
+            <div class="content">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <h1>Sessions Management</h1>
+                    <p>Manage user sessions and activity in the system.</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Total Sessions</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalSessions">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>All sessions</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Active Sessions</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-play-circle"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="activeSessions">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Currently active</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Participants</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalParticipants">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Total users</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="action-bar">
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search sessions by ID or participant name...">
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-danger" onclick="bulkDelete()" id="bulkDeleteBtn" disabled>
+                            <i class="fas fa-trash"></i>
+                            Delete Selected
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sessions Table -->
+                <div class="table-container">
+                    <table class="table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                            </th>
+                            <th>Session ID</th>
+                            <th>Participants</th>
+                            <th>Messages</th>
+                            <th>Created At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sessionsTableBody">
+                        <tr>
+                            <td colspan="6" class="loading">
+                                <div class="spinner"></div>
+                                Loading sessions...
+                            </td>
+                        </tr>
+                    </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="pagination">
+                    <!-- Pagination buttons will be generated here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Confirm Delete</h2>
+                <span class="close" onclick="closeDeleteModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the selected sessions? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmBulkDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/sessions.js"></script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courses Management - Quiz Server</title>
+    <link rel="stylesheet" href="css/management-shared.css">
+    <link rel="stylesheet" href="css/courses.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="management-container">
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <h1 class="page-title">Courses Management</h1>
+                <a href="/custom-dashboard" class="admin-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+
+            <div class="content">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <h1>Courses Management</h1>
+                    <p>Manage all courses in the system. Create, edit, and organize course content.</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Total Courses</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-book"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalCourses">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>All courses</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Active Courses</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-book-open"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="activeCourses">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>With theory content</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">New This Month</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="newCourses">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Recent additions</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="action-bar">
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search courses by title or description...">
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="openCreateModal()">
+                            <i class="fas fa-plus"></i>
+                            Add Course
+                        </button>
+                        <button class="btn btn-danger" onclick="bulkDelete()" id="bulkDeleteBtn" disabled>
+                            <i class="fas fa-trash"></i>
+                            Delete Selected
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Courses Table -->
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                                </th>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Duration</th>
+                                <th>Theory Content</th>
+                                <th>Materials</th>
+                                <th>Created At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coursesTableBody">
+                            <tr>
+                                <td colspan="8" class="loading">
+                                    <div class="spinner"></div>
+                                    Loading courses...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="pagination">
+                    <!-- Pagination buttons will be generated here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create/Edit Course Modal -->
+    <div id="courseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Add New Course</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="courseForm">
+                    <div class="form-group">
+                        <label for="title" class="form-label">Course Title *</label>
+                        <input type="text" id="title" name="title" class="form-control" required>
+                        <div class="invalid-feedback" id="titleError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description" class="form-label">Description *</label>
+                        <textarea id="description" name="description" class="form-control" rows="4" required></textarea>
+                        <div class="invalid-feedback" id="descriptionError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="estimatedTime" class="form-label">Estimated Time (hours)</label>
+                        <input type="number" id="estimatedTime" name="estimatedTime" class="form-control" min="0" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label for="materialsNeeded" class="form-label">Materials Needed</label>
+                        <textarea id="materialsNeeded" name="materialsNeeded" class="form-control" rows="3" placeholder="List materials separated by commas"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="steps" class="form-label">Course Steps</label>
+                        <div id="stepsContainer">
+                            <div class="step-item">
+                                <input type="text" name="steps" class="form-control step-input" placeholder="Enter step description">
+                                <button type="button" class="btn btn-sm btn-danger" onclick="removeStep(this)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="addStep()">
+                            <i class="fas fa-plus"></i>
+                            Add Step
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveCourse()">
+                    <i class="fas fa-save"></i>
+                    Save Course
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Confirm Delete</h2>
+                <span class="close" onclick="closeDeleteModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this course? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                    <i class="fas fa-trash"></i>
+                    Delete Course
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/courses.js"></script>
+</body>
+</html>

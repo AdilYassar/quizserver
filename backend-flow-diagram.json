@@ -1,0 +1,410 @@
+{
+  "app_name": "Quiz Server Backend",
+  "description": "Complete user flow and data relationships in the quiz server backend",
+  "version": "1.0.0",
+  "user_flow": {
+    "authentication": {
+      "student_login": {
+        "endpoint": "POST /api/student/login",
+        "input": {
+          "phone": "string",
+          "email": "string"
+        },
+        "output": {
+          "accessToken": "JWT token",
+          "refreshToken": "JWT token",
+          "student": "user object with enrolledCourses, quizPerformance"
+        },
+        "creates": "Student record if not exists",
+        "updates": "User profile with login timestamp"
+      },
+      "admin_login": {
+        "endpoint": "POST /api/admin/login",
+        "input": {
+          "phone": "string",
+          "email": "string"
+        },
+        "output": {
+          "accessToken": "JWT token",
+          "refreshToken": "JWT token",
+          "admin": "admin object"
+        }
+      }
+    },
+    "course_management": {
+      "enroll_in_course": {
+        "endpoint": "POST /api/enrollCourses",
+        "authentication": "required",
+        "input": {
+          "courseId": "ObjectId"
+        },
+        "process": [
+          "1. Validate course exists",
+          "2. Check if already enrolled",
+          "3. Create EnrolledCourse record",
+          "4. Add course to user.enrolledCourses array",
+          "5. Update user.enrollmentCount",
+          "6. Return enrollment details"
+        ],
+        "output": {
+          "enrollment": "EnrolledCourse object",
+          "user": "updated user with enrollmentCount"
+        },
+        "updates": [
+          "EnrolledCourse collection",
+          "Student.enrolledCourses array",
+          "Student.enrollmentCount"
+        ]
+      },
+      "get_user_courses": {
+        "endpoint": "GET /api/my-enrolled-courses",
+        "authentication": "required",
+        "output": {
+          "enrolledCourses": "array of courses with details",
+          "count": "number of enrolled courses"
+        }
+      },
+      "get_all_courses": {
+        "endpoint": "GET /api/courses",
+        "output": {
+          "courses": "array of all available courses"
+        }
+      }
+    },
+    "quiz_flow": {
+      "get_available_quizzes": {
+        "endpoint": "GET /api/allquiz",
+        "output": {
+          "quizzes": "array of all quizzes with category info"
+        }
+      },
+      "get_quiz_details": {
+        "endpoint": "GET /api/quiz/:quizId",
+        "output": {
+          "quiz": "quiz object with category details"
+        }
+      },
+      "get_quiz_questions": {
+        "endpoint": "GET /api/quiz/:quizId/questions",
+        "output": {
+          "questions": "array of questions for the quiz"
+        }
+      },
+      "submit_quiz": {
+        "endpoint": "POST /api/quiz-submission",
+        "authentication": "required",
+        "input": {
+          "quizId": "ObjectId",
+          "answers": [
+            {
+              "question": "ObjectId",
+              "answer": "string"
+            }
+          ],
+          "courseId": "ObjectId (optional)",
+          "timeSpent": "number (seconds)"
+        },
+        "process": [
+          "1. Validate quiz and user exist",
+          "2. Calculate score by comparing answers",
+          "3. Determine grade based on percentage",
+          "4. Create QuizSubmission record",
+          "5. Create/update MarksSummary record",
+          "6. Update user.quizPerformance array",
+          "7. Update user.totalQuizzesTaken",
+          "8. Update user.averageScore"
+        ],
+        "output": {
+          "submission": {
+            "score": "number",
+            "totalQuestions": "number",
+            "correctAnswers": "number",
+            "percentage": "number",
+            "grade": "string (A+, A, B+, etc.)",
+            "attemptNumber": "number",
+            "timeSpent": "number"
+          },
+          "marksSummary": {
+            "totalMarks": "number",
+            "obtainedMarks": "number",
+            "percentage": "number",
+            "grade": "string"
+          }
+        },
+        "updates": [
+          "QuizSubmission collection",
+          "MarksSummary collection",
+          "Student.quizPerformance array",
+          "Student.totalQuizzesTaken",
+          "Student.averageScore"
+        ]
+      },
+      "get_user_submissions": {
+        "endpoint": "GET /api/my-submissions",
+        "authentication": "required",
+        "output": {
+          "submissions": "array of user's quiz submissions",
+          "count": "number of submissions"
+        }
+      },
+      "get_submission_details": {
+        "endpoint": "GET /api/submission/:submissionId",
+        "output": {
+          "quizSubmission": "detailed submission with quiz and user info"
+        }
+      }
+    },
+    "marks_and_analytics": {
+      "get_quiz_marks_summary": {
+        "endpoint": "GET /api/quiz/:quizId/marks",
+        "output": {
+          "summary": {
+            "quizTitle": "string",
+            "totalAttempts": "number",
+            "highestMarks": "number",
+            "lowestMarks": "number",
+            "averageMarks": "number",
+            "attempts": "array of student attempts"
+          }
+        }
+      },
+      "get_user_profile": {
+        "endpoint": "GET /api/user",
+        "authentication": "required",
+        "output": {
+          "student": {
+            "enrolledCourses": "array of enrolled courses",
+            "enrollmentCount": "number",
+            "quizPerformance": "array of quiz results",
+            "totalQuizzesTaken": "number",
+            "averageScore": "number"
+          }
+        }
+      },
+      "get_enrollment_stats": {
+        "endpoint": "GET /api/user/enrollment-stats",
+        "authentication": "required",
+        "output": {
+          "stats": {
+            "totalEnrollments": "number",
+            "enrolledCourses": "array of course details",
+            "lastEnrollment": "most recent course"
+          }
+        }
+      }
+    }
+  },
+  "data_models": {
+    "Student": {
+      "fields": {
+        "name": "string",
+        "email": "string",
+        "phone": "string (unique)",
+        "role": "string (Student)",
+        "enrolledCourses": "array of ObjectIds (ref: Course)",
+        "enrollmentCount": "number",
+        "quizPerformance": "array of quiz results",
+        "totalQuizzesTaken": "number",
+        "averageScore": "number"
+      },
+      "relationships": {
+        "enrolledCourses": "references Course collection",
+        "quizPerformance": "contains quiz results",
+        "submissions": "has many QuizSubmission records"
+      }
+    },
+    "Course": {
+      "fields": {
+        "title": "string",
+        "description": "string",
+        "estimatedTime": "string",
+        "materialsNeeded": "string",
+        "steps": "array of course steps"
+      },
+      "relationships": {
+        "enrollments": "has many EnrolledCourse records",
+        "quizzes": "can have multiple quizzes"
+      }
+    },
+    "EnrolledCourse": {
+      "fields": {
+        "user": "ObjectId (ref: Student)",
+        "course": "ObjectId (ref: Course)",
+        "enrolledAt": "Date"
+      },
+      "relationships": {
+        "user": "belongs to Student",
+        "course": "belongs to Course"
+      }
+    },
+    "Quiz": {
+      "fields": {
+        "title": "string",
+        "questions": "array of ObjectIds (ref: Question)",
+        "category": "ObjectId (ref: Category)",
+        "difficulty": "string (easy, medium, hard)",
+        "duration": "number (minutes)",
+        "isPublished": "boolean",
+        "publishedAt": "Date",
+        "expiresAt": "Date"
+      },
+      "relationships": {
+        "questions": "has many Question records",
+        "category": "belongs to Category",
+        "submissions": "has many QuizSubmission records"
+      }
+    },
+    "Question": {
+      "fields": {
+        "text": "string",
+        "options": "array of strings",
+        "correctAnswer": "string",
+        "quiz": "ObjectId (ref: Quiz)"
+      },
+      "relationships": {
+        "quiz": "belongs to Quiz"
+      }
+    },
+    "QuizSubmission": {
+      "fields": {
+        "user": "ObjectId (ref: Student)",
+        "quiz": "ObjectId (ref: Quiz)",
+        "course": "ObjectId (ref: Course, optional)",
+        "answers": "array of answer objects",
+        "score": "number",
+        "totalQuestions": "number",
+        "correctAnswers": "number",
+        "percentage": "number",
+        "grade": "string",
+        "startedAt": "Date",
+        "completedAt": "Date",
+        "timeSpent": "number (seconds)",
+        "status": "string (pending, completed, abandoned)",
+        "attemptNumber": "number"
+      },
+      "relationships": {
+        "user": "belongs to Student",
+        "quiz": "belongs to Quiz",
+        "course": "belongs to Course (optional)"
+      }
+    },
+    "MarksSummary": {
+      "fields": {
+        "user": "ObjectId (ref: Student)",
+        "course": "ObjectId (ref: Course)",
+        "quiz": "ObjectId (ref: Quiz)",
+        "totalMarks": "number",
+        "obtainedMarks": "number",
+        "percentage": "number",
+        "grade": "string"
+      },
+      "relationships": {
+        "user": "belongs to Student",
+        "course": "belongs to Course",
+        "quiz": "belongs to Quiz"
+      }
+    },
+    "Category": {
+      "fields": {
+        "name": "string",
+        "image": "string",
+        "isQuizCategory": "boolean"
+      },
+      "relationships": {
+        "quizzes": "has many Quiz records"
+      }
+    }
+  },
+  "data_flow": {
+    "user_enrollment_flow": [
+      "1. User logs in → gets JWT token",
+      "2. User views available courses → GET /api/courses",
+      "3. User enrolls in course → POST /api/enrollCourses",
+      "4. System creates EnrolledCourse record",
+      "5. System updates Student.enrolledCourses array",
+      "6. System updates Student.enrollmentCount",
+      "7. User can view enrolled courses → GET /api/my-enrolled-courses"
+    ],
+    "quiz_taking_flow": [
+      "1. User views available quizzes → GET /api/allquiz",
+      "2. User selects quiz → GET /api/quiz/:quizId",
+      "3. User gets quiz questions → GET /api/quiz/:quizId/questions",
+      "4. User submits answers → POST /api/quiz-submission",
+      "5. System calculates score and grade",
+      "6. System creates QuizSubmission record",
+      "7. System creates/updates MarksSummary record",
+      "8. System updates Student.quizPerformance array",
+      "9. System updates Student.totalQuizzesTaken and averageScore",
+      "10. User can view submission results → GET /api/my-submissions"
+    ],
+    "marks_tracking_flow": [
+      "1. Quiz submission triggers marks calculation",
+      "2. MarksSummary record created/updated with latest attempt",
+      "3. Student.quizPerformance array updated with new result",
+      "4. Student statistics (totalQuizzesTaken, averageScore) updated",
+      "5. Admin can view quiz performance → GET /api/quiz/:quizId/marks",
+      "6. User can view their profile with all performance data → GET /api/user"
+    ]
+  },
+  "api_endpoints": {
+    "authentication": [
+      "POST /api/student/login",
+      "POST /api/admin/login",
+      "POST /api/refresh-token"
+    ],
+    "user_management": [
+      "GET /api/user",
+      "GET /api/user/enrollment-stats",
+      "PATCH /api/user"
+    ],
+    "course_management": [
+      "GET /api/courses",
+      "POST /api/courses",
+      "POST /api/enrollCourses",
+      "GET /api/enrolled-courses",
+      "GET /api/my-enrolled-courses"
+    ],
+    "quiz_management": [
+      "GET /api/allquiz",
+      "GET /api/quiz/:quizId",
+      "GET /api/quiz/:quizId/questions",
+      "POST /api/quiz/:quizId/question",
+      "GET /api/question/:questionId",
+      "PATCH /api/question/:questionId",
+      "DELETE /api/question/:questionId"
+    ],
+    "quiz_submission": [
+      "POST /api/quiz-submission",
+      "GET /api/my-submissions",
+      "GET /api/submission/:submissionId"
+    ],
+    "marks_and_analytics": [
+      "GET /api/quiz/:quizId/marks"
+    ]
+  },
+  "critical_bugs_fixed": [
+    "1. Added missing user field to QuizSubmission model",
+    "2. Implemented automatic score calculation in quiz submission",
+    "3. Added proper linking between quiz submissions and marks summaries",
+    "4. Added authentication to quiz submission routes",
+    "5. Added quizPerformance tracking to user profile",
+    "6. Fixed duplicate enrollment prevention logic",
+    "7. Added comprehensive error handling and validation",
+    "8. Added attempt number tracking for multiple quiz attempts",
+    "9. Added grade calculation based on percentage",
+    "10. Added time tracking for quiz completion"
+  ],
+  "security_features": [
+    "JWT token authentication for protected routes",
+    "User authorization checks before data access",
+    "Input validation for all endpoints",
+    "Proper error handling without sensitive data exposure",
+    "Rate limiting on authentication endpoints"
+  ],
+  "performance_optimizations": [
+    "Database indexes on frequently queried fields",
+    "Population of related data to reduce queries",
+    "Efficient aggregation for statistics",
+    "Proper error handling to prevent crashes"
+  ]
+}

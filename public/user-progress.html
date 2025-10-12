@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Progress Management - Quiz Server</title>
+    <link rel="stylesheet" href="css/management-shared.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="management-container">
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <h1 class="page-title">User Progress Management</h1>
+                <a href="/custom-dashboard" class="admin-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+
+            <div class="content">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <h1>User Progress Management</h1>
+                    <p>Track and manage user progress across courses in the system.</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Total Progress</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalProgress">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>All progress records</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Completed</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-check-double"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="completedProgress">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Finished chapters</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">In Progress</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="inProgress">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Currently studying</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="action-bar">
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search by student, course, or chapter...">
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-danger" onclick="bulkDelete()" id="bulkDeleteBtn" disabled>
+                            <i class="fas fa-trash"></i>
+                            Delete Selected
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Progress Table -->
+                <div class="table-container">
+                    <table class="table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                            </th>
+                            <th>Student</th>
+                            <th>Course</th>
+                            <th>Chapter</th>
+                            <th>Status</th>
+                            <th>Progress</th>
+                            <th>Time Spent</th>
+                            <th>Last Accessed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="progressTableBody">
+                        <tr>
+                            <td colspan="9" class="loading">
+                                <div class="spinner"></div>
+                                Loading progress records...
+                            </td>
+                        </tr>
+                    </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="pagination">
+                    <!-- Pagination buttons will be generated here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Progress Modal -->
+    <div id="progressModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Progress</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="progressForm">
+                    <div class="form-group">
+                        <label for="status" class="form-label">Status *</label>
+                        <select id="status" name="status" class="form-control" required>
+                            <option value="not_started">Not Started</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                        <div class="invalid-feedback" id="statusError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="completionPercentage" class="form-label">Completion Percentage *</label>
+                        <input type="number" id="completionPercentage" name="completionPercentage" 
+                               class="form-control" min="0" max="100" required>
+                        <div class="invalid-feedback" id="completionPercentageError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="timeSpent" class="form-label">Time Spent (minutes)</label>
+                        <input type="number" id="timeSpent" name="timeSpent" 
+                               class="form-control" min="0">
+                        <div class="invalid-feedback" id="timeSpentError"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveProgress()">
+                    <i class="fas fa-save"></i>
+                    Save Progress
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/user-progress.js"></script>
+</body>
+</html>

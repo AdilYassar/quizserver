@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theory Management - Quiz Server</title>
+    <link rel="stylesheet" href="css/management-shared.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="management-container">
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <h1 class="page-title">Theory Management</h1>
+                <a href="/custom-dashboard" class="admin-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+
+            <div class="content">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <h1>Theory Management</h1>
+                    <p>Manage theoretical content and chapters in the system.</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Total Theories</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-book-open"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalTheories">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>All theories</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Total Chapters</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-list-ol"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalChapters">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>All chapters</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Courses Covered</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="coursesCovered">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>With theory content</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="action-bar">
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search by course title or description...">
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="openCreateModal()">
+                            <i class="fas fa-plus"></i>
+                            Add Theory
+                        </button>
+                        <button class="btn btn-danger" onclick="bulkDelete()" id="bulkDeleteBtn" disabled>
+                            <i class="fas fa-trash"></i>
+                            Delete Selected
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Theory Table -->
+                <div class="table-container">
+                    <table class="table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                            </th>
+                            <th>Course Title</th>
+                            <th>Course</th>
+                            <th>Chapters</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="theoryTableBody">
+                        <tr>
+                            <td colspan="6" class="loading">
+                                <div class="spinner"></div>
+                                Loading theory content...
+                            </td>
+                        </tr>
+                    </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="pagination">
+                    <!-- Pagination buttons will be generated here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination">
+                <!-- Pagination buttons will be generated here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Create/Edit Theory Modal -->
+    <div id="theoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Add New Theory</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="theoryForm">
+                    <div class="form-group">
+                        <label for="courseTitle" class="form-label">Course Title *</label>
+                        <input type="text" id="courseTitle" name="courseTitle" class="form-control" required>
+                        <div class="invalid-feedback" id="courseTitleError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="courseId" class="form-label">Course *</label>
+                        <select id="courseId" name="courseId" class="form-control" required>
+                            <option value="">Select a course...</option>
+                        </select>
+                        <div class="invalid-feedback" id="courseIdError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea id="description" name="description" class="form-control" rows="3"></textarea>
+                        <div class="invalid-feedback" id="descriptionError"></div>
+                    </div>
+
+                    <!-- Chapters Management Section -->
+                    <div class="form-group">
+                        <label class="form-label">Chapters</label>
+                        <div class="chapters-management">
+                            <div class="chapters-header">
+                                <span class="chapters-count-text">No chapters added yet</span>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="theoryManager.addChapter()">
+                                    <i class="fas fa-plus"></i> Add Chapter
+                                </button>
+                            </div>
+                            <div class="chapters-list" id="chaptersList">
+                                <!-- Chapters will be dynamically added here -->
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveTheory()">
+                    <i class="fas fa-save"></i>
+                    Save Theory
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chapter Edit Modal -->
+    <div id="chapterModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="chapterModalTitle">Add Chapter</h2>
+                <span class="close" onclick="theoryManager.closeChapterModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="chapterForm">
+                    <div class="form-group">
+                        <label for="chapterTitle" class="form-label">Chapter Title *</label>
+                        <input type="text" id="chapterTitle" name="chapterTitle" class="form-control" required>
+                        <div class="invalid-feedback" id="chapterTitleError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="chapterContent" class="form-label">Chapter Content *</label>
+                        <textarea id="chapterContent" name="chapterContent" class="form-control" rows="8" required 
+                                  placeholder="Enter the chapter content here..."></textarea>
+                        <div class="invalid-feedback" id="chapterContentError"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="theoryManager.closeChapterModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="theoryManager.saveChapter()">
+                    <i class="fas fa-save"></i>
+                    Save Chapter
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/theory.js"></script>
+</body>
+</html>
