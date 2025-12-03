@@ -79,10 +79,10 @@ class CoursesManager {
         if (this.courses.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="empty-state">
-                        <i class="fas fa-book"></i>
-                        <h3>No courses found</h3>
-                        <p>Try adjusting your search criteria or add a new course.</p>
+                    <td colspan="8" class="text-center py-10 text-gray-600">
+                        <i class="fas fa-book text-4xl mb-4 text-gray-400"></i>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">No courses found</h3>
+                        <p class="text-sm text-gray-600">Try adjusting your search criteria or add a new course.</p>
                     </td>
                 </tr>
             `;
@@ -90,55 +90,57 @@ class CoursesManager {
         }
 
         tbody.innerHTML = this.courses.map(course => `
-            <tr>
-                <td>
+            <tr class="transition-all duration-200 hover:bg-gray-100">
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
                     <input type="checkbox" 
                            value="${course._id}" 
                            onchange="coursesManager.toggleCourseSelection('${course._id}')"
                            ${this.selectedCourses.has(course._id) ? 'checked' : ''}>
                 </td>
-                <td>
-                    <div class="course-title">${this.highlightSearch(course.title)}</div>
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
+                    <div class="font-semibold text-gray-900">${this.highlightSearch(course.title)}</div>
                 </td>
-                <td>
-                    <div class="course-description">${this.highlightSearch(course.description)}</div>
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
+                    <div class="text-gray-700">${this.highlightSearch(course.description)}</div>
                 </td>
-                <td>
-                    <span class="duration-badge">
-                        <i class="fas fa-clock"></i>
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
+                    <span class="inline-flex items-center gap-1 text-gray-700">
+                        <i class="fas fa-clock text-xs"></i>
                         ${course.estimatedTime || 0}h
                     </span>
                 </td>
-                <td>
-                    <div class="course-theories-info">
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
+                    <div class="flex flex-col gap-1">
                         ${course.theoryInfo && course.theoryInfo.theories > 0 ? 
-                            `<div class="course-theories-count">
-                                <span class="course-theories-badge">
-                                    <i class="fas fa-book-open"></i>
+                            `<div class="flex items-center gap-1 text-sm text-gray-600">
+                                <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-xl text-xs font-medium border border-blue-200 flex items-center gap-1">
+                                    <i class="fas fa-book-open text-xs"></i>
                                     ${course.theoryInfo.theories} theory
                                 </span>
-                                <span class="chapters-count">${course.theoryInfo.chapters} chapters</span>
+                                <span class="text-xs text-gray-600 italic">${course.theoryInfo.chapters} chapters</span>
                             </div>` :
-                            `<span class="no-theories-badge">
-                                <i class="fas fa-exclamation-triangle"></i>
+                            `<span class="bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded-xl text-xs font-medium border border-yellow-200 flex items-center gap-1 w-fit">
+                                <i class="fas fa-exclamation-triangle text-xs"></i>
                                 No theory
                             </span>`
                         }
                     </div>
                 </td>
-                <td>
-                    <div class="materials-cell" title="${course.materialsNeeded || 'No materials specified'}">
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
+                    <div class="text-gray-700" title="${course.materialsNeeded || 'No materials specified'}">
                         ${course.materialsNeeded || 'None'}
                     </div>
                 </td>
-                <td class="date-cell">${this.formatDate(course.createdAt)}</td>
-                <td class="action-buttons-cell">
-                    <button class="btn btn-sm btn-primary" onclick="coursesManager.editCourse('${course._id}')">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="coursesManager.deleteCourse('${course._id}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">${this.formatDate(course.createdAt)}</td>
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
+                    <div class="flex gap-2">
+                        <button class="bg-black text-white px-3 py-1.5 rounded text-xs font-medium transition-all duration-300 shadow-sm hover:bg-gray-800 hover:-translate-y-0.5 hover:shadow-md focus:outline-2 focus:outline-black focus:outline-offset-2 h-8 flex items-center justify-center gap-1 border-none cursor-pointer" onclick="coursesManager.editCourse('${course._id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="bg-gray-800 text-white px-3 py-1.5 rounded text-xs font-medium transition-all duration-300 shadow-sm hover:bg-gray-700 hover:-translate-y-0.5 hover:shadow-md focus:outline-2 focus:outline-black focus:outline-offset-2 h-8 flex items-center justify-center gap-1 border-none cursor-pointer" onclick="coursesManager.deleteCourse('${course._id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `).join('');
@@ -157,6 +159,7 @@ class CoursesManager {
         // Previous button
         paginationHTML += `
             <button onclick="coursesManager.goToPage(${this.currentPage - 1})" 
+                    class="px-3 py-2 border border-gray-200 bg-white text-gray-600 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                     ${this.currentPage === 1 ? 'disabled' : ''}>
                 <i class="fas fa-chevron-left"></i>
             </button>
@@ -169,7 +172,7 @@ class CoursesManager {
         for (let i = startPage; i <= endPage; i++) {
             paginationHTML += `
                 <button onclick="coursesManager.goToPage(${i})" 
-                        class="${i === this.currentPage ? 'active' : ''}">
+                        class="px-3 py-2 border rounded-lg cursor-pointer transition-all duration-200 ${i === this.currentPage ? 'bg-black text-white border-black' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900'}">
                     ${i}
                 </button>
             `;
@@ -178,6 +181,7 @@ class CoursesManager {
         // Next button
         paginationHTML += `
             <button onclick="coursesManager.goToPage(${this.currentPage + 1})" 
+                    class="px-3 py-2 border border-gray-200 bg-white text-gray-600 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                     ${this.currentPage === this.totalPages ? 'disabled' : ''}>
                 <i class="fas fa-chevron-right"></i>
             </button>
@@ -222,7 +226,7 @@ class CoursesManager {
         document.getElementById('courseForm').reset();
         this.clearFormValidation();
         this.resetSteps();
-        document.getElementById('courseModal').style.display = 'block';
+        document.getElementById('courseModal').classList.remove('hidden');
     }
 
     editCourse(courseId) {
@@ -247,7 +251,7 @@ class CoursesManager {
         }
         
         this.clearFormValidation();
-        document.getElementById('courseModal').style.display = 'block';
+        document.getElementById('courseModal').classList.remove('hidden');
     }
 
     async saveCourse() {
@@ -372,7 +376,7 @@ class CoursesManager {
 
     deleteCourse(courseId) {
         this.deletingCourseId = courseId;
-        document.getElementById('deleteModal').style.display = 'block';
+        document.getElementById('deleteModal').classList.remove('hidden');
     }
 
     async confirmDelete() {
@@ -477,12 +481,12 @@ class CoursesManager {
     }
 
     closeModal() {
-        document.getElementById('courseModal').style.display = 'none';
+        document.getElementById('courseModal').classList.add('hidden');
         this.editingCourse = null;
     }
 
     closeDeleteModal() {
-        document.getElementById('deleteModal').style.display = 'none';
+        document.getElementById('deleteModal').classList.add('hidden');
         this.deletingCourseId = null;
     }
 

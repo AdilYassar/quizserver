@@ -79,10 +79,10 @@ class StudentsManager {
         if (this.students.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="empty-state">
-                        <i class="fas fa-users"></i>
-                        <h3>No students found</h3>
-                        <p>Try adjusting your search criteria or add a new student.</p>
+                    <td colspan="6" class="text-center py-10 text-gray-600">
+                        <i class="fas fa-users text-4xl mb-4 text-gray-400"></i>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">No students found</h3>
+                        <p class="text-sm text-gray-600">Try adjusting your search criteria or add a new student.</p>
                     </td>
                 </tr>
             `;
@@ -90,33 +90,35 @@ class StudentsManager {
         }
 
         tbody.innerHTML = this.students.map(student => `
-            <tr>
-                <td>
+            <tr class="transition-all duration-200 hover:bg-gray-100">
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
                     <input type="checkbox" 
                            value="${student._id}" 
                            onchange="studentsManager.toggleStudentSelection('${student._id}')"
                            ${this.selectedStudents.has(student._id) ? 'checked' : ''}>
                 </td>
-                <td class="email-cell">${this.highlightSearch(student.email)}</td>
-                <td>
-                    <span class="role-badge role-${student.role.toLowerCase()}">
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">${this.highlightSearch(student.email)}</td>
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
+                    <span class="inline-block px-2 py-1 rounded text-xs font-medium bg-gray-800 text-white">
                         ${student.role}
                     </span>
                 </td>
-                <td>
-                    <span class="status-badge status-${student.isActivated ? 'active' : 'inactive'}">
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
+                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${student.isActivated ? 'bg-gray-800 text-white' : 'bg-gray-600 text-white'}">
                         <i class="fas fa-${student.isActivated ? 'check' : 'times'}"></i>
                         ${student.isActivated ? 'Active' : 'Inactive'}
                     </span>
                 </td>
-                <td class="date-cell">${this.formatDate(student.createdAt)}</td>
-                <td class="action-buttons-cell">
-                    <button class="btn btn-sm btn-primary" onclick="studentsManager.editStudent('${student._id}')">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="studentsManager.deleteStudent('${student._id}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">${this.formatDate(student.createdAt)}</td>
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
+                    <div class="flex gap-2">
+                        <button class="bg-black text-white px-3 py-1.5 rounded text-xs font-medium transition-all duration-300 shadow-sm hover:bg-gray-800 hover:-translate-y-0.5 hover:shadow-md focus:outline-2 focus:outline-black focus:outline-offset-2 h-8 flex items-center justify-center gap-1 border-none cursor-pointer" onclick="studentsManager.editStudent('${student._id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="bg-gray-800 text-white px-3 py-1.5 rounded text-xs font-medium transition-all duration-300 shadow-sm hover:bg-gray-700 hover:-translate-y-0.5 hover:shadow-md focus:outline-2 focus:outline-black focus:outline-offset-2 h-8 flex items-center justify-center gap-1 border-none cursor-pointer" onclick="studentsManager.deleteStudent('${student._id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `).join('');
@@ -135,6 +137,7 @@ class StudentsManager {
         // Previous button
         paginationHTML += `
             <button onclick="studentsManager.goToPage(${this.currentPage - 1})" 
+                    class="px-3 py-2 border border-gray-200 bg-white text-gray-600 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                     ${this.currentPage === 1 ? 'disabled' : ''}>
                 <i class="fas fa-chevron-left"></i>
             </button>
@@ -147,7 +150,7 @@ class StudentsManager {
         for (let i = startPage; i <= endPage; i++) {
             paginationHTML += `
                 <button onclick="studentsManager.goToPage(${i})" 
-                        class="${i === this.currentPage ? 'active' : ''}">
+                        class="px-3 py-2 border rounded-lg cursor-pointer transition-all duration-200 ${i === this.currentPage ? 'bg-black text-white border-black' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900'}">
                     ${i}
                 </button>
             `;
@@ -156,6 +159,7 @@ class StudentsManager {
         // Next button
         paginationHTML += `
             <button onclick="studentsManager.goToPage(${this.currentPage + 1})" 
+                    class="px-3 py-2 border border-gray-200 bg-white text-gray-600 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                     ${this.currentPage === this.totalPages ? 'disabled' : ''}>
                 <i class="fas fa-chevron-right"></i>
             </button>
@@ -194,7 +198,7 @@ class StudentsManager {
         document.getElementById('modalTitle').textContent = 'Add New Student';
         document.getElementById('studentForm').reset();
         this.clearFormValidation();
-        document.getElementById('studentModal').style.display = 'block';
+        document.getElementById('studentModal').classList.remove('hidden');
     }
 
     editStudent(studentId) {
@@ -214,7 +218,7 @@ class StudentsManager {
         document.getElementById('password').required = false;
         
         this.clearFormValidation();
-        document.getElementById('studentModal').style.display = 'block';
+        document.getElementById('studentModal').classList.remove('hidden');
     }
 
     async saveStudent() {
@@ -313,7 +317,7 @@ class StudentsManager {
 
     deleteStudent(studentId) {
         this.deletingStudentId = studentId;
-        document.getElementById('deleteModal').style.display = 'block';
+        document.getElementById('deleteModal').classList.remove('hidden');
     }
 
     async confirmDelete() {
@@ -418,12 +422,12 @@ class StudentsManager {
     }
 
     closeModal() {
-        document.getElementById('studentModal').style.display = 'none';
+        document.getElementById('studentModal').classList.add('hidden');
         this.editingStudent = null;
     }
 
     closeDeleteModal() {
-        document.getElementById('deleteModal').style.display = 'none';
+        document.getElementById('deleteModal').classList.add('hidden');
         this.deletingStudentId = null;
     }
 
@@ -431,8 +435,8 @@ class StudentsManager {
         const tbody = document.getElementById('studentsTableBody');
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" class="loading">
-                    <div class="spinner"></div>
+                <td colspan="6" class="text-center py-10 text-gray-600">
+                    <div class="w-10 h-10 border-4 border-gray-200 border-t-black rounded-full animate-spin mx-auto mb-4"></div>
                     Loading students...
                 </td>
             </tr>

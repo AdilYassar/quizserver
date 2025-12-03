@@ -131,10 +131,10 @@ class QuestionsManager {
         if (this.questions.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="empty-state">
-                        <i class="fas fa-question"></i>
-                        <h3>No questions found</h3>
-                        <p>Try adjusting your search criteria or add a new question.</p>
+                    <td colspan="10" class="text-center py-10 text-gray-600">
+                        <i class="fas fa-question text-4xl mb-4 text-gray-400"></i>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">No questions found</h3>
+                        <p class="text-sm text-gray-600">Try adjusting your search criteria or add a new question.</p>
                     </td>
                 </tr>
             `;
@@ -142,53 +142,55 @@ class QuestionsManager {
         }
 
         tbody.innerHTML = this.questions.map(question => `
-            <tr>
-                <td>
+            <tr class="transition-all duration-200 hover:bg-gray-100">
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
                     <input type="checkbox" 
                            value="${question._id}" 
                            onchange="questionsManager.toggleQuestionSelection('${question._id}')"
                            ${this.selectedQuestions.has(question._id) ? 'checked' : ''}>
                 </td>
-                <td>
-                    <div class="question-text">${this.highlightSearch(question.question)}</div>
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
+                    <div class="text-gray-900">${this.highlightSearch(question.question)}</div>
                 </td>
-                <td>
-                    <span class="type-badge type-${question.type || 'multiple-choice'}">
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
+                    <span class="inline-block px-2 py-1 rounded text-xs font-medium bg-gray-800 text-white">
                         ${this.formatQuestionType(question.type || 'multiple-choice')}
                     </span>
                 </td>
-                <td>
-                    <span class="quiz-badge">
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
+                    <span class="inline-block px-2 py-1 rounded text-xs font-medium bg-gray-700 text-white">
                         ${question.quiz ? question.quiz.title : 'No Quiz'}
                     </span>
                 </td>
-                <td>
-                    <div class="options-display" title="${this.formatOptions(question.options || [])}">
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
+                    <div class="text-gray-700" title="${this.formatOptions(question.options || [])}">
                         ${this.formatOptions(question.options || [])}
                     </div>
                 </td>
-                <td>
-                    <span class="correct-answer">${question.correctAnswer || 'N/A'}</span>
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
+                    <span class="font-medium text-gray-900">${question.correctAnswer || 'N/A'}</span>
                 </td>
-                <td>
-                    <span class="difficulty-badge difficulty-${question.difficulty || 'medium'}">
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
+                    <span class="inline-block px-2 py-1 rounded text-xs font-medium uppercase bg-gray-600 text-white">
                         ${question.difficulty || 'medium'}
                     </span>
                 </td>
-                <td>
-                    <span class="points-badge">
-                        <i class="fas fa-star"></i>
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
+                    <span class="inline-flex items-center gap-1 text-gray-700">
+                        <i class="fas fa-star text-xs"></i>
                         ${question.points || 1}
                     </span>
                 </td>
-                <td class="date-cell">${this.formatDate(question.createdAt)}</td>
-                <td class="action-buttons-cell">
-                    <button class="btn btn-sm btn-primary" onclick="questionsManager.editQuestion('${question._id}')">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="questionsManager.deleteQuestion('${question._id}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">${this.formatDate(question.createdAt)}</td>
+                <td class="py-4 px-4 text-gray-900 border-b border-gray-200 text-sm align-middle">
+                    <div class="flex gap-2">
+                        <button class="bg-black text-white px-3 py-1.5 rounded text-xs font-medium transition-all duration-300 shadow-sm hover:bg-gray-800 hover:-translate-y-0.5 hover:shadow-md focus:outline-2 focus:outline-black focus:outline-offset-2 h-8 flex items-center justify-center gap-1 border-none cursor-pointer" onclick="questionsManager.editQuestion('${question._id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="bg-gray-800 text-white px-3 py-1.5 rounded text-xs font-medium transition-all duration-300 shadow-sm hover:bg-gray-700 hover:-translate-y-0.5 hover:shadow-md focus:outline-2 focus:outline-black focus:outline-offset-2 h-8 flex items-center justify-center gap-1 border-none cursor-pointer" onclick="questionsManager.deleteQuestion('${question._id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `).join('');
@@ -207,6 +209,7 @@ class QuestionsManager {
         // Previous button
         paginationHTML += `
             <button onclick="questionsManager.goToPage(${this.currentPage - 1})" 
+                    class="px-3 py-2 border border-gray-200 bg-white text-gray-600 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                     ${this.currentPage === 1 ? 'disabled' : ''}>
                 <i class="fas fa-chevron-left"></i>
             </button>
@@ -219,7 +222,7 @@ class QuestionsManager {
         for (let i = startPage; i <= endPage; i++) {
             paginationHTML += `
                 <button onclick="questionsManager.goToPage(${i})" 
-                        class="${i === this.currentPage ? 'active' : ''}">
+                        class="px-3 py-2 border rounded-lg cursor-pointer transition-all duration-200 ${i === this.currentPage ? 'bg-black text-white border-black' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900'}">
                     ${i}
                 </button>
             `;
@@ -228,6 +231,7 @@ class QuestionsManager {
         // Next button
         paginationHTML += `
             <button onclick="questionsManager.goToPage(${this.currentPage + 1})" 
+                    class="px-3 py-2 border border-gray-200 bg-white text-gray-600 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                     ${this.currentPage === this.totalPages ? 'disabled' : ''}>
                 <i class="fas fa-chevron-right"></i>
             </button>
@@ -268,7 +272,7 @@ class QuestionsManager {
             const modal = document.getElementById('questionModal');
             console.log('Question modal element found:', modal);
             if (modal) {
-                modal.style.display = 'block';
+                modal.classList.remove('hidden');
                 console.log('Question modal should be visible now');
             } else {
                 console.error('Question modal element not found!');
@@ -319,7 +323,7 @@ class QuestionsManager {
             
             const modal = document.getElementById('questionModal');
             if (modal) {
-                modal.style.display = 'block';
+                modal.classList.remove('hidden');
                 console.log('Edit modal opened successfully');
             } else {
                 console.error('Modal element not found');
@@ -457,19 +461,19 @@ class QuestionsManager {
         const optionsContainer = document.getElementById('optionsContainer');
         
         if (type === 'multiple-choice') {
-            optionsContainer.style.display = 'block';
+            optionsContainer.classList.remove('hidden');
         } else {
-            optionsContainer.style.display = 'none';
+            optionsContainer.classList.add('hidden');
         }
     }
 
     addOption(optionValue = '') {
         const optionsList = document.getElementById('optionsList');
         const optionDiv = document.createElement('div');
-        optionDiv.className = 'option-item';
+        optionDiv.className = 'flex gap-2 mb-2 items-center';
         optionDiv.innerHTML = `
-            <input type="text" name="options" class="form-control option-input" placeholder="Enter option text" value="${optionValue}">
-            <button type="button" class="btn btn-sm btn-danger" onclick="removeOption(this)">
+            <input type="text" name="options" class="flex-1 px-4 py-3.5 border border-gray-200 rounded-lg text-sm transition-all duration-300 bg-white h-12 text-black focus:outline-none focus:border-black focus:shadow-[0_0_0_3px_rgba(0,0,0,0.05)]" placeholder="Enter option text" value="${optionValue}">
+            <button type="button" class="bg-gray-800 text-white px-3 py-1.5 rounded text-xs font-medium transition-all duration-300 shadow-sm hover:bg-gray-700 h-8 flex items-center justify-center gap-1 border-none cursor-pointer" onclick="removeOption(this)">
                 <i class="fas fa-trash"></i>
             </button>
         `;
@@ -479,9 +483,9 @@ class QuestionsManager {
     resetOptions() {
         const optionsList = document.getElementById('optionsList');
         optionsList.innerHTML = `
-            <div class="option-item">
-                <input type="text" name="options" class="form-control option-input" placeholder="Enter option text">
-                <button type="button" class="btn btn-sm btn-danger" onclick="removeOption(this)">
+            <div class="flex gap-2 mb-2 items-center">
+                <input type="text" name="options" class="flex-1 px-4 py-3.5 border border-gray-200 rounded-lg text-sm transition-all duration-300 bg-white h-12 text-black focus:outline-none focus:border-black focus:shadow-[0_0_0_3px_rgba(0,0,0,0.05)]" placeholder="Enter option text">
+                <button type="button" class="bg-gray-800 text-white px-3 py-1.5 rounded text-xs font-medium transition-all duration-300 shadow-sm hover:bg-gray-700 h-8 flex items-center justify-center gap-1 border-none cursor-pointer" onclick="removeOption(this)">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -490,7 +494,7 @@ class QuestionsManager {
 
     deleteQuestion(questionId) {
         this.deletingQuestionId = questionId;
-        document.getElementById('deleteModal').style.display = 'block';
+        document.getElementById('deleteModal').classList.remove('hidden');
     }
 
     async confirmDelete() {
@@ -595,12 +599,12 @@ class QuestionsManager {
     }
 
     closeModal() {
-        document.getElementById('questionModal').style.display = 'none';
+        document.getElementById('questionModal').classList.add('hidden');
         this.editingQuestion = null;
     }
 
     closeDeleteModal() {
-        document.getElementById('deleteModal').style.display = 'none';
+        document.getElementById('deleteModal').classList.add('hidden');
         this.deletingQuestionId = null;
     }
 
@@ -608,8 +612,8 @@ class QuestionsManager {
         const tbody = document.getElementById('questionsTableBody');
         tbody.innerHTML = `
             <tr>
-                <td colspan="9" class="loading">
-                    <div class="spinner"></div>
+                <td colspan="10" class="text-center py-10 text-gray-600">
+                    <div class="w-10 h-10 border-4 border-gray-200 border-t-black rounded-full animate-spin mx-auto mb-4"></div>
                     Loading questions...
                 </td>
             </tr>

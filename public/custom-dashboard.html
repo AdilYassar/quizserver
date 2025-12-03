@@ -4,16 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuizServer Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
     <style>
         :root {
-            --color-slate-900: #1e293b;
-            --color-slate-700: #334155;
-            --color-indigo-600: #4f46e5;
-            --color-coral-400: #ffa586;
-            --color-red-600: #dc2626;
-            --color-red-900: #7f1d1d;
+            --color-black: #000000;
+            --color-gray-900: #1a1a1a;
+            --color-gray-800: #2d2d2d;
+            --color-gray-700: #4a4a4a;
+            --color-gray-600: #6b6b6b;
+            --color-gray-500: #8a8a8a;
+            --color-gray-400: #a8a8a8;
+            --color-gray-300: #c4c4c4;
+            --color-gray-200: #e0e0e0;
+            --color-gray-100: #f5f5f5;
+            --color-white: #ffffff;
+            --bg-primary: #f5f5f5;
+            --bg-card: #ffffff;
+            --border-color: #e0e0e0;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -22,11 +46,39 @@
             box-sizing: border-box;
         }
 
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-gray-400);
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-gray-600);
+        }
+
+        /* Firefox scrollbar */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--color-gray-400) var(--bg-primary);
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #f8fafc;
-            color: var(--color-slate-900);
+            background: var(--bg-primary);
+            color: var(--color-gray-900);
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .dashboard-container {
@@ -36,15 +88,34 @@
 
         /* Sidebar */
         .sidebar {
-            width: 280px;
-            background: var(--color-slate-900);
-            color: white;
+            width: 240px;
+            background: var(--color-white);
+            color: var(--color-gray-900);
             padding: 0;
             position: fixed;
             height: 100vh;
             overflow-y: auto;
             z-index: 1000;
-            transition: transform 0.3s ease;
+            transition: var(--transition);
+            border-right: 1px solid var(--border-color);
+        }
+
+        /* Sidebar scrollbar */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--color-white);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--color-gray-300);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--color-gray-400);
         }
 
         /* Hide sidebar on mobile by default */
@@ -59,92 +130,116 @@
         }
 
         .sidebar-header {
-            padding: 24px;
-            border-bottom: 1px solid #374151;
+            padding: 20px 16px;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-size: 18px;
-            font-weight: 700;
-            color: white;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-black);
             line-height: 1.25;
+            letter-spacing: -0.01em;
         }
 
         .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: #4f46e5;
+            width: 28px;
+            height: 28px;
+            background: var(--color-black);
             border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 14px;
+            color: var(--color-white);
         }
 
         .sidebar-nav {
-            padding: 16px 0;
+            padding: 8px 0;
         }
 
         .nav-item {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 24px;
-            color: #94a3b8;
+            padding: 10px 16px;
+            color: var(--color-gray-600);
             text-decoration: none;
-            transition: all 0.2s ease;
-            border-left: 3px solid transparent;
+            transition: var(--transition);
+            border-left: 2px solid transparent;
+            font-size: 14px;
+            font-weight: 500;
         }
 
-        .nav-item:hover, .nav-item.active {
-            background: rgba(79, 70, 229, 0.1);
-            color: white;
-            border-left-color: var(--color-indigo-600);
+        .nav-item:hover {
+            background: var(--color-gray-100);
+            color: var(--color-gray-900);
+        }
+
+        .nav-item.active {
+            background: var(--color-gray-100);
+            color: var(--color-black);
+            border-left-color: var(--color-black);
+            font-weight: 600;
+        }
+
+        .nav-item:focus {
+            outline: 2px solid var(--color-black);
+            outline-offset: -2px;
         }
 
         .nav-icon {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             opacity: 0.7;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover .nav-icon,
+        .nav-item.active .nav-icon {
+            opacity: 1;
         }
 
         /* Mobile Menu Toggle */
         .mobile-menu-toggle {
             display: none;
-            position: fixed;
-            top: 4px;
-            left: 12px;
-            z-index: 1001;
+            position: relative;
             background: transparent;
-            color: #374151;
+            color: var(--color-black);
             border: none;
             border-radius: 6px;
             padding: 8px;
             font-size: 18px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            width: 44px;
-            height: 44px;
+            transition: var(--transition);
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .mobile-menu-toggle:hover {
+            background: var(--color-gray-100);
+        }
+
+        .mobile-menu-toggle:focus {
+            outline: 2px solid var(--color-black);
+            outline-offset: 2px;
         }
 
         /* Adjust top bar for mobile devices */
         @media screen and (max-width: 1024px) {
             .top-bar {
-                padding: 12px 20px;
-                justify-content: center;
-                box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+                padding: 12px 16px;
+                justify-content: space-between;
                 position: relative;
             }
-        }
 
-        /* Show mobile menu toggle on all mobile devices */
-        @media screen and (max-width: 1024px) {
             .mobile-menu-toggle {
                 display: flex !important;
                 visibility: visible !important;
@@ -153,7 +248,7 @@
         }
 
         .mobile-menu-toggle:hover {
-            color: #1f2937;
+            color: var(--color-black);
         }
 
         /* Hide hamburger menu when sidebar is open */
@@ -171,8 +266,9 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.4);
             z-index: 999;
+            backdrop-filter: blur(2px);
         }
 
         .sidebar-overlay.open {
@@ -182,7 +278,7 @@
         /* Main Content */
         .main-content {
             flex: 1;
-            margin-left: 280px;
+            margin-left: 240px;
             padding: 0;
         }
 
@@ -194,16 +290,15 @@
         }
 
         .top-bar {
-            background: white;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 16px 32px;
+            background: var(--color-white);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 24px;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
         }
 
         /* Ensure top bar has relative positioning for absolute children */
@@ -214,41 +309,55 @@
         }
 
         .page-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1f2937;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--color-black);
             margin: 0;
-            line-height: 1.25;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
         }
 
-        /* Center title on mobile devices */
+        /* Center title on desktop, left on mobile */
+        @media screen and (min-width: 1025px) {
+            .page-title {
+                text-align: center;
+                flex: 1;
+            }
+        }
+
         @media screen and (max-width: 1024px) {
             .page-title {
-                font-size: 20px;
+                font-size: 18px;
                 font-weight: 600;
-                color: #1f2937;
+                color: var(--color-black);
                 margin: 0;
-                text-align: center;
+                text-align: left;
+                flex: 1;
             }
         }
 
         .admin-link {
-            background: var(--color-indigo-600);
-            color: white;
+            background: var(--color-black);
+            color: var(--color-white);
             padding: 12px 24px;
-            border-radius: 4px;
+            border-radius: 6px;
             text-decoration: none;
             font-weight: 500;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 3px rgba(79, 70, 229, 0.3);
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
             height: 40px;
             display: flex;
             align-items: center;
         }
 
         .admin-link:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
+            background: var(--color-gray-800);
+            box-shadow: var(--shadow-md);
+        }
+
+        .admin-link:focus {
+            outline: 2px solid var(--color-black);
+            outline-offset: 2px;
         }
 
 
@@ -256,12 +365,12 @@
         .logout-nav-item {
             background: none;
             border: none;
-            color: #94a3b8;
-            padding: 12px 20px;
-            margin: 8px 0;
-            border-radius: 8px;
+            color: var(--color-gray-600);
+            padding: 10px 16px;
+            margin: 4px 0;
+            border-radius: 0;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: var(--transition);
             display: flex;
             align-items: center;
             gap: 12px;
@@ -272,8 +381,13 @@
         }
 
         .logout-nav-item:hover {
-            background: rgba(220, 38, 38, 0.1);
-            color: var(--color-red-600);
+            background: var(--color-gray-100);
+            color: var(--color-black);
+        }
+
+        .logout-nav-item:focus {
+            outline: 2px solid var(--color-black);
+            outline-offset: -2px;
         }
 
         .logout-nav-item .nav-icon {
@@ -282,7 +396,7 @@
         }
 
         .content {
-            padding: 32px;
+            padding: 40px 32px;
             max-width: 1800px;
             margin: 0 auto;
         }
@@ -291,8 +405,8 @@
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 40px;
-            margin-bottom: 40px;
+            gap: 24px;
+            margin-bottom: 48px;
             max-width: 1800px;
             margin-left: auto;
             margin-right: auto;
@@ -300,12 +414,12 @@
         }
 
         .stat-card {
-            background: white;
+            background: var(--color-white);
             border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border: none;
-            transition: all 0.2s ease;
+            padding: 32px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -314,10 +428,16 @@
         }
 
         .stat-card:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--color-gray-300);
             text-decoration: none;
             color: inherit;
+        }
+
+        .stat-card:focus {
+            outline: 2px solid var(--color-black);
+            outline-offset: 2px;
         }
 
         .stat-card:active {
@@ -328,57 +448,61 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 24px;
         }
 
         .stat-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
-            color: #6b7280;
+            color: var(--color-gray-600);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
             line-height: 1.2;
         }
 
         .stat-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 22px;
             flex-shrink: 0;
+            background: var(--color-gray-100);
+            color: var(--color-black);
         }
 
         .stat-value {
-            font-size: 36px;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 16px;
+            font-size: 42px;
+            font-weight: 600;
+            color: var(--color-black);
+            margin-bottom: 12px;
             line-height: 1;
+            letter-spacing: -0.02em;
         }
 
         .stat-change {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
             font-size: 14px;
             font-weight: 500;
             line-height: 1.2;
             text-decoration: none;
+            color: var(--color-gray-600);
         }
 
         .stat-change.positive {
-            color: #059669;
+            color: var(--color-gray-800);
         }
 
         .stat-change.negative {
-            color: var(--color-red-600);
+            color: var(--color-gray-600);
         }
 
         .stat-change.neutral {
-            color: var(--color-slate-700);
+            color: var(--color-gray-600);
         }
 
         .loading {
@@ -392,53 +516,62 @@
 
         /* Progress Bars */
         .progress-section {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: none;
+            background: var(--color-white);
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            max-width: 1800px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .progress-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
-            color: var(--color-slate-900);
-            margin-bottom: 16px;
+            color: var(--color-black);
+            margin-bottom: 24px;
+            letter-spacing: -0.01em;
         }
 
         .progress-item {
-            margin-bottom: 16px;
+            margin-bottom: 24px;
+        }
+
+        .progress-item:last-child {
+            margin-bottom: 0;
         }
 
         .progress-label {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             font-size: 14px;
             font-weight: 500;
+            color: var(--color-gray-700);
         }
 
         .progress-bar {
-            height: 8px;
-            background: rgba(52, 65, 88, 0.1);
-            border-radius: 4px;
+            height: 6px;
+            background: var(--color-gray-200);
+            border-radius: 3px;
             overflow: hidden;
         }
 
         .progress-fill {
             height: 100%;
-            background: var(--color-indigo-600);
-            border-radius: 4px;
-            transition: width 0.3s ease;
+            background: var(--color-black);
+            border-radius: 3px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* Navigation Grid */
         .nav-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 40px;
-            margin-bottom: 40px;
+            gap: 24px;
+            margin-bottom: 48px;
             max-width: 1800px;
             margin-left: auto;
             margin-right: auto;
@@ -446,54 +579,62 @@
         }
 
         .nav-card {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
+            background: var(--color-white);
+            border-radius: 12px;
+            padding: 32px;
             text-decoration: none;
-            color: var(--color-slate-900);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: none;
-            transition: all 0.2s ease;
+            color: var(--color-gray-900);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
             position: relative;
             overflow: hidden;
         }
 
         .nav-card:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--color-gray-300);
             text-decoration: none;
-            color: var(--color-slate-900);
+            color: var(--color-gray-900);
+        }
+
+        .nav-card:focus {
+            outline: 2px solid var(--color-black);
+            outline-offset: 2px;
         }
 
         .nav-card-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
+            gap: 16px;
+            margin-bottom: 16px;
         }
 
         .nav-card-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 4px;
-            background: var(--color-indigo-600);
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--color-gray-100);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
-            color: white;
+            font-size: 18px;
+            color: var(--color-black);
+            flex-shrink: 0;
         }
 
         .nav-card-title {
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--color-slate-900);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-black);
+            letter-spacing: -0.01em;
         }
 
         .nav-card-desc {
             font-size: 14px;
-            color: var(--color-slate-700);
-            line-height: 1.5;
+            color: var(--color-gray-600);
+            line-height: 1.6;
             text-align: left;
             padding-left: 0;
         }
@@ -503,50 +644,59 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 24px;
-            margin-bottom: 40px;
+            margin-bottom: 32px;
+            max-width: 1800px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0 20px;
         }
 
         .chart-card {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: none;
+            background: var(--color-white);
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
         }
 
         .chart-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
-            color: var(--color-slate-900);
-            margin-bottom: 16px;
+            color: var(--color-black);
+            margin-bottom: 24px;
+            letter-spacing: -0.01em;
         }
 
         .chart-placeholder {
             height: 200px;
-            background: #f1f5f9;
-            border-radius: 4px;
+            background: var(--color-gray-100);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--color-slate-700);
+            color: var(--color-gray-600);
             font-size: 14px;
         }
 
         /* Activity Timeline */
         .activity-section {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: none;
+            background: var(--color-white);
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            max-width: 1800px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .activity-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
-            color: var(--color-slate-900);
-            margin-bottom: 16px;
+            color: var(--color-black);
+            margin-bottom: 24px;
+            letter-spacing: -0.01em;
         }
 
         .activity-timeline {
@@ -557,8 +707,8 @@
             display: flex;
             align-items: center;
             gap: 16px;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(52, 65, 88, 0.1);
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .timeline-item:last-child {
@@ -566,10 +716,10 @@
         }
 
         .timeline-dot {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            background: var(--color-indigo-600);
+            background: var(--color-black);
             flex-shrink: 0;
         }
 
@@ -578,20 +728,22 @@
         }
 
         .timeline-title {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 500;
-            color: var(--color-slate-900);
-            margin-bottom: 4px;
+            color: var(--color-black);
+            margin-bottom: 6px;
         }
 
         .timeline-desc {
-            font-size: 12px;
-            color: var(--color-slate-700);
+            font-size: 13px;
+            color: var(--color-gray-600);
+            line-height: 1.5;
         }
 
         .timeline-time {
             font-size: 12px;
-            color: #94a3b8;
+            color: var(--color-gray-500);
+            white-space: nowrap;
         }
 
         .chart-content {
@@ -602,8 +754,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(52, 65, 88, 0.1);
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .stat-row:last-child {
@@ -612,13 +764,13 @@
 
         .stat-label {
             font-size: 14px;
-            color: var(--color-slate-700);
+            color: var(--color-gray-600);
             font-weight: 500;
         }
 
         .stat-value {
             font-size: 16px;
-            color: var(--color-slate-900);
+            color: var(--color-black);
             font-weight: 600;
         }
 
@@ -626,8 +778,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(52, 65, 88, 0.1);
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .health-item:last-child {
@@ -636,17 +788,18 @@
 
         .health-label {
             font-size: 14px;
-            color: var(--color-slate-700);
+            color: var(--color-gray-600);
             font-weight: 500;
         }
 
         .health-status {
             font-size: 14px;
             font-weight: 500;
+            color: var(--color-gray-800);
         }
 
         .health-status.healthy {
-            color: #059669;
+            color: var(--color-black);
         }
 
         /* Responsive */
@@ -690,7 +843,7 @@
             .stat-title {
                 font-size: 14px;
                 font-weight: 500;
-                color: #6b7280;
+                color: var(--color-gray-600);
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
             }
@@ -782,7 +935,7 @@
                 font-size: 18px;
                 margin: 0;
                 font-weight: 600;
-                color: #1f2937;
+                color: var(--color-black);
                 line-height: 1.25;
                 text-align: center;
             }
@@ -820,7 +973,7 @@
             .stat-title {
                 font-size: 12px;
                 font-weight: 500;
-                color: #6b7280;
+                color: var(--color-gray-600);
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
                 order: 2;
@@ -846,7 +999,7 @@
             .stat-value {
                 font-size: 28px;
                 font-weight: 700;
-                color: #1f2937;
+                color: var(--color-black);
                 margin-bottom: 4px;
                 line-height: 1;
             }
@@ -906,7 +1059,7 @@
             .nav-card-desc {
                 font-size: 13px;
                 line-height: 1.4;
-                color: #6b7280;
+                color: var(--color-gray-600);
                 margin-top: 8px;
                 text-align: left;
                 padding-left: 0;
@@ -1046,23 +1199,6 @@
                 display: flex !important;
                 visibility: visible !important;
                 opacity: 1 !important;
-                position: fixed;
-                top: 4px;
-                left: 12px;
-                z-index: 1001;
-                background: transparent;
-                color: #374151;
-                border: none;
-                border-radius: 6px;
-                padding: 8px;
-                font-size: 18px;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                width: 44px;
-                height: 44px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
             }
 
             /* Hide hamburger when sidebar is open on mobile */
@@ -1111,7 +1247,7 @@
             .stat-title {
                 font-size: 12px;
                 font-weight: 500;
-                color: #6b7280;
+                color: var(--color-gray-600);
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
                 order: 2;
@@ -1137,7 +1273,7 @@
             .stat-value {
                 font-size: 28px;
                 font-weight: 700;
-                color: #1f2937;
+                color: var(--color-black);
                 margin-bottom: 4px;
                 line-height: 1;
             }
@@ -1197,7 +1333,7 @@
             .nav-card-desc {
                 font-size: 12px;
                 line-height: 1.4;
-                color: #6b7280;
+                color: var(--color-gray-600);
                 margin-top: 8px;
                 text-align: left;
                 padding-left: 0;
@@ -1430,26 +1566,10 @@
                 display: flex !important;
                 visibility: visible !important;
                 opacity: 1 !important;
-                position: fixed;
-                top: 4px;
-                left: 12px;
-                z-index: 1001;
-                background: transparent;
-                color: #374151;
-                border: none;
-                border-radius: 6px;
-                padding: 8px;
-                font-size: 18px;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                width: 44px;
-                height: 44px;
-                align-items: center;
-                justify-content: center;
             }
             
             .mobile-menu-toggle:hover {
-                color: #1f2937;
+                background: var(--color-gray-100);
             }
 
             /* Hide hamburger when sidebar is open on mobile */
@@ -1468,8 +1588,9 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.4);
             z-index: 999;
+            backdrop-filter: blur(2px);
         }
         
         .sidebar-overlay.open {
@@ -1529,63 +1650,102 @@
     </style>
 </head>
 <body>
-    <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
-        <i class="fas fa-bars"></i>
-    </button>
-    
     <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+    <div class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[999] lg:hidden" onclick="closeSidebar()" id="sidebarOverlay"></div>
 
-    <div class="dashboard-container">
+    <div class="flex min-h-screen">
         <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <div class="logo-icon">🎯</div>
+        <div class="w-60 bg-white text-gray-900 fixed h-screen overflow-y-auto z-[1000] transition-transform duration-300 border-r border-gray-200 lg:translate-x-0 -translate-x-full lg:static lg:z-auto" id="sidebar">
+            <div class="py-4 px-4 border-b border-gray-200">
+                <div class="flex items-center gap-2.5 text-base font-semibold text-black tracking-tight">
+                    <div class="w-7 h-7 bg-black rounded-md flex items-center justify-center text-sm text-white">🎯</div>
                     QuizServer
                 </div>
             </div>
-            <nav class="sidebar-nav">
-                <a href="#" class="nav-item active">
-                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+            <nav class="py-2">
+                <a href="#" class="flex items-center gap-3 px-4 py-2.5 bg-gray-100 text-black no-underline transition-all duration-300 border-l-2 border-black text-sm font-semibold">
+                    <svg class="w-[18px] h-[18px] opacity-100" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
                     </svg>
                     Dashboard
                 </a>
-                <a href="/students" class="nav-item">
-                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                <a href="/students" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 no-underline transition-all duration-300 border-l-2 border-transparent text-sm font-medium hover:bg-gray-100 hover:text-gray-900">
+                    <svg class="w-[18px] h-[18px] opacity-70 transition-opacity duration-300" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
                     </svg>
                     Students
                 </a>
-                <a href="/courses" class="nav-item">
-                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                <a href="/courses" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 no-underline transition-all duration-300 border-l-2 border-transparent text-sm font-medium hover:bg-gray-100 hover:text-gray-900">
+                    <svg class="w-[18px] h-[18px] opacity-70 transition-opacity duration-300" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     Courses
                 </a>
-                <a href="/quizzes" class="nav-item">
-                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                <a href="/quizzes" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 no-underline transition-all duration-300 border-l-2 border-transparent text-sm font-medium hover:bg-gray-100 hover:text-gray-900">
+                    <svg class="w-[18px] h-[18px] opacity-70 transition-opacity duration-300" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
                         <path fill-rule="evenodd" d="M4 5a2 2 0 012-2v1a1 1 0 001 1h6a1 1 0 001-1V3a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
                     </svg>
                     Quizzes
                 </a>
-                <a href="/questions" class="nav-item">
-                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                <a href="/questions" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 no-underline transition-all duration-300 border-l-2 border-transparent text-sm font-medium hover:bg-gray-100 hover:text-gray-900">
+                    <svg class="w-[18px] h-[18px] opacity-70 transition-opacity duration-300" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
                     </svg>
                     Questions
                 </a>
-                <a href="/quiz-submissions" class="nav-item">
-                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <a href="/video-upload" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 no-underline transition-all duration-300 border-l-2 border-transparent text-sm font-medium hover:bg-gray-100 hover:text-gray-900">
+                    <svg class="w-[18px] h-[18px] opacity-70 transition-opacity duration-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                        <path d="M15 8a1 1 0 11-2 0 1 1 0 012 0z"/>
+                    </svg>
+                    Video Manager
+                </a>
+                <a href="/marks-summary" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 no-underline transition-all duration-300 border-l-2 border-transparent text-sm font-medium hover:bg-gray-100 hover:text-gray-900">
+                    <svg class="w-[18px] h-[18px] opacity-70 transition-opacity duration-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                    </svg>
+                    Marks
+                </a>
+                <a href="/books" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 no-underline transition-all duration-300 border-l-2 border-transparent text-sm font-medium hover:bg-gray-100 hover:text-gray-900">
+                    <svg class="w-[18px] h-[18px] opacity-70 transition-opacity duration-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+                    </svg>
+                    Books
+                </a>
+                <a href="/enrolled-courses" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 no-underline transition-all duration-300 border-l-2 border-transparent text-sm font-medium hover:bg-gray-100 hover:text-gray-900">
+                    <svg class="w-[18px] h-[18px] opacity-70 transition-opacity duration-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                    </svg>
+                    Enrollments
+                </a>
+                <a href="/quiz-submissions" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 no-underline transition-all duration-300 border-l-2 border-transparent text-sm font-medium hover:bg-gray-100 hover:text-gray-900">
+                    <svg class="w-[18px] h-[18px] opacity-70 transition-opacity duration-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd"/>
                     </svg>
                     Submissions
                 </a>
-                <button class="nav-item logout-nav-item" onclick="logout()">
-                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                <a href="/theory" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 no-underline transition-all duration-300 border-l-2 border-transparent text-sm font-medium hover:bg-gray-100 hover:text-gray-900">
+                    <svg class="w-[18px] h-[18px] opacity-70 transition-opacity duration-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+                    </svg>
+                    Theory
+                </a>
+                <a href="/user-progress" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 no-underline transition-all duration-300 border-l-2 border-transparent text-sm font-medium hover:bg-gray-100 hover:text-gray-900">
+                    <svg class="w-[18px] h-[18px] opacity-70 transition-opacity duration-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                    </svg>
+                    Progress
+                </a>
+                <a href="/manage-admins" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 no-underline transition-all duration-300 border-l-2 border-transparent text-sm font-medium hover:bg-gray-100 hover:text-gray-900">
+                    <svg class="w-[18px] h-[18px] opacity-70 transition-opacity duration-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                    </svg>
+                    Admin Emails
+                </a>
+                <button class="flex items-center gap-3 px-4 py-2.5 text-gray-600 bg-transparent border-none cursor-pointer transition-all duration-300 w-full text-left text-sm font-medium hover:bg-gray-100 hover:text-black my-1" onclick="logout()">
+                    <svg class="w-[18px] h-[18px] opacity-70 transition-opacity duration-300" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
                     </svg>
                     Logout
@@ -1593,315 +1753,189 @@
             </nav>
         </div>
 
-        <!-- Mobile Menu Toggle -->
-        <button class="mobile-menu-toggle" onclick="toggleSidebar()">
-            <i class="fas fa-bars"></i>
-        </button>
-
-        <!-- Sidebar Overlay -->
-        <div class="sidebar-overlay" onclick="closeSidebar()"></div>
-
         <!-- Main Content -->
-        <div class="main-content">
-            <div class="top-bar">
-                <h1 class="page-title">Dashboard</h1>
+        <div class="flex-1 p-0">
+            <div class="bg-white border-b border-gray-200 py-4 px-4 lg:px-6 flex justify-between items-center">
+                <h1 class="text-xl font-semibold text-black m-0 tracking-tight flex-1 text-left lg:text-center">Dashboard</h1>
+                <button class="lg:hidden flex relative bg-transparent text-black border-none rounded-md p-2 text-lg cursor-pointer transition-all duration-300 w-9 h-9 items-center justify-center flex-shrink-0 hover:bg-gray-100" onclick="toggleSidebar()" id="mobileMenuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
 
-            <div class="content">
+            <div class="p-4 lg:px-6 lg:py-6">
                 <!-- Stats Grid -->
-                <div class="stats-grid">
-                    <a href="/students" class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon" style="background: #dbeafe; color: #3b82f6;">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-10">
+                    <a href="/students" class="bg-white rounded-xl p-8 shadow-sm border border-gray-200 transition-all duration-300 flex flex-col justify-between no-underline text-inherit hover:-translate-y-0.5 hover:shadow-md hover:border-gray-300">
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-2xl bg-gray-100 text-black flex-shrink-0">
                                 👥
                             </div>
-                            <h2 class="stat-title">Students</h2>
+                            <h2 class="text-xs font-medium text-gray-600 uppercase tracking-wider leading-tight">Students</h2>
                         </div>
-                        <div class="stat-content">
-                            <p class="stat-value" id="studentsCount">83</p>
-                            <div class="stat-change" style="color: #3b82f6;">
+                        <div class="flex flex-col items-end text-right">
+                            <p class="text-4xl font-semibold text-black mb-3 leading-none tracking-tight" id="studentsCount">83</p>
+                            <div class="flex items-center gap-1.5 text-sm font-medium text-gray-600">
                                 Active learners
-                                <span style="font-size: 16px;">→</span>
+                                <span class="text-base">→</span>
                             </div>
                         </div>
                     </a>
 
-                    <a href="/courses" class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon" style="background: #e0e7ff; color: #6366f1;">
+                    <a href="/courses" class="bg-white rounded-xl p-8 shadow-sm border border-gray-200 transition-all duration-300 flex flex-col justify-between no-underline text-inherit hover:-translate-y-0.5 hover:shadow-md hover:border-gray-300">
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-2xl bg-gray-100 text-black flex-shrink-0">
                                 📚
                             </div>
-                            <h2 class="stat-title">Courses</h2>
+                            <h2 class="text-xs font-medium text-gray-600 uppercase tracking-wider leading-tight">Courses</h2>
                         </div>
-                        <div class="stat-content">
-                            <p class="stat-value" id="coursesCount">9</p>
-                            <div class="stat-change" style="color: #6366f1;">
+                        <div class="flex flex-col items-end text-right">
+                            <p class="text-4xl font-semibold text-black mb-3 leading-none tracking-tight" id="coursesCount">9</p>
+                            <div class="flex items-center gap-1.5 text-sm font-medium text-gray-600">
                                 Available courses
-                                <span style="font-size: 16px;">→</span>
+                                <span class="text-base">→</span>
                             </div>
                         </div>
                     </a>
 
-                    <a href="/quizzes" class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon" style="background: #f3e8ff; color: #8b5cf6;">
+                    <a href="/quizzes" class="bg-white rounded-xl p-8 shadow-sm border border-gray-200 transition-all duration-300 flex flex-col justify-between no-underline text-inherit hover:-translate-y-0.5 hover:shadow-md hover:border-gray-300">
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-2xl bg-gray-100 text-black flex-shrink-0">
                                 📝
                             </div>
-                            <h2 class="stat-title">Quizzes</h2>
+                            <h2 class="text-xs font-medium text-gray-600 uppercase tracking-wider leading-tight">Quizzes</h2>
                         </div>
-                        <div class="stat-content">
-                            <p class="stat-value" id="quizzesCount">8</p>
-                            <div class="stat-change" style="color: #8b5cf6;">
+                        <div class="flex flex-col items-end text-right">
+                            <p class="text-4xl font-semibold text-black mb-3 leading-none tracking-tight" id="quizzesCount">8</p>
+                            <div class="flex items-center gap-1.5 text-sm font-medium text-gray-600">
                                 Active assessments
-                                <span style="font-size: 16px;">→</span>
+                                <span class="text-base">→</span>
                             </div>
                         </div>
                     </a>
 
-                    <a href="/admin/resources/QuizSubmission" class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon" style="background: #fef3c7; color: #f59e0b;">
+                    <a href="/admin/resources/QuizSubmission" class="bg-white rounded-xl p-8 shadow-sm border border-gray-200 transition-all duration-300 flex flex-col justify-between no-underline text-inherit hover:-translate-y-0.5 hover:shadow-md hover:border-gray-300">
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-2xl bg-gray-100 text-black flex-shrink-0">
                                 📊
                             </div>
-                            <h2 class="stat-title">Submissions</h2>
+                            <h2 class="text-xs font-medium text-gray-600 uppercase tracking-wider leading-tight">Submissions</h2>
                         </div>
-                        <div class="stat-content">
-                            <p class="stat-value" id="submissionsCount">4</p>
-                            <div class="stat-change" style="color: #f59e0b;">
+                        <div class="flex flex-col items-end text-right">
+                            <p class="text-4xl font-semibold text-black mb-3 leading-none tracking-tight" id="submissionsCount">4</p>
+                            <div class="flex items-center gap-1.5 text-sm font-medium text-gray-600">
                                 Total submissions
-                                <span style="font-size: 16px;">→</span>
+                                <span class="text-base">→</span>
                             </div>
                         </div>
                     </a>
 
-                    <a href="/questions" class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon" style="background: #fee2e2; color: #ef4444;">
+                    <a href="/questions" class="bg-white rounded-xl p-8 shadow-sm border border-gray-200 transition-all duration-300 flex flex-col justify-between no-underline text-inherit hover:-translate-y-0.5 hover:shadow-md hover:border-gray-300">
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-2xl bg-gray-100 text-black flex-shrink-0">
                                 ❓
                             </div>
-                            <h2 class="stat-title">Questions</h2>
+                            <h2 class="text-xs font-medium text-gray-600 uppercase tracking-wider leading-tight">Questions</h2>
                         </div>
-                        <div class="stat-content">
-                            <p class="stat-value" id="questionsCount">72</p>
-                            <div class="stat-change" style="color: #ef4444;">
+                        <div class="flex flex-col items-end text-right">
+                            <p class="text-4xl font-semibold text-black mb-3 leading-none tracking-tight" id="questionsCount">72</p>
+                            <div class="flex items-center gap-1.5 text-sm font-medium text-gray-600">
                                 Quiz questions
-                                <span style="font-size: 16px;">→</span>
+                                <span class="text-base">→</span>
                             </div>
                         </div>
                     </a>
 
-                    <a href="/admin" class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon" style="background: #f3f4f6; color: #6b7280;">
-                                👨‍💼
-                            </div>
-                            <h2 class="stat-title">Admin Panel</h2>
-                        </div>
-                        <div class="stat-content">
-                            <p class="stat-value" id="adminsCount">4</p>
-                            <div class="stat-change" style="color: #6b7280;">
-                                System admins
-                                <span style="font-size: 16px;">→</span>
-                            </div>
-                        </div>
-                    </a>
                 </div>
 
                 <!-- Progress Section -->
-                <div class="progress-section">
-                    <h3 class="progress-title">Platform Overview</h3>
-                    <div class="progress-item">
-                        <div class="progress-label">
+                <div class="bg-white rounded-xl p-8 mb-8 shadow-sm border border-gray-200">
+                    <h3 class="text-xl font-semibold text-black mb-6 tracking-tight">Platform Overview</h3>
+                    <div class="mb-6 last:mb-0">
+                        <div class="flex justify-between mb-3 text-sm font-medium text-gray-700">
                             <span>Student Engagement</span>
                             <span id="engagementPercent">0%</span>
                         </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="engagementBar" style="width: 0%"></div>
+                        <div class="h-1.5 bg-gray-200 rounded-sm overflow-hidden">
+                            <div class="h-full bg-black rounded-sm transition-all duration-400 ease-out" id="engagementBar" style="width: 0%"></div>
                         </div>
                     </div>
-                    <div class="progress-item">
-                        <div class="progress-label">
+                    <div class="mb-6 last:mb-0">
+                        <div class="flex justify-between mb-3 text-sm font-medium text-gray-700">
                             <span>Course Completion</span>
                             <span id="completionPercent">0%</span>
                         </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="completionBar" style="width: 0%"></div>
+                        <div class="h-1.5 bg-gray-200 rounded-sm overflow-hidden">
+                            <div class="h-full bg-black rounded-sm transition-all duration-400 ease-out" id="completionBar" style="width: 0%"></div>
                         </div>
                     </div>
-                    <div class="progress-item">
-                        <div class="progress-label">
+                    <div class="mb-6 last:mb-0">
+                        <div class="flex justify-between mb-3 text-sm font-medium text-gray-700">
                             <span>Quiz Success Rate</span>
                             <span id="successPercent">0%</span>
                         </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="successBar" style="width: 0%"></div>
+                        <div class="h-1.5 bg-gray-200 rounded-sm overflow-hidden">
+                            <div class="h-full bg-black rounded-sm transition-all duration-400 ease-out" id="successBar" style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Charts Section -->
-                <div class="charts-section">
-                    <div class="chart-card">
-                        <h3 class="chart-title">Platform Statistics</h3>
-                        <div class="chart-content" id="platformStats">
-                            <div class="stat-row">
-                                <span class="stat-label">Total Students:</span>
-                                <span class="stat-value" id="totalStudentsDisplay">-</span>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+                        <h3 class="text-xl font-semibold text-black mb-6 tracking-tight">Platform Statistics</h3>
+                        <div class="py-4" id="platformStats">
+                            <div class="flex justify-between items-center py-3.5 border-b border-gray-200 last:border-0">
+                                <span class="text-sm text-gray-600 font-medium">Total Students:</span>
+                                <span class="text-base text-black font-semibold" id="totalStudentsDisplay">-</span>
                             </div>
-                            <div class="stat-row">
-                                <span class="stat-label">Active Courses:</span>
-                                <span class="stat-value" id="activeCoursesDisplay">-</span>
+                            <div class="flex justify-between items-center py-3.5 border-b border-gray-200 last:border-0">
+                                <span class="text-sm text-gray-600 font-medium">Active Courses:</span>
+                                <span class="text-base text-black font-semibold" id="activeCoursesDisplay">-</span>
                             </div>
-                            <div class="stat-row">
-                                <span class="stat-label">Quiz Submissions:</span>
-                                <span class="stat-value" id="quizSubmissionsDisplay">-</span>
+                            <div class="flex justify-between items-center py-3.5 border-b border-gray-200 last:border-0">
+                                <span class="text-sm text-gray-600 font-medium">Quiz Submissions:</span>
+                                <span class="text-base text-black font-semibold" id="quizSubmissionsDisplay">-</span>
                             </div>
-                            <div class="stat-row">
-                                <span class="stat-label">Total Questions:</span>
-                                <span class="stat-value" id="totalQuestionsDisplay">-</span>
+                            <div class="flex justify-between items-center py-3.5 border-b border-gray-200 last:border-0">
+                                <span class="text-sm text-gray-600 font-medium">Total Questions:</span>
+                                <span class="text-base text-black font-semibold" id="totalQuestionsDisplay">-</span>
                             </div>
                         </div>
                     </div>
-                    <div class="chart-card">
-                        <h3 class="chart-title">System Health</h3>
-                        <div class="chart-content" id="systemHealth">
-                            <div class="health-item">
-                                <span class="health-label">Database Status:</span>
-                                <span class="health-status healthy">✅ Connected</span>
+                    <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+                        <h3 class="text-xl font-semibold text-black mb-6 tracking-tight">System Health</h3>
+                        <div class="py-4" id="systemHealth">
+                            <div class="flex justify-between items-center py-3.5 border-b border-gray-200 last:border-0">
+                                <span class="text-sm text-gray-600 font-medium">Database Status:</span>
+                                <span class="text-sm font-medium text-black">✅ Connected</span>
                             </div>
-                            <div class="health-item">
-                                <span class="health-label">Server Status:</span>
-                                <span class="health-status healthy">✅ Running</span>
+                            <div class="flex justify-between items-center py-3.5 border-b border-gray-200 last:border-0">
+                                <span class="text-sm text-gray-600 font-medium">Server Status:</span>
+                                <span class="text-sm font-medium text-black">✅ Running</span>
                             </div>
-                            <div class="health-item">
-                                <span class="health-label">Last Updated:</span>
-                                <span class="health-status" id="lastUpdated">-</span>
+                            <div class="flex justify-between items-center py-3.5 border-b border-gray-200 last:border-0">
+                                <span class="text-sm text-gray-600 font-medium">Last Updated:</span>
+                                <span class="text-sm font-medium text-gray-800" id="lastUpdated">-</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Activity Timeline -->
-                <div class="activity-section">
-                    <h3 class="activity-title">Recent Activity</h3>
-                    <div class="activity-timeline" id="activityTimeline">
-                        <div class="timeline-item loading">
-                            <div class="timeline-dot"></div>
-                            <div class="timeline-content">
-                                <div class="timeline-title">Loading activities...</div>
-                                <div class="timeline-desc">Fetching recent platform activity</div>
+                <div class="bg-white rounded-xl p-8 mb-8 shadow-sm border border-gray-200">
+                    <h3 class="text-xl font-semibold text-black mb-6 tracking-tight">Recent Activity</h3>
+                    <div class="relative" id="activityTimeline">
+                        <div class="flex items-center gap-4 py-4 border-b border-gray-200 last:border-0 animate-pulse">
+                            <div class="w-2.5 h-2.5 rounded-full bg-black flex-shrink-0"></div>
+                            <div class="flex-1">
+                                <div class="text-sm font-medium text-black mb-1.5">Loading activities...</div>
+                                <div class="text-xs text-gray-600 leading-relaxed">Fetching recent platform activity</div>
                             </div>
-                            <div class="timeline-time">...</div>
+                            <div class="text-xs text-gray-500 whitespace-nowrap flex-shrink-0">...</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Navigation Grid -->
-                <div class="nav-grid">
-                    <a href="/students" class="nav-card">
-                        <div class="nav-card-header">
-                            <div class="nav-card-icon">👥</div>
-                            <div class="nav-card-title">Manage Students</div>
-                        </div>
-                        <div class="nav-card-desc">Custom modern interface for student management with advanced features</div>
-                    </a>
-
-                    <a href="/courses" class="nav-card">
-                        <div class="nav-card-header">
-                            <div class="nav-card-icon">📚</div>
-                            <div class="nav-card-title">Manage Courses</div>
-                        </div>
-                        <div class="nav-card-desc">Custom modern interface for course management and organization</div>
-                    </a>
-
-                    <a href="/quizzes" class="nav-card">
-                        <div class="nav-card-header">
-                            <div class="nav-card-icon">📝</div>
-                            <div class="nav-card-title">Manage Quizzes</div>
-                        </div>
-                        <div class="nav-card-desc">Custom modern interface for quiz creation and management</div>
-                    </a>
-
-                    <a href="/questions" class="nav-card">
-                        <div class="nav-card-header">
-                            <div class="nav-card-icon">❓</div>
-                            <div class="nav-card-title">Manage Questions</div>
-                        </div>
-                        <div class="nav-card-desc">Add, edit, and organize quiz questions and answers</div>
-                    </a>
-
-                    <a href="/marks-summary" class="nav-card">
-                        <div class="nav-card-header">
-                            <div class="nav-card-icon">📈</div>
-                            <div class="nav-card-title">Manage Marks</div>
-                        </div>
-                        <div class="nav-card-desc">Track and manage student marks and performance</div>
-                    </a>
-
-                    <a href="/sessions" class="nav-card">
-                        <div class="nav-card-header">
-                            <div class="nav-card-icon">🎥</div>
-                            <div class="nav-card-title">Video Sessions</div>
-                        </div>
-                        <div class="nav-card-desc">Manage video call sessions and participants</div>
-                    </a>
-
-                    <a href="/books" class="nav-card">
-                        <div class="nav-card-header">
-                            <div class="nav-card-icon">📖</div>
-                            <div class="nav-card-title">Digital Books</div>
-                        </div>
-                        <div class="nav-card-desc">Manage digital books and resources</div>
-                    </a>
-
-                    <a href="/categories" class="nav-card">
-                        <div class="nav-card-header">
-                            <div class="nav-card-icon">🏷️</div>
-                            <div class="nav-card-title">Categories</div>
-                        </div>
-                        <div class="nav-card-desc">Organize content with categories and tags</div>
-                    </a>
-
-                    <a href="/branches" class="nav-card">
-                        <div class="nav-card-header">
-                            <div class="nav-card-icon">🏢</div>
-                            <div class="nav-card-title">Branches</div>
-                        </div>
-                        <div class="nav-card-desc">Manage branch locations and courses</div>
-                    </a>
-
-                    <a href="/enrolled-courses" class="nav-card">
-                        <div class="nav-card-header">
-                            <div class="nav-card-icon">📋</div>
-                            <div class="nav-card-title">Enrollments</div>
-                        </div>
-                        <div class="nav-card-desc">Track student course enrollments</div>
-                    </a>
-
-                    <a href="/quiz-submissions" class="nav-card">
-                        <div class="nav-card-header">
-                            <div class="nav-card-icon">📝</div>
-                            <div class="nav-card-title">Quiz Submissions</div>
-                        </div>
-                        <div class="nav-card-desc">Review and manage quiz submissions</div>
-                    </a>
-
-                    <a href="/theory" class="nav-card">
-                        <div class="nav-card-header">
-                            <div class="nav-card-icon">📚</div>
-                            <div class="nav-card-title">Theory Content</div>
-                        </div>
-                        <div class="nav-card-desc">Manage theoretical content and chapters</div>
-                    </a>
-
-                    <a href="/user-progress" class="nav-card">
-                        <div class="nav-card-header">
-                            <div class="nav-card-icon">📊</div>
-                            <div class="nav-card-title">User Progress</div>
-                        </div>
-                        <div class="nav-card-desc">Track student learning progress</div>
-                    </a>
-                </div>
             </div>
         </div>
     </div>
@@ -1919,7 +1953,6 @@
                 document.getElementById('quizzesCount').textContent = data.quizzesCount || 0;
                 document.getElementById('submissionsCount').textContent = data.submissionsCount || 0;
                 document.getElementById('questionsCount').textContent = data.questionsCount || 0;
-                document.getElementById('adminsCount').textContent = data.adminsCount || 0;
 
                 // Update chart sections
                 document.getElementById('totalStudentsDisplay').textContent = data.studentsCount || 0;
@@ -1954,7 +1987,7 @@
                 // Show error state
                 document.querySelectorAll('.stat-value').forEach(el => {
                     el.textContent = 'Error';
-                    el.style.color = '#ef4444';
+                    el.style.color = 'var(--color-gray-600)';
                 });
             }
         }
@@ -1969,24 +2002,24 @@
                 
                 if (data.activities && data.activities.length > 0) {
                     timeline.innerHTML = data.activities.map(activity => `
-                        <div class="timeline-item">
-                            <div class="timeline-dot">${activity.icon}</div>
-                            <div class="timeline-content">
-                                <div class="timeline-title">${activity.title}</div>
-                                <div class="timeline-desc">${activity.description}</div>
+                        <div class="flex items-center gap-4 py-4 border-b border-gray-200 last:border-0">
+                            <div class="w-2.5 h-2.5 rounded-full bg-black flex-shrink-0"></div>
+                            <div class="flex-1">
+                                <div class="text-sm font-medium text-black mb-1.5">${activity.title}</div>
+                                <div class="text-xs text-gray-600 leading-relaxed">${activity.description}</div>
                             </div>
-                            <div class="timeline-time">${formatTimeAgo(activity.time)}</div>
+                            <div class="text-xs text-gray-500 whitespace-nowrap flex-shrink-0">${formatTimeAgo(activity.time)}</div>
                         </div>
                     `).join('');
                 } else {
                     timeline.innerHTML = `
-                        <div class="timeline-item">
-                            <div class="timeline-dot">📊</div>
-                            <div class="timeline-content">
-                                <div class="timeline-title">No recent activity</div>
-                                <div class="timeline-desc">Platform activity will appear here</div>
+                        <div class="flex items-center gap-4 py-4 border-b border-gray-200 last:border-0">
+                            <div class="w-2.5 h-2.5 rounded-full bg-black flex-shrink-0"></div>
+                            <div class="flex-1">
+                                <div class="text-sm font-medium text-black mb-1.5">No recent activity</div>
+                                <div class="text-xs text-gray-600 leading-relaxed">Platform activity will appear here</div>
                             </div>
-                            <div class="timeline-time">-</div>
+                            <div class="text-xs text-gray-500 whitespace-nowrap flex-shrink-0">-</div>
                         </div>
                     `;
                 }
@@ -1994,13 +2027,13 @@
                 console.error('❌ Error loading recent activities:', error);
                 const timeline = document.getElementById('activityTimeline');
                 timeline.innerHTML = `
-                    <div class="timeline-item">
-                        <div class="timeline-dot">⚠️</div>
-                        <div class="timeline-content">
-                            <div class="timeline-title">Error loading activities</div>
-                            <div class="timeline-desc">Unable to fetch recent activity data</div>
+                    <div class="flex items-center gap-4 py-4 border-b border-gray-200 last:border-0">
+                        <div class="w-2.5 h-2.5 rounded-full bg-black flex-shrink-0"></div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-black mb-1.5">Error loading activities</div>
+                            <div class="text-xs text-gray-600 leading-relaxed">Unable to fetch recent activity data</div>
                         </div>
-                        <div class="timeline-time">-</div>
+                        <div class="text-xs text-gray-500 whitespace-nowrap flex-shrink-0">-</div>
                     </div>
                 `;
             }
@@ -2021,27 +2054,36 @@
 
         // Mobile menu functions
         function toggleSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.querySelector('.sidebar-overlay');
-            const body = document.body;
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('open');
-            body.classList.toggle('sidebar-open');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar) {
+                sidebar.classList.toggle('translate-x-0');
+                sidebar.classList.toggle('-translate-x-full');
+            }
+            if (overlay) {
+                overlay.classList.toggle('hidden');
+            }
         }
 
         function closeSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.querySelector('.sidebar-overlay');
-            const body = document.body;
-            sidebar.classList.remove('open');
-            overlay.classList.remove('open');
-            body.classList.remove('sidebar-open');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar) {
+                sidebar.classList.add('-translate-x-full');
+                sidebar.classList.remove('translate-x-0');
+            }
+            if (overlay) {
+                overlay.classList.add('hidden');
+            }
         }
 
         // Close sidebar when clicking on nav items on mobile
         document.addEventListener('click', (e) => {
-            if (window.innerWidth <= 1024 && e.target.closest('.nav-item')) {
-                closeSidebar();
+            if (window.innerWidth <= 1024 && (e.target.closest('a[href]') || e.target.closest('button[onclick="logout()"]'))) {
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
+                    closeSidebar();
+                }
             }
         });
 

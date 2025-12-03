@@ -20,23 +20,38 @@ export const customAdminLogin = async (request, reply) => {
 
         console.log('Attempting custom authentication for:', email);
         
-        // Custom authentication - simple hardcoded check for now
+        // Try database authentication with proper password hashing
         let isAuthenticated = false;
-        if (email === 'admin@example.com' && password === 'admin123') {
-            isAuthenticated = true;
-            console.log('Custom authentication successful');
-        } else {
-            // Try database authentication
-            try {
-                const { Admin } = await import('../models/user.js');
-                const admin = await Admin.findOne({ email });
-                if (admin && (password === admin.password || password === 'admin123')) {
+        try {
+            const { Admin } = await import('../models/user.js');
+            // Find admin and include password field for comparison
+            const admin = await Admin.findOne({ email }).select('+password');
+            
+            if (admin) {
+                // Check if account is activated
+                if (!admin.isActivated) {
+                    console.log('Account is not activated');
+                    reply.type('application/json');
+                    return reply.status(403).send({
+                        message: 'Account is not activated',
+                        success: false
+                    });
+                }
+
+                // Use comparePassword method to check hashed password
+                const isPasswordValid = await admin.comparePassword(password);
+                
+                if (isPasswordValid) {
                     isAuthenticated = true;
                     console.log('Database authentication successful');
+                } else {
+                    console.log('Password mismatch');
                 }
-            } catch (dbError) {
-                console.log('Database authentication failed:', dbError.message);
+            } else {
+                console.log('Admin not found in database');
             }
+        } catch (dbError) {
+            console.error('Database authentication error:', dbError.message);
         }
         
         if (isAuthenticated) {

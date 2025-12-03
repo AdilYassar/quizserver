@@ -5,94 +5,116 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marks Management - Quiz Server</title>
     <link rel="stylesheet" href="css/management-shared.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-modalSlideIn {
+            animation: modalSlideIn 0.3s ease;
+        }
+    </style>
 </head>
 <body>
-    <div class="management-container">
+    <div class="flex min-h-screen bg-gray-100">
         <!-- Main Content -->
-        <main class="main-content">
-            <div class="top-bar">
-                <h1 class="page-title">Marks Management</h1>
-                <a href="/custom-dashboard" class="admin-link">
+        <main class="flex-1 w-full">
+            <div class="bg-white border-b border-gray-200 py-4 px-4 lg:px-6 flex justify-between items-center">
+                <h1 class="text-xl font-semibold text-black m-0 tracking-tight">Marks Management</h1>
+                <a href="/custom-dashboard" class="bg-black text-white px-6 py-3 rounded-lg no-underline font-medium transition-all duration-300 shadow-sm hover:bg-gray-800 hover:shadow-md hover:-translate-y-0.5 focus:outline-2 focus:outline-black focus:outline-offset-2 h-10 flex items-center gap-2">
                     <i class="fas fa-arrow-left"></i>
                     Back to Dashboard
                 </a>
             </div>
 
-            <div class="content">
+            <div class="p-4 md:p-8">
                 <!-- Page Header -->
-                <div class="page-header">
-                    <h1>Marks Management</h1>
-                    <p>Track and manage student marks and performance across all quizzes.</p>
+                <div class="bg-white rounded-xl p-8 mb-8 shadow-sm border border-gray-200 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-0.5 bg-black"></div>
+                    <h1 class="text-black font-semibold text-2xl md:text-3xl mb-3 tracking-tight">Marks Management</h1>
+                    <p class="text-gray-600 text-base m-0 leading-relaxed">Track and manage student marks and performance across all quizzes.</p>
                 </div>
 
                 <!-- Stats Cards -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <span class="stat-title">Total Records</span>
-                            <div class="stat-icon">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 mb-8">
+                    <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-200 transition-all duration-300 relative overflow-hidden min-h-[140px] flex flex-col hover:-translate-y-0.5 hover:shadow-md hover:border-gray-300">
+                        <div class="absolute top-0 left-0 right-0 h-0.5 bg-black"></div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Total Records</span>
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-xl bg-gray-100 text-black shadow-sm">
                                 <i class="fas fa-chart-bar"></i>
                             </div>
                         </div>
-                        <div class="stat-value" id="totalRecords">-</div>
-                        <div class="stat-change">All marks records</div>
+                        <div class="text-4xl font-semibold text-black mb-2 leading-none flex items-center tracking-tight flex-grow" id="totalRecords">-</div>
+                        <div class="flex items-center gap-1 text-xs font-medium text-gray-600 mt-auto">All marks records</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <span class="stat-title">High Performers</span>
-                            <div class="stat-icon">
+                    <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-200 transition-all duration-300 relative overflow-hidden min-h-[140px] flex flex-col hover:-translate-y-0.5 hover:shadow-md hover:border-gray-300">
+                        <div class="absolute top-0 left-0 right-0 h-0.5 bg-black"></div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">High Performers</span>
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-xl bg-gray-100 text-black shadow-sm">
                                 <i class="fas fa-trophy"></i>
                             </div>
                         </div>
-                        <div class="stat-value" id="highPerformers">-</div>
-                        <div class="stat-change">Above 80%</div>
+                        <div class="text-4xl font-semibold text-black mb-2 leading-none flex items-center tracking-tight flex-grow" id="highPerformers">-</div>
+                        <div class="flex items-center gap-1 text-xs font-medium text-gray-600 mt-auto">Above 80%</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <span class="stat-title">Average Score</span>
-                            <div class="stat-icon">
+                    <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-200 transition-all duration-300 relative overflow-hidden min-h-[140px] flex flex-col hover:-translate-y-0.5 hover:shadow-md hover:border-gray-300">
+                        <div class="absolute top-0 left-0 right-0 h-0.5 bg-black"></div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Average Score</span>
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-xl bg-gray-100 text-black shadow-sm">
                                 <i class="fas fa-percentage"></i>
                             </div>
                         </div>
-                        <div class="stat-value" id="averageScore">-</div>
-                        <div class="stat-change">Overall average</div>
+                        <div class="text-4xl font-semibold text-black mb-2 leading-none flex items-center tracking-tight flex-grow" id="averageScore">-</div>
+                        <div class="flex items-center gap-1 text-xs font-medium text-gray-600 mt-auto">Overall average</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <span class="stat-title">Failed</span>
-                            <div class="stat-icon">
+                    <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-200 transition-all duration-300 relative overflow-hidden min-h-[140px] flex flex-col hover:-translate-y-0.5 hover:shadow-md hover:border-gray-300">
+                        <div class="absolute top-0 left-0 right-0 h-0.5 bg-black"></div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Failed</span>
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-xl bg-gray-100 text-black shadow-sm">
                                 <i class="fas fa-exclamation-triangle"></i>
                             </div>
                         </div>
-                        <div class="stat-value" id="failedCount">-</div>
-                        <div class="stat-change">Below 50%</div>
+                        <div class="text-4xl font-semibold text-black mb-2 leading-none flex items-center tracking-tight flex-grow" id="failedCount">-</div>
+                        <div class="flex items-center gap-1 text-xs font-medium text-gray-600 mt-auto">Below 50%</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <span class="stat-title">Recent</span>
-                            <div class="stat-icon">
+                    <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-200 transition-all duration-300 relative overflow-hidden min-h-[140px] flex flex-col hover:-translate-y-0.5 hover:shadow-md hover:border-gray-300">
+                        <div class="absolute top-0 left-0 right-0 h-0.5 bg-black"></div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Recent</span>
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-xl bg-gray-100 text-black shadow-sm">
                                 <i class="fas fa-clock"></i>
                             </div>
                         </div>
-                        <div class="stat-value" id="recentMarks">-</div>
-                        <div class="stat-change">This Week</div>
+                        <div class="text-4xl font-semibold text-black mb-2 leading-none flex items-center tracking-tight flex-grow" id="recentMarks">-</div>
+                        <div class="flex items-center gap-1 text-xs font-medium text-gray-600 mt-auto">This Week</div>
                     </div>
                 </div>
 
                 <!-- Action Bar -->
-                <div class="action-bar">
-                    <div class="search-container">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="searchInput" class="search-input" placeholder="Search by student name, email, course, or quiz...">
+                <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-6 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <div class="relative flex-1 max-w-full md:max-w-md">
+                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 w-5 h-5"></i>
+                        <input type="text" id="searchInput" class="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-lg text-sm transition-all duration-300 bg-white h-12 text-black focus:outline-none focus:border-black focus:shadow-[0_0_0_3px_rgba(0,0,0,0.05)]" placeholder="Search by student name, email, course, or quiz...">
                     </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-danger" onclick="bulkDelete()" id="bulkDeleteBtn" disabled>
+                    <div class="flex flex-col md:flex-row gap-2 md:gap-3 w-full md:w-auto">
+                        <button class="bg-gray-800 text-white px-6 py-3 rounded text-sm font-medium transition-all duration-300 shadow-sm hover:bg-gray-700 hover:-translate-y-0.5 hover:shadow-md focus:outline-2 focus:outline-black focus:outline-offset-2 h-10 flex items-center justify-center gap-2 border-none cursor-pointer no-underline min-w-[120px] disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto" onclick="bulkDelete()" id="bulkDeleteBtn" disabled>
                             <i class="fas fa-trash"></i>
                             Delete Selected
                         </button>
-                        <button class="btn btn-success" onclick="exportMarks()">
+                        <button class="bg-gray-800 text-white px-6 py-3 rounded text-sm font-medium transition-all duration-300 shadow-sm hover:bg-gray-700 hover:-translate-y-0.5 hover:shadow-md focus:outline-2 focus:outline-black focus:outline-offset-2 h-10 flex items-center justify-center gap-2 border-none cursor-pointer no-underline min-w-[120px] w-full md:w-auto" onclick="exportMarks()">
                             <i class="fas fa-download"></i>
                             Export CSV
                         </button>
@@ -100,50 +122,50 @@
                 </div>
 
                 <!-- Marks Table -->
-                <div class="table-container">
-                    <table class="table">
+                <div class="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200 overflow-x-auto">
+                    <table class="w-full border-collapse">
                         <thead>
                             <tr>
-                                <th>
+                                <th class="bg-gray-100 text-black font-semibold text-xs uppercase tracking-wider py-4 px-4 text-left whitespace-nowrap border-b-2 border-gray-200">
                                     <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
                                 </th>
-                                <th>
-                                    <button class="sort-btn" onclick="sort('user.name')">
-                                        Student <i class="fas fa-sort"></i>
+                                <th class="bg-gray-100 text-black font-semibold text-xs uppercase tracking-wider py-4 px-4 text-left whitespace-nowrap border-b-2 border-gray-200">
+                                    <button class="flex items-center gap-1 hover:text-gray-600 transition-colors" onclick="sort('user.name')">
+                                        Student <i class="fas fa-sort text-xs"></i>
                                     </button>
                                 </th>
-                                <th>
-                                    <button class="sort-btn" onclick="sort('course.title')">
-                                        Course <i class="fas fa-sort"></i>
+                                <th class="bg-gray-100 text-black font-semibold text-xs uppercase tracking-wider py-4 px-4 text-left whitespace-nowrap border-b-2 border-gray-200">
+                                    <button class="flex items-center gap-1 hover:text-gray-600 transition-colors" onclick="sort('course.title')">
+                                        Course <i class="fas fa-sort text-xs"></i>
                                     </button>
                                 </th>
-                                <th>
-                                    <button class="sort-btn" onclick="sort('quiz.title')">
-                                        Quiz <i class="fas fa-sort"></i>
+                                <th class="bg-gray-100 text-black font-semibold text-xs uppercase tracking-wider py-4 px-4 text-left whitespace-nowrap border-b-2 border-gray-200">
+                                    <button class="flex items-center gap-1 hover:text-gray-600 transition-colors" onclick="sort('quiz.title')">
+                                        Quiz <i class="fas fa-sort text-xs"></i>
                                     </button>
                                 </th>
-                                <th>
-                                    <button class="sort-btn" onclick="sort('obtainedMarks')">
-                                        Score <i class="fas fa-sort"></i>
+                                <th class="bg-gray-100 text-black font-semibold text-xs uppercase tracking-wider py-4 px-4 text-left whitespace-nowrap border-b-2 border-gray-200">
+                                    <button class="flex items-center gap-1 hover:text-gray-600 transition-colors" onclick="sort('obtainedMarks')">
+                                        Score <i class="fas fa-sort text-xs"></i>
                                     </button>
                                 </th>
-                                <th>
-                                    <button class="sort-btn" onclick="sort('percentage')">
-                                        Percentage <i class="fas fa-sort"></i>
+                                <th class="bg-gray-100 text-black font-semibold text-xs uppercase tracking-wider py-4 px-4 text-left whitespace-nowrap border-b-2 border-gray-200">
+                                    <button class="flex items-center gap-1 hover:text-gray-600 transition-colors" onclick="sort('percentage')">
+                                        Percentage <i class="fas fa-sort text-xs"></i>
                                     </button>
                                 </th>
-                                <th>
-                                    <button class="sort-btn" onclick="sort('grade')">
-                                        Grade <i class="fas fa-sort"></i>
+                                <th class="bg-gray-100 text-black font-semibold text-xs uppercase tracking-wider py-4 px-4 text-left whitespace-nowrap border-b-2 border-gray-200">
+                                    <button class="flex items-center gap-1 hover:text-gray-600 transition-colors" onclick="sort('grade')">
+                                        Grade <i class="fas fa-sort text-xs"></i>
                                     </button>
                                 </th>
-                                <th>Actions</th>
+                                <th class="bg-gray-100 text-black font-semibold text-xs uppercase tracking-wider py-4 px-4 text-left whitespace-nowrap border-b-2 border-gray-200">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="marksTableBody">
                             <tr>
-                                <td colspan="8" class="loading">
-                                    <div class="spinner"></div>
+                                <td colspan="8" class="text-center py-10 text-gray-600">
+                                    <div class="w-10 h-10 border-4 border-gray-200 border-t-black rounded-full animate-spin mx-auto mb-4"></div>
                                     Loading marks...
                                 </td>
                             </tr>
@@ -152,7 +174,7 @@
                 </div>
 
                 <!-- Pagination -->
-                <div class="pagination" id="pagination">
+                <div class="flex justify-center items-center gap-2 mt-6" id="pagination">
                     <!-- Pagination buttons will be generated here -->
                 </div>
             </div>
@@ -160,54 +182,54 @@
     </div>
 
     <!-- Mark Details Modal -->
-    <div id="markModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title" id="modalTitle">Mark Details</h2>
-                <span class="close" onclick="closeModal()">&times;</span>
+    <div id="markModal" class="hidden fixed z-[2000] left-0 top-0 w-full h-full bg-black/40 backdrop-blur-sm">
+        <div class="bg-white m-0 p-0 rounded-none w-full h-full flex flex-col overflow-hidden border border-gray-200 animate-modalSlideIn md:m-[2%] md:mx-auto md:rounded md:w-[90%] md:max-w-[600px] md:h-auto md:max-h-[90vh] md:shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-white flex-shrink-0">
+                <h2 class="text-xl font-semibold text-black m-0 tracking-tight" id="modalTitle">Mark Details</h2>
+                <span class="text-gray-600 text-2xl font-bold cursor-pointer transition-colors duration-200 p-1 hover:text-gray-900 md:text-[28px]" onclick="closeModal()">&times;</span>
             </div>
-            <div class="modal-body">
-                <div class="mark-details">
-                    <div class="detail-group">
-                        <label>Student:</label>
-                        <span id="studentName">-</span>
+            <div class="p-5 flex-1 overflow-y-auto md:p-6 md:max-h-[calc(90vh-140px)]">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                    <div class="flex flex-col gap-1">
+                        <label class="font-semibold text-gray-700 text-sm">Student:</label>
+                        <span class="text-gray-900 text-base" id="studentName">-</span>
                     </div>
-                    <div class="detail-group">
-                        <label>Email:</label>
-                        <span id="studentEmail">-</span>
+                    <div class="flex flex-col gap-1">
+                        <label class="font-semibold text-gray-700 text-sm">Email:</label>
+                        <span class="text-gray-900 text-base" id="studentEmail">-</span>
                     </div>
-                    <div class="detail-group">
-                        <label>Course:</label>
-                        <span id="courseName">-</span>
+                    <div class="flex flex-col gap-1">
+                        <label class="font-semibold text-gray-700 text-sm">Course:</label>
+                        <span class="text-gray-900 text-base" id="courseName">-</span>
                     </div>
-                    <div class="detail-group">
-                        <label>Quiz:</label>
-                        <span id="quizName">-</span>
+                    <div class="flex flex-col gap-1">
+                        <label class="font-semibold text-gray-700 text-sm">Quiz:</label>
+                        <span class="text-gray-900 text-base" id="quizName">-</span>
                     </div>
-                    <div class="detail-group">
-                        <label>Total Marks:</label>
-                        <span id="totalMarks">-</span>
+                    <div class="flex flex-col gap-1">
+                        <label class="font-semibold text-gray-700 text-sm">Total Marks:</label>
+                        <span class="text-gray-900 text-base" id="totalMarks">-</span>
                     </div>
-                    <div class="detail-group">
-                        <label>Obtained Marks:</label>
-                        <span id="obtainedMarks">-</span>
+                    <div class="flex flex-col gap-1">
+                        <label class="font-semibold text-gray-700 text-sm">Obtained Marks:</label>
+                        <span class="text-gray-900 text-base" id="obtainedMarks">-</span>
                     </div>
-                    <div class="detail-group">
-                        <label>Percentage:</label>
-                        <span id="percentage">-</span>
+                    <div class="flex flex-col gap-1">
+                        <label class="font-semibold text-gray-700 text-sm">Percentage:</label>
+                        <span class="text-gray-900 text-base" id="percentage">-</span>
                     </div>
-                    <div class="detail-group">
-                        <label>Grade:</label>
-                        <span id="grade" class="grade-badge">-</span>
+                    <div class="flex flex-col gap-1">
+                        <label class="font-semibold text-gray-700 text-sm">Grade:</label>
+                        <span class="inline-block px-2 py-1 rounded text-xs font-semibold text-center min-w-[32px] bg-gray-800 text-white" id="grade">-</span>
                     </div>
-                    <div class="detail-group">
-                        <label>Date:</label>
-                        <span id="submissionDate">-</span>
+                    <div class="flex flex-col gap-1 md:col-span-2">
+                        <label class="font-semibold text-gray-700 text-sm">Date:</label>
+                        <span class="text-gray-900 text-base" id="submissionDate">-</span>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
+            <div class="p-4 md:p-6 border-t border-gray-200 flex flex-col gap-3 bg-white flex-shrink-0 md:flex-row md:justify-end">
+                <button type="button" class="bg-gray-100 text-gray-800 px-6 py-3 rounded text-sm font-medium transition-all duration-300 shadow-sm border border-gray-200 hover:bg-gray-200 hover:text-black hover:-translate-y-0.5 hover:shadow-md h-10 flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto min-w-[120px]" onclick="closeModal()">Close</button>
             </div>
         </div>
     </div>

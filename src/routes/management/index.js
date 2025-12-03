@@ -11,6 +11,7 @@ import registerMarksSummaryRoutes from './marksSummary.js';
 import registerQuizSubmissionRoutes from './quizSubmissions.js';
 import registerTheoryRoutes from './theory.js';
 import registerUserProgressRoutes from './userProgress.js';
+import registerAdminEmailsRoutes from './adminEmails.js';
 
 export const registerManagementRoutes = async (app) => {
     await registerStudentRoutes(app);
@@ -26,4 +27,5 @@ export const registerManagementRoutes = async (app) => {
     await registerQuizSubmissionRoutes(app);
     await registerTheoryRoutes(app);
     await registerUserProgressRoutes(app);
+    await registerAdminEmailsRoutes(app);
 };

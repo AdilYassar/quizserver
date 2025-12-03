@@ -3,15 +3,10 @@ import { Video } from '../../models/video.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { uploadAndMakePublic, deleteFromDrive } from '../../utils/googleDrive.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Ensure videos directory exists
-const videosDir = path.join(__dirname, '../../../public/videos');
-if (!fs.existsSync(videosDir)) {
-    fs.mkdirSync(videosDir, { recursive: true });
-}
 
 // Upload video
 export const uploadVideo = async (req, res) => {
@@ -23,19 +18,26 @@ export const uploadVideo = async (req, res) => {
             return res.status(400).json({ message: 'No video file provided' });
         }
 
-        // Generate unique filename
-        const ext = path.extname(video.name);
-        const filename = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}${ext}`;
-        const filepath = path.join(videosDir, filename);
+        // Get MIME type
+        const mimeType = video.type || 'video/mp4';
 
-        // Move file to videos directory
-        fs.renameSync(video.path, filepath);
+        // Upload to Google Drive and make public
+        const { fileId, publicUrl } = await uploadAndMakePublic(
+            video.path,
+            `${Date.now()}-${video.name}`,
+            mimeType,
+            process.env.GOOGLE_DRIVE_FOLDER_ID || null
+        );
+
+        // Clean up temporary file
+        fs.unlinkSync(video.path);
 
         // Save to database
         const newVideo = new Video({
             title,
             description,
-            url: `/videos/${filename}`, // Relative path for serving
+            url: publicUrl, // Google Drive public URL
+            driveFileId: fileId, // Store file ID for deletion
             course: course || null,
             fileSize: video.size,
         });
@@ -82,10 +84,9 @@ export const deleteVideo = async (req, res) => {
             return res.status(404).json({ message: 'Video not found' });
         }
 
-        // Delete file from filesystem
-        const filepath = path.join(videosDir, path.basename(video.url));
-        if (fs.existsSync(filepath)) {
-            fs.unlinkSync(filepath);
+        // Delete file from Google Drive
+        if (video.driveFileId) {
+            await deleteFromDrive(video.driveFileId);
         }
 
         await Video.findByIdAndDelete(req.params.id);

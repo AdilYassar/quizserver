@@ -96,7 +96,16 @@ const adminSchema = new mongoose.Schema({
     },
     phone: { 
         type: String,
-        match: [/^\+?[1-9]\d{1,14}$/, 'Please enter a valid phone number']
+        required: false,
+        validate: {
+            validator: function(v) {
+                // Allow empty/undefined phone numbers
+                if (!v || v.trim() === '') return true;
+                // Validate phone format if provided (allow numbers starting with 0, with optional + prefix)
+                return /^\+?[0-9]\d{0,14}$/.test(v);
+            },
+            message: 'Please enter a valid phone number'
+        }
     },
     role: { type: String, enum: ['Admin'], default: 'Admin' },
     isActivated: { type: Boolean, default: true }

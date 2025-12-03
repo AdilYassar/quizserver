@@ -64,6 +64,9 @@ export const registerHtmlRoutes = (app) => {
             }
             
             console.log('Valid custom session found, serving dashboard');
+            // Set session cookie manually to avoid onSend conflicts
+            reply.header('Set-Cookie', `session=${request.session.sessionId}; HttpOnly; Path=/; SameSite=Lax`);
+            request.session = null; // Prevent automatic session save
             const htmlPath = path.join(publicDir, 'custom-dashboard.html');
             const htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
             reply.type('text/html');
@@ -76,6 +79,7 @@ export const registerHtmlRoutes = (app) => {
     });
 
     // Management Pages
+    // Note: admin-emails route is registered in app.js as /manage-admins to avoid AdminJS conflicts
     app.get('/students', serveHTML('students.html'));
     app.get('/courses', serveHTML('courses.html'));
     app.get('/quizzes', serveHTML('quizzes.html'));
@@ -89,6 +93,10 @@ export const registerHtmlRoutes = (app) => {
     app.get('/marks-summary', serveHTML('marks-summary.html'));
     app.get('/theory', serveHTML('theory.html'));
     app.get('/user-progress', serveHTML('user-progress.html'));
+    
+    // Video Upload Admin Page
+    app.get('/videos', serveHTML('video-upload.html'));
+    app.get('/video-upload', serveHTML('video-upload.html'));
 
     console.log('HTML routes registered');
 };

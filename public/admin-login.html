@@ -4,14 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - QuizServer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --color-slate-900: #1e293b;
-            --color-slate-700: #334155;
-            --color-indigo-600: #4f46e5;
-            --color-coral-400: #ffa586;
-            --color-red-600: #dc2626;
-            --color-red-900: #7f1d1d;
+            --color-black: #000000;
+            --color-gray-900: #1a1a1a;
+            --color-gray-800: #2d2d2d;
+            --color-gray-700: #4a4a4a;
+            --color-gray-600: #6b6b6b;
+            --color-gray-500: #8a8a8a;
+            --color-gray-400: #a8a8a8;
+            --color-gray-300: #c4c4c4;
+            --color-gray-200: #e0e0e0;
+            --color-gray-100: #f5f5f5;
+            --color-white: #ffffff;
+            --bg-primary: #f5f5f5;
+            --bg-card: #ffffff;
+            --border-color: #e0e0e0;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -21,124 +34,191 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background: var(--color-slate-900);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .login-container {
-            background: white;
-            padding: 24px;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(30, 41, 59, 0.1);
+            background: var(--color-white);
+            padding: 48px 40px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
             width: 100%;
-            max-width: 400px;
+            max-width: 440px;
+            transition: var(--transition);
         }
 
         .logo {
             text-align: center;
-            margin-bottom: 24px;
+            margin-bottom: 40px;
         }
 
         .logo h1 {
-            color: var(--color-slate-900);
-            font-size: 28px;
-            margin-bottom: 5px;
+            color: var(--color-black);
+            font-size: 32px;
+            margin-bottom: 8px;
             font-weight: 600;
+            letter-spacing: -0.02em;
         }
 
         .logo p {
-            color: var(--color-slate-700);
-            font-size: 16px;
+            color: var(--color-gray-600);
+            font-size: 15px;
+            font-weight: 500;
         }
 
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 24px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 5px;
-            color: var(--color-slate-700);
+            margin-bottom: 8px;
+            color: var(--color-gray-700);
             font-weight: 500;
+            font-size: 14px;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid rgba(52, 65, 88, 0.1);
-            border-radius: 4px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-            height: 40px;
+            padding: 14px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 15px;
+            transition: var(--transition);
+            height: 48px;
+            background: var(--color-white);
+            color: var(--color-black);
+            font-family: inherit;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: var(--color-indigo-600);
+            border-color: var(--color-black);
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-group input::placeholder {
+            color: var(--color-gray-400);
         }
 
         .remember-me {
             display: flex;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 24px;
+            gap: 8px;
         }
 
-        .remember-me input {
-            width: auto;
-            margin-right: 8px;
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            cursor: pointer;
+            accent-color: var(--color-black);
+        }
+
+        .remember-me label {
+            margin: 0;
+            cursor: pointer;
+            color: var(--color-gray-700);
+            font-size: 14px;
+            font-weight: 400;
         }
 
         .login-btn {
             width: 100%;
-            padding: 12px;
-            background: var(--color-indigo-600);
-            color: white;
+            padding: 14px;
+            background: var(--color-black);
+            color: var(--color-white);
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             font-size: 16px;
             font-weight: 500;
             cursor: pointer;
-            transition: transform 0.2s;
-            height: 40px;
+            transition: var(--transition);
+            height: 48px;
+            font-family: inherit;
+            box-shadow: var(--shadow-sm);
         }
 
         .login-btn:hover {
+            background: var(--color-gray-800);
+            box-shadow: var(--shadow-md);
             transform: translateY(-1px);
         }
 
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-btn:focus {
+            outline: 2px solid var(--color-black);
+            outline-offset: 2px;
+        }
+
         .demo-info {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 4px;
-            margin-top: 16px;
+            background: var(--color-gray-100);
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 24px;
             text-align: center;
-            color: var(--color-slate-700);
-            font-size: 14px;
+            color: var(--color-gray-700);
+            font-size: 13px;
+            line-height: 1.6;
+            border: 1px solid var(--border-color);
+        }
+
+        .demo-info strong {
+            color: var(--color-black);
+            font-weight: 600;
+            display: block;
+            margin-bottom: 8px;
         }
 
         .error-message {
-            background: #fed7d7;
-            color: var(--color-red-600);
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 16px;
+            background: var(--color-gray-100);
+            color: var(--color-gray-800);
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
             display: none;
-            border-left: 4px solid var(--color-red-600);
+            border-left: 3px solid var(--color-black);
+            font-size: 14px;
+            line-height: 1.5;
         }
 
         .success-message {
-            background: #d1fae5;
-            color: #065f46;
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 16px;
+            background: var(--color-gray-100);
+            color: var(--color-gray-800);
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
             display: none;
-            border-left: 4px solid #10b981;
+            border-left: 3px solid var(--color-black);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 32px 24px;
+            }
+
+            .logo h1 {
+                font-size: 28px;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
         }
     </style>
 </head>

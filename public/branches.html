@@ -3,155 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Branches Management - Quiz Server</title>
-    <link rel="stylesheet" href="css/management-shared.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Branches - Quiz Server</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+    </style>
 </head>
-<body>
-    <div class="management-container">
-        <!-- Main Content -->
-        <main class="main-content">
-            <div class="top-bar">
-                <h1 class="page-title">Branches Management</h1>
-                <a href="/custom-dashboard" class="admin-link">
-                    <i class="fas fa-arrow-left"></i>
-                    Back to Dashboard
-                </a>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Navigation -->
+        <nav class="bg-white border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <h1 class="text-2xl font-bold text-gray-900">Branch Management</h1>
+                    <a href="/custom-dashboard" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content -->
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-xl border border-gray-200 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Total Branches</p>
+                            <p class="text-2xl font-bold text-gray-900" id="totalBranches">-</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-code-branch text-blue-600"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl border border-gray-200 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Active Branches</p>
+                            <p class="text-2xl font-bold text-gray-900" id="activeBranches">-</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl border border-gray-200 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Students Enrolled</p>
+                            <p class="text-2xl font-bold text-gray-900" id="studentsEnrolled">-</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-users text-purple-600"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="content">
-                <!-- Page Header -->
-                <div class="page-header">
-                    <h1>Branches Management</h1>
-                    <p>Manage branch locations and their courses in the system.</p>
+            <!-- Branch Form & List -->
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Branch Form -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl border border-gray-200 p-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-6">Add New Branch</h2>
+                        
+                        <form id="branchForm" class="space-y-4">
+                            <div>
+                                <label for="branchName" class="block text-sm font-medium text-gray-700 mb-2">Branch Name</label>
+                                <input type="text" id="branchName" name="branchName" required 
+                                       placeholder="e.g., Computer Science"
+                                       class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all">
+                            </div>
+
+                            <div>
+                                <label for="branchCode" class="block text-sm font-medium text-gray-700 mb-2">Branch Code</label>
+                                <input type="text" id="branchCode" name="branchCode" required 
+                                       placeholder="e.g., CSE, EEE, ME"
+                                       class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all">
+                            </div>
+
+                            <div>
+                                <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                                <textarea id="description" name="description" rows="3" 
+                                          placeholder="Branch description..."
+                                          class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all resize-none"></textarea>
+                            </div>
+
+                            <div>
+                                <label for="isActive" class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="isActive" name="isActive" checked 
+                                           class="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900">
+                                    <span class="text-sm font-medium text-gray-700">Active Branch</span>
+                                </label>
+                            </div>
+
+                            <button type="submit" 
+                                    class="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                                <span id="submitBtnText">Add Branch</span>
+                            </button>
+                        </form>
+                    </div>
                 </div>
 
-                <!-- Stats Cards -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <span class="stat-title">Total Branches</span>
-                            <div class="stat-icon">
-                                <i class="fas fa-building"></i>
+                <!-- Branches List -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl border border-gray-200">
+                        <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                            <h2 class="text-xl font-semibold text-gray-900">All Branches</h2>
+                            <button onclick="loadBranches()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                                <i class="fas fa-sync-alt text-gray-600"></i>
+                            </button>
+                        </div>
+
+                        <!-- Search -->
+                        <div class="p-6 border-b border-gray-200">
+                            <div class="relative">
+                                <input type="text" id="searchInput" placeholder="Search branches..."
+                                       class="w-full px-4 py-2.5 pl-10 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all">
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
                         </div>
-                        <div class="stat-value" id="totalBranches">-</div>
-                        <div class="stat-change">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>All branches</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <span class="stat-title">Active Branches</span>
-                            <div class="stat-icon">
-                                <i class="fas fa-map-marker-alt"></i>
+
+                        <!-- Branches List -->
+                        <div id="branchesList" class="divide-y divide-gray-200 max-h-96 overflow-y-auto custom-scrollbar">
+                            <div class="flex items-center justify-center py-12">
+                                <div class="text-center">
+                                    <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                        <i class="fas fa-code-branch text-gray-400"></i>
+                                    </div>
+                                    <p class="text-sm text-gray-500">Loading branches...</p>
+                                </div>
                             </div>
                         </div>
-                        <div class="stat-value" id="activeBranches">-</div>
-                        <div class="stat-change">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>With courses</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <span class="stat-title">Total Courses</span>
-                            <div class="stat-icon">
-                                <i class="fas fa-book"></i>
-                            </div>
-                        </div>
-                        <div class="stat-value" id="totalCourses">-</div>
-                        <div class="stat-change">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>Across branches</span>
-                        </div>
                     </div>
                 </div>
-
-                <!-- Action Bar -->
-                <div class="action-bar">
-                    <div class="search-container">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="searchInput" class="search-input" placeholder="Search branches by name or location...">
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-primary" onclick="openCreateModal()">
-                            <i class="fas fa-plus"></i>
-                            Add Branch
-                        </button>
-                        <button class="btn btn-danger" onclick="bulkDelete()" id="bulkDeleteBtn" disabled>
-                            <i class="fas fa-trash"></i>
-                            Delete Selected
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Branches Table -->
-                <div class="table-container">
-                    <table class="table">
-                    <thead>
-                        <tr>
-                            <th>
-                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
-                            </th>
-                            <th>Name</th>
-                            <th>Location</th>
-                            <th>Courses</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="branchesTableBody">
-                        <tr>
-                            <td colspan="5" class="loading">
-                                <div class="spinner"></div>
-                                Loading branches...
-                            </td>
-                        </tr>
-                    </tbody>
-                    </table>
-                </div>
-
-                <!-- Pagination -->
-                <div class="pagination" id="pagination">
-                    <!-- Pagination buttons will be generated here -->
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Create/Edit Branch Modal -->
-    <div id="branchModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title" id="modalTitle">Add New Branch</h2>
-                <span class="close" onclick="closeModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <form id="branchForm">
-                    <div class="form-group">
-                        <label for="name" class="form-label">Branch Name *</label>
-                        <input type="text" id="name" name="name" class="form-control" required>
-                        <div class="invalid-feedback" id="nameError"></div>
-                    </div>
-                    <div class="form-group">
-                        <label for="location" class="form-label">Location *</label>
-                        <input type="text" id="location" name="location" class="form-control" required>
-                        <div class="invalid-feedback" id="locationError"></div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveBranch()">
-                    <i class="fas fa-save"></i>
-                    Save Branch
-                </button>
             </div>
         </div>
     </div>
 
-    <script src="/js/branches.js"></script>
+    <script src="js/branches.js"></script>
 </body>
 </html>

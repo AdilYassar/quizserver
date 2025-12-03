@@ -1,3 +1,10 @@
 /node_modules
 .env
 public/videos/
+
+# Google Cloud credentials and tokens
+brave-aileron-475518-a8-1d758e3d5e11.json
+token.json
+*.json
+!package.json
+!package-lock.json

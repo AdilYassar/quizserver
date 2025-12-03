@@ -497,7 +497,12 @@ class TheoryManager {
     // Chapter Management Methods
     renderChaptersList() {
         const chaptersList = document.getElementById('chaptersList');
-        const chaptersCountText = document.querySelector('.chapters-count-text');
+        const chaptersCountText = document.getElementById('chaptersCountText');
+        
+        if (!chaptersList || !chaptersCountText) {
+            console.error('Chapters list elements not found');
+            return;
+        }
         
         if (this.chapters.length === 0) {
             chaptersList.innerHTML = '';

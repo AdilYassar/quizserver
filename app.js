@@ -2,6 +2,7 @@
 import "dotenv/config"; // Ensure environment variables are loaded first
 import Fastify from "fastify";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 
 import { connectDB } from "./src/config/connect.js";
@@ -12,6 +13,7 @@ import { registerStaticRoutes } from "./src/routes/staticRoutes.js";
 import { registerHtmlRoutes } from "./src/routes/htmlRoutes.js";
 import { registerDashboardRoutes } from "./src/routes/dashboardRoutes.js";
 import { registerAuthRoutes } from "./src/routes/authRoutes.js";
+import { videoRoutes } from "./src/routes/videoRoutes.js";
 import fastifySocketIO from "fastify-socket.io";
 import webRTCSignalingSocket from "./src/controllers/videoCallController.js";
 import notFoundMiddleware from "./src/middleware/notFoundMiddleware.js";
@@ -25,13 +27,15 @@ const start = async () => {
         console.log("Connected to the database");
 
         const app = Fastify({
-            // Increase body size limit to handle PDF uploads (30MB to account for base64 encoding)
-            bodyLimit: 30 * 1024 * 1024, // 30MB in bytes
+            // Increase body size limit to handle large video uploads (100MB)
+            bodyLimit: 100 * 1024 * 1024, // 100MB in bytes
             // Increase request timeout for large file uploads
-            requestTimeout: 120000 // 2 minutes
+            requestTimeout: 300000 // 5 minutes for large video uploads
         });
         
         // Register video static files FIRST (before session middleware)
+        // Note: Videos are now served from Google Drive, not local storage
+        // This static registration is kept for any legacy videos that might still exist
         app.register(import('@fastify/static'), {
             root: path.join(path.dirname(fileURLToPath(import.meta.url)), 'public', 'videos'),
             prefix: '/videos/',
@@ -42,10 +46,30 @@ const start = async () => {
         registerStaticRoutes(app);      // CSS and JS files
 
         // TEMPORARILY DISABLED SESSION DUE TO HEADER CONFLICTS
-        // await buildAdminRouter(app);
+        await buildAdminRouter(app);
 
-        // Register all other route modules AFTER AdminJS
+        // Register admin-emails route with /manage-admins path to avoid AdminJS conflicts
+        // Using /manage-admins instead of /admin-emails to avoid AdminJS route interception
+        app.get('/manage-admins', async (request, reply) => {
+            try {
+                console.log('✅ Manage admins route accessed - serving admin-emails.html');
+                const htmlPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'public', 'admin-emails.html');
+                const htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
+                reply.type('text/html');
+                return htmlContent;
+            } catch (error) {
+                console.error('❌ Error serving admin-emails.html:', error);
+                reply.code(404);
+                return 'admin-emails.html not found';
+            }
+        });
+
+        // Register remaining HTML routes
         registerHtmlRoutes(app);         // HTML pages
+
+        // Register video routes AFTER AdminJS so multipart is available
+        await app.register(videoRoutes, { prefix: "/api" });
+        console.log('✅ Video routes registered successfully');
         registerDashboardRoutes(app);    // Dashboard API endpoints
         registerAuthRoutes(app);         // Authentication routes
 
@@ -87,6 +111,12 @@ const start = async () => {
         });
 
         app.setErrorHandler((error, request, reply) => {
+            console.error('🚨 Global error handler caught:', {
+                error: error.message,
+                url: request.raw.url,
+                method: request.raw.method,
+                stack: error.stack
+            });
             const statusCode = reply.statusCode === 200 ? 500 : reply.statusCode;
             reply.status(statusCode).send({
                 message: error.message,

@@ -75,6 +75,8 @@ export const registerStaticRoutes = (app) => {
     app.get('/js/theory.js', serveJS('theory.js'));
     app.get('/js/user-progress.js', serveJS('user-progress.js'));
     app.get('/js/admin-login.js', serveJS('admin-login.js'));
+    app.get('/js/admin-emails.js', serveJS('admin-emails.js'));
+    app.get('/js/video-upload.js', serveJS('video-upload.js'));
 
     console.log('Static routes registered (CSS & JS files)');
 };

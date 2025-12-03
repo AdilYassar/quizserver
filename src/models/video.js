@@ -3,7 +3,8 @@ import mongoose from 'mongoose';
 const videoSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String },
-    url: { type: String, required: true }, // Path to the video file, e.g., '/videos/sample.mp4'
+    url: { type: String, required: true }, // Google Drive public URL
+    driveFileId: { type: String, required: true }, // Google Drive file ID for deletion
     course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' }, // Optional reference to course
     uploadedAt: { type: Date, default: Date.now },
     fileSize: { type: Number }, // Size in bytes
