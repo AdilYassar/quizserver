@@ -4,8 +4,11 @@ import Fastify from "fastify";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import fastifyCookie from "@fastify/cookie";
+import fastifySession from "@fastify/session";
 
 import { connectDB } from "./src/config/connect.js";
+import { COOKIE_PASSWORD, sessionStore } from "./src/config/config.js";
 import { buildAdminRouter } from "./src/config/setup.js";
 import { registerRoutes } from "./src/routes/index.js";
 import { registerManagementRoutes } from "./src/routes/management/index.js";
@@ -48,14 +51,42 @@ const start = async () => {
             decorateReply: false
         });
 
-        // Register static routes FIRST (before session middleware)
+        // Register cookie & session middleware (needed for custom admin session)
+        await app.register(fastifyCookie);
+
+        const sessionConfig = {
+            saveUninitialized: true,
+            secret: COOKIE_PASSWORD,
+            cookie: {
+                httpOnly: process.env.NODE_ENV === "production",
+                secure: process.env.NODE_ENV === "production",
+            },
+        };
+
+        if (sessionStore) {
+            sessionConfig.store = sessionStore;
+        }
+
+        await app.register(fastifySession, sessionConfig);
+
+        // Register static routes
         registerStaticRoutes(app);      // CSS and JS files
 
-        // Build AdminJS router - it will register @fastify/cookie and @fastify/session internally
-        await buildAdminRouter(app);
+        // OPTIONAL: AdminJS router (disabled to avoid conflicts and use custom admin UI instead)
+        // If you ever need the built-in AdminJS panel back, uncomment the next line.
+        // await buildAdminRouter(app);
 
-        // Register admin-emails route with /manage-admins path to avoid AdminJS conflicts
-        // Using /manage-admins instead of /admin-emails to avoid AdminJS route interception
+        // Simple mappings so /admin and /admin/login hit our custom admin-login page
+        app.get('/admin', async (request, reply) => {
+            return reply.redirect('/admin-login');
+        });
+
+        app.get('/admin/login', async (request, reply) => {
+            return reply.redirect('/admin-login');
+        });
+
+        // Register admin-emails route with /manage-admins path
+        // Using /manage-admins instead of /admin-emails to keep paths consistent
         app.get('/manage-admins', async (request, reply) => {
             try {
                 console.log('✅ Manage admins route accessed - serving admin-emails.html');
