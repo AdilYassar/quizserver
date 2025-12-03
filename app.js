@@ -23,6 +23,12 @@ const PORT = process.env.PORT || 4000;
 
 const start = async () => {
     try {
+        // Validate required environment variables
+        if (!process.env.MONGO_URI) {
+            console.error("Error: MONGO_URI environment variable is not set");
+            process.exit(1);
+        }
+        
         await connectDB(process.env.MONGO_URI);
         console.log("Connected to the database");
 

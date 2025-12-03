@@ -253,6 +253,20 @@ const adminJs = new AdminJS({
 const router = AdminJSExpress.buildRouter(adminJs);
 
 export const buildAdminRouter = async (app) => {
+    const sessionConfig = {
+        saveUninitialized: true,
+        secret: COOKIE_PASSWORD,
+        cookie: {
+            httpOnly: process.env.NODE_ENV === "production",
+            secure: process.env.NODE_ENV === "production",
+        },
+    };
+
+    // Only add store if sessionStore is available
+    if (sessionStore) {
+        sessionConfig.store = sessionStore;
+    }
+
     await AdminJSFastify.buildAuthenticatedRouter(
         adminJs, // Use the correct instance of AdminJS
         {
@@ -261,15 +275,7 @@ export const buildAdminRouter = async (app) => {
             cookieName: "adminjs",
         },
         app,
-        {
-            store: sessionStore,
-            saveUninitialized: true,
-            secret: COOKIE_PASSWORD,
-            cookie: {
-                httpOnly: process.env.NODE_ENV === "production",
-                secure: process.env.NODE_ENV === "production",
-            },
-        }
+        sessionConfig
     );
 
     // Remove the conflicting route - AdminJS handles /admin internally

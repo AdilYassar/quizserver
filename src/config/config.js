@@ -2,20 +2,24 @@ import 'dotenv/config';
 import fastifySession from '@fastify/session';
 import ConnectMongoDBSession from 'connect-mongodb-session';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { Admin } from '../models/user.js';
 
 
 
 const MongoDBStore = ConnectMongoDBSession(fastifySession)
 
-export const sessionStore = new MongoDBStore({
-    uri:process.env.MONGO_URI,
+// Only create session store if MONGO_URI is available
+export const sessionStore = process.env.MONGO_URI ? new MongoDBStore({
+    uri: process.env.MONGO_URI,
     collection: 'session'
-})
+}) : null;
 
-sessionStore.on("error", (error)=>{
-    console.log("session store error", error);
-})
+if (sessionStore) {
+    sessionStore.on("error", (error) => {
+        console.log("session store error", error);
+    });
+}
 
 export const authenticate = async(email, password) => {
     console.log('Authentication attempt for:', email);
@@ -57,4 +61,14 @@ export const authenticate = async(email, password) => {
 }
 
 export const PORT = process.env.PORT || 3000;
-export const COOKIE_PASSWORD= process.env.COOKIE_PASSWORD;
+
+// Generate a default COOKIE_PASSWORD if not set
+// WARNING: In production, this should always be set via environment variable for security
+export const COOKIE_PASSWORD = process.env.COOKIE_PASSWORD || (() => {
+    // Generate a random secret if not provided
+    // This is a fallback - in production, COOKIE_PASSWORD should be set via env var
+    const generatedSecret = crypto.randomBytes(32).toString('hex');
+    console.warn('⚠️  WARNING: COOKIE_PASSWORD environment variable is not set!');
+    console.warn('⚠️  Using auto-generated secret. For production, set COOKIE_PASSWORD in your environment variables.');
+    return generatedSecret;
+})();
