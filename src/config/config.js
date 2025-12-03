@@ -64,7 +64,11 @@ export const PORT = process.env.PORT || 3000;
 
 // Generate a default COOKIE_PASSWORD if not set
 // WARNING: In production, this should always be set via environment variable for security
-export const COOKIE_PASSWORD = process.env.COOKIE_PASSWORD || (() => {
+export const COOKIE_PASSWORD = (() => {
+    const envSecret = process.env.COOKIE_PASSWORD;
+    if (envSecret && typeof envSecret === 'string' && envSecret.length > 0) {
+        return envSecret;
+    }
     // Generate a random secret if not provided
     // This is a fallback - in production, COOKIE_PASSWORD should be set via env var
     const generatedSecret = crypto.randomBytes(32).toString('hex');
@@ -72,3 +76,8 @@ export const COOKIE_PASSWORD = process.env.COOKIE_PASSWORD || (() => {
     console.warn('⚠️  Using auto-generated secret. For production, set COOKIE_PASSWORD in your environment variables.');
     return generatedSecret;
 })();
+
+// Ensure COOKIE_PASSWORD is always a non-empty string
+if (!COOKIE_PASSWORD || typeof COOKIE_PASSWORD !== 'string' || COOKIE_PASSWORD.length === 0) {
+    throw new Error('COOKIE_PASSWORD must be a non-empty string');
+}

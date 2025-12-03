@@ -253,9 +253,18 @@ const adminJs = new AdminJS({
 const router = AdminJSExpress.buildRouter(adminJs);
 
 export const buildAdminRouter = async (app) => {
+    // Validate COOKIE_PASSWORD is set
+    if (!COOKIE_PASSWORD) {
+        throw new Error('COOKIE_PASSWORD is not set. This should not happen as it auto-generates if missing.');
+    }
+
+    console.log('Building AdminJS router with COOKIE_PASSWORD:', COOKIE_PASSWORD ? 'SET' : 'NOT SET');
+
+    // AdminJS will register @fastify/session internally
+    // We pass sessionConfig with secret so it can configure the session plugin
     const sessionConfig = {
         saveUninitialized: true,
-        secret: COOKIE_PASSWORD,
+        secret: COOKIE_PASSWORD, // Required by @fastify/session
         cookie: {
             httpOnly: process.env.NODE_ENV === "production",
             secure: process.env.NODE_ENV === "production",

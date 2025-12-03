@@ -51,7 +51,7 @@ const start = async () => {
         // Register static routes FIRST (before session middleware)
         registerStaticRoutes(app);      // CSS and JS files
 
-        // TEMPORARILY DISABLED SESSION DUE TO HEADER CONFLICTS
+        // Build AdminJS router - it will register @fastify/cookie and @fastify/session internally
         await buildAdminRouter(app);
 
         // Register admin-emails route with /manage-admins path to avoid AdminJS conflicts
