@@ -52,7 +52,7 @@ export const loginLimiter = async (request, reply) => {
   const key = generateRateLimitKey(request);
   const now = Date.now();
   const windowMs = 15 * 60 * 1000; // 15 minutes
-  const max = 50; // DEVELOPMENT: Increased for easier testing (PRODUCTION: use 5)
+  const max = 5; // PRODUCTION: Restored to 5 attempts for security
   const windowStart = now - windowMs;
   
   // Clean old entries for this key
