@@ -1,6 +1,7 @@
 import { Student, Admin } from "../../models/user.js";
 import { generateTokens, sanitizeUser, validatePassword, validateEmail, validatePhone } from "../../utils/authUtils.js";
 import { clearLoginAttempts } from "../../middleware/rateLimiter.js";
+import { publishUserEvent } from "../../utils/rabbitmq.js";
 
 // Student registration
 export const registerStudent = async (req, reply) => {
@@ -65,6 +66,18 @@ export const registerStudent = async (req, reply) => {
     });
 
     await student.save();
+
+    // Publish user created event
+    await publishUserEvent('user.created', {
+        eventType: 'created',
+        data: {
+            uuid: student.uuid,
+            name: student.name,
+            email: student.email,
+            avatar: student.photo,
+            role: student.role
+        }
+    });
 
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(student);
@@ -155,6 +168,18 @@ export const registerAdmin = async (req, reply) => {
     });
 
     await admin.save();
+
+    // Publish user created event
+    await publishUserEvent('user.created', {
+        eventType: 'created',
+        data: {
+            uuid: admin.uuid,
+            name: admin.name,
+            email: admin.email,
+            avatar: admin.photo,
+            role: admin.role
+        }
+    });
 
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(admin);

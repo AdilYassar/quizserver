@@ -1,5 +1,6 @@
 import { Student, Admin } from "../../models/user.js";
 import { sanitizeUser } from "../../utils/authUtils.js";
+import { publishUserEvent } from "../../utils/rabbitmq.js";
 
 export const updateUser = async (req, reply) => {
     try {
@@ -69,6 +70,18 @@ export const updateUser = async (req, reply) => {
 
         // Log the update
         console.log(`User updated: ${userUuid}`);
+
+        // Publish user updated event
+        await publishUserEvent('user.updated', {
+            eventType: 'updated',
+            data: {
+                uuid: updatedUser.uuid,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                avatar: updatedUser.photo,
+                role: updatedUser.role
+            }
+        });
 
         // Send the updated user details as a response
         return reply.send({

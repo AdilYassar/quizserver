@@ -51,6 +51,78 @@ const start = async () => {
             decorateReply: false
         });
 
+        // Register internal routes BEFORE ANY middleware to avoid conflicts
+        // Register routes directly to avoid plugin encapsulation issues with session middleware
+        const internalAuth = (await import('./src/middleware/internal-auth.middleware.js')).default;
+        const { Student, Admin } = await import('./src/models/user.js');
+        const { Course } = await import('./src/models/course.js');
+
+        // Helper function to find user by UUID
+        const findUserByUuid = async (uuid) => {
+            let user = await Student.findOne({ uuid }).select('uuid name email photo bio role');
+            if (user) return user;
+            user = await Admin.findOne({ uuid }).select('uuid name email photo bio role');
+            return user;
+        };
+
+        // Register internal routes directly
+        app.get('/api/internal/user/:uuid', {
+            preHandler: [internalAuth, (request, reply, done) => {
+                // Disable session for internal routes to prevent header conflicts
+                request.session = null;
+                done();
+            }],
+            handler: async (request, reply) => {
+                console.log('📨 GET /user/:uuid called with UUID:', request.params.uuid);
+                try {
+                    const user = await findUserByUuid(request.params.uuid);
+                    console.log('👤 User found:', !!user);
+                    if (!user) return reply.status(404).send({ message: 'User not found' });
+                    reply.send(user);
+                } catch (err) {
+                    console.error('❌ Error in get user:', err);
+                    reply.status(500).send({ error: err.message });
+                }
+            }
+        });
+
+        app.post('/api/internal/users/batch', {
+            preHandler: [internalAuth, (request, reply, done) => {
+                request.session = null;
+                done();
+            }],
+            handler: async (request, reply) => {
+                try {
+                    const { uuids } = request.body;
+                    const users = [];
+                    for (const uuid of uuids) {
+                        const user = await findUserByUuid(uuid);
+                        if (user) users.push(user);
+                    }
+                    reply.send(users);
+                } catch (err) {
+                    reply.status(500).send({ error: err.message });
+                }
+            }
+        });
+
+        app.get('/api/internal/courses/:courseId/students', {
+            preHandler: [internalAuth, (request, reply, done) => {
+                request.session = null;
+                done();
+            }],
+            handler: async (request, reply) => {
+                try {
+                    const students = await Student.find({ enrolledCourses: request.params.courseId }).select('uuid name photo');
+                    reply.send(students);
+                } catch (err) {
+                    reply.status(500).send({ error: err.message });
+                }
+            }
+        });
+
+        console.log('🔧 Internal routes being registered...');
+
         // Register cookie & session middleware (needed for custom admin session)
         await app.register(fastifyCookie);
 
@@ -61,6 +133,7 @@ const start = async () => {
                 httpOnly: process.env.NODE_ENV === "production",
                 secure: process.env.NODE_ENV === "production",
             },
+            skip: (request) => request.url.startsWith('/api/internal'),
         };
 
         if (sessionStore) {
@@ -72,9 +145,7 @@ const start = async () => {
         // Register static routes
         registerStaticRoutes(app);      // CSS and JS files
 
-        // OPTIONAL: AdminJS router (disabled to avoid conflicts and use custom admin UI instead)
-        // If you ever need the built-in AdminJS panel back, uncomment the next line.
-        // await buildAdminRouter(app);
+        // Simple mappings so /admin and /admin/login hit our custom admin-login page
 
         // Simple mappings so /admin and /admin/login hit our custom admin-login page
         app.get('/admin', async (request, reply) => {
@@ -132,6 +203,9 @@ const start = async () => {
             request.io = app.io;
         });
 
+        // Register internal routes before app.ready() to avoid boot conflicts
+        // MOVED TO BEFORE SESSION MIDDLEWARE
+
         // Initialize WebRTC signaling socket after the server is ready
         app.ready().then(() => {
             webRTCSignalingSocket(app.io);
@@ -162,7 +236,6 @@ const start = async () => {
         });
 
         await app.listen({ port: PORT, host: '0.0.0.0' });
-        console.log(`Server started on http://localhost:${PORT}`);
 
         
     } catch (err) {
