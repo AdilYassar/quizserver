@@ -1,8 +1,8 @@
 {
   "app_name": "Quiz Server Backend - Complete System",
-  "description": "A comprehensive quiz and learning management system with video calls, course enrollment, and real-time features",
+  "description": "A comprehensive quiz and learning management system with video calls, course enrollment, video content storage on Google Drive, and real-time features",
   "version": "1.0.0",
-  "what_this_app_does": "This is like a digital school where students can take courses, take quizzes, get grades, track their learning progress, and even have video calls with teachers!",
+  "what_this_app_does": "This is like a digital school where students can take courses, take quizzes, get grades, track their learning progress, watch educational videos, and even have video calls with teachers!",
   
   "main_components": {
     "authentication_system": {
@@ -17,12 +17,12 @@
       "types_of_users": {
         "students": {
           "description": "People who want to learn and take courses",
-          "can_do": ["enroll in courses", "take quizzes", "see their grades", "track learning progress", "join video calls"],
+          "can_do": ["enroll in courses", "take quizzes", "see their grades", "track learning progress", "watch educational videos", "join video calls"],
           "authentication": "Register with email, password, and optional phone number"
         },
         "admins": {
           "description": "Teachers and school staff who manage everything",
-          "can_do": ["create courses", "make quizzes", "see all student grades", "manage the system"],
+          "can_do": ["create courses", "make quizzes", "upload educational videos", "see all student grades", "manage the system"],
           "authentication": "Register with email, password, and optional phone number with admin privileges"
         }
       }
@@ -62,6 +62,17 @@
         "digital_books": "PDF books students can read",
         "theory_content": "Written lessons and explanations",
         "chapter_organization": "Organizes content by course chapters"
+      }
+    },
+    
+    "video_content_system": {
+      "what_it_does": "Like watching educational videos - students can view video lectures and tutorials",
+      "features": {
+        "google_drive_storage": "Videos are securely stored on Google Drive with public access",
+        "video_upload": "Teachers can upload video files which are automatically processed",
+        "streaming_support": "Videos stream directly from Google Drive for smooth playback",
+        "course_integration": "Videos can be associated with specific courses",
+        "mobile_compatibility": "Works with React Native video players and web browsers"
       }
     },
     
@@ -207,9 +218,9 @@
         "reading_sessions": ["session_start", "session_end", "duration", "progress_at_end"]
       },
       "relationships": {
-        "belongs_to": "one student",
-        "belongs_to": "one course",
-        "belongs_to": "one chapter"
+        "student": "one student",
+        "course": "one course", 
+        "chapter": "one chapter"
       }
     },
     
@@ -254,8 +265,8 @@
         "chapters": "different sections of the theory"
       },
       "relationships": {
-        "belongs_to": "one course",
-        "has": "many chapters"
+        "course": "one course",
+        "chapters": "many chapters"
       }
     },
     
@@ -267,8 +278,8 @@
         "course": "which course it belongs to"
       },
       "relationships": {
-        "belongs_to": "one theory",
-        "belongs_to": "one course"
+        "theory": "one theory",
+        "course": "one course"
       }
     },
     
@@ -281,8 +292,26 @@
         "expires": "when the room closes"
       },
       "relationships": {
-        "has": "many participants",
-        "has": "many chat_messages"
+        "participants": "many participants",
+        "chat_messages": "many chat_messages"
+      }
+    },
+    
+    "Video": {
+      "what_it_is": "A video lecture or educational video stored on Google Drive",
+      "important_info": {
+        "video_details": ["title", "description", "url (Google Drive public URL)", "driveFileId"],
+        "metadata": ["uploadedAt", "fileSize", "duration"],
+        "course_association": "optional reference to a course"
+      },
+      "relationships": {
+        "belongs_to": "one course (optional)"
+      },
+      "storage_features": {
+        "google_drive_integration": "Videos are uploaded to Google Drive and made publicly accessible",
+        "automatic_cleanup": "Temporary files are cleaned up after upload",
+        "streaming_support": "Supports video streaming for mobile and web players",
+        "secure_deletion": "Files are deleted from both database and Google Drive"
       }
     }
   },
@@ -523,6 +552,35 @@
         "what_it_does": "Gets detailed progress information for a specific chapter",
         "requires": "authentication"
       }
+    },
+    
+    "video_management": {
+      "upload_video": {
+        "endpoint": "POST /videos/upload",
+        "what_it_does": "Uploads a video file to Google Drive and saves metadata to database",
+        "features": ["multipart upload", "Google Drive integration", "automatic public access", "metadata storage"],
+        "returns": "video object with Google Drive URL and file ID"
+      },
+      "get_all_videos": {
+        "endpoint": "GET /videos",
+        "what_it_does": "Retrieves all uploaded videos with their metadata",
+        "returns": "array of video objects"
+      },
+      "get_video_by_id": {
+        "endpoint": "GET /videos/:id",
+        "what_it_does": "Gets details of a specific video by its ID",
+        "returns": "video object with streaming URL"
+      },
+      "delete_video": {
+        "endpoint": "DELETE /videos/:id",
+        "what_it_does": "Deletes a video from both database and Google Drive",
+        "features": ["secure deletion", "Google Drive cleanup"]
+      },
+      "import_existing_videos": {
+        "endpoint": "POST /videos/import",
+        "what_it_does": "Imports videos from local directory into the system",
+        "features": ["bulk import", "metadata generation"]
+      }
     }
   },
 
@@ -542,6 +600,14 @@
         "action": "Student picks a course and enrolls",
         "endpoint": "POST /api/enrollCourses",
         "result": "Student is now taking the course"
+      },
+      "step_3b_watch_videos": {
+        "action": "Student watches educational videos for the course",
+        "endpoints": [
+          "GET /videos",
+          "GET /videos/:id"
+        ],
+        "result": "Student learns from video lectures and tutorials"
       },
       "step_4_take_quiz": {
         "action": "Student takes a quiz for the course",
@@ -599,6 +665,11 @@
         "endpoint": "POST /api/courses",
         "result": "Course is available for students"
       },
+      "step_2b_upload_videos": {
+        "action": "Admin uploads educational videos for the course",
+        "endpoint": "POST /videos/upload",
+        "result": "Videos are stored on Google Drive and available for students to watch"
+      },
       "step_3_create_quiz": {
         "action": "Admin creates quiz questions",
         "endpoints": [
@@ -628,6 +699,7 @@
     "course_connections": {
       "enrolled_students": "Course can have many students",
       "quizzes": "Course can have many quizzes",
+      "videos": "Course can have many educational videos",
       "theory_content": "Course has written lessons",
       "branch": "Course belongs to a school location",
       "progress_records": "Course has progress tracking for each student and chapter"
@@ -737,10 +809,11 @@
   "what_makes_this_special": {
     "complete_learning_system": "Everything a student needs in one place",
     "real_time_interaction": "Live video calls with teachers",
+    "video_content_library": "Educational videos stored securely on Google Drive",
     "automatic_assessment": "Computer grades quizzes instantly",
     "detailed_progress_tracking": "Students can see exactly how much they've learned, time spent, and completion percentages",
     "learning_analytics": "Comprehensive statistics, streaks, and leaderboards to motivate learning",
-    "flexible_content": "Supports courses, quizzes, books, and theory",
+    "flexible_content": "Supports courses, quizzes, books, theory, and videos",
     "scalable_design": "Can handle many students and courses"
   },
 
@@ -758,7 +831,8 @@
       "data": "Schema validation with Mongoose"
     },
     "real_time": "Socket.IO and WebRTC",
-    "file_handling": "PDF storage and retrieval",
+    "file_handling": "PDF storage, Google Drive video storage and streaming",
+    "video_integration": "Google Drive API for secure video upload and public streaming",
     "api_design": "RESTful API with clear endpoints"
   },
 
@@ -771,6 +845,7 @@
       "Teachers can monitor student progress",
       "Everything is digital and organized",
       "Real-time interaction through video calls",
+      "Educational videos available on-demand",
       "Automatic grading saves time",
       "Complete learning history for each student",
       "Detailed progress tracking motivates students to keep learning",

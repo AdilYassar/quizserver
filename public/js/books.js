@@ -37,6 +37,11 @@ class BooksManager {
     }
 
     async init() {
+        // Ensure DOM is ready before manipulating DOM nodes (some pages may load this script early)
+        if (document.readyState === 'loading') {
+            await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
+        }
+
         await this.loadBooks();
         this.setupEventListeners();
         this.updateStats();
@@ -47,14 +52,25 @@ class BooksManager {
         const searchInput = document.getElementById('searchInput');
         let searchTimeout;
 
-        searchInput.addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                this.searchTerm = e.target.value;
-                this.currentPage = 1;
-                this.loadBooks();
-            }, 500);
-        });
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    this.searchTerm = e.target.value;
+                    this.currentPage = 1;
+                    this.loadBooks();
+                }, 500);
+            });
+        }
+
+        // Form submission
+        const bookForm = document.getElementById('bookForm');
+        if (bookForm) {
+            bookForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.saveBook();
+            });
+        }
 
         // File upload functionality
         this.setupFileUpload();
@@ -102,11 +118,13 @@ class BooksManager {
         const fileName = document.getElementById('fileName');
         const fileSize = document.getElementById('fileSize');
         const uploadInfo = document.querySelector('.file-upload-info');
-        const pdfFileError = document.getElementById('pdfFileError');
 
-        // Clear previous errors
-        pdfFileError.textContent = '';
-        document.getElementById('pdfFile').classList.remove('is-invalid');
+    const pdfFileError = document.getElementById('pdfFileError');
+
+    // Clear previous errors
+    if (pdfFileError) pdfFileError.textContent = '';
+    const pdfInputEl = document.getElementById('pdfFile');
+    if (pdfInputEl) pdfInputEl.classList.remove('is-invalid');
 
         if (!file) {
             fileInfo.style.display = 'none';
@@ -178,100 +196,64 @@ class BooksManager {
     }
 
     renderBooks() {
-        const tbody = document.getElementById('booksTableBody');
+        const booksList = document.getElementById('booksList');
         
+        if (!booksList) return; // defensive: bail if DOM not present
+
         if (this.books.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="8" class="empty-state">
-                        <i class="fas fa-book"></i>
-                        <h3>No books found</h3>
-                        <p>Try adjusting your search criteria or add a new book.</p>
-                    </td>
-                </tr>
+            booksList.innerHTML = `
+                <div class="col-span-full flex items-center justify-center py-12">
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-book text-gray-400"></i>
+                        </div>
+                        <p class="text-sm text-gray-500">No books found</p>
+                    </div>
+                </div>
             `;
             return;
         }
 
-        tbody.innerHTML = this.books.map(book => `
-            <tr>
-                <td>
-                    <input type="checkbox" 
-                           value="${book._id}" 
-                           onchange="booksManager.toggleBookSelection('${book._id}')"
-                           ${this.selectedBooks.has(book._id) ? 'checked' : ''}>
-                </td>
-                <td>
-                    <div class="book-title">${this.highlightSearch(book.title)}</div>
-                </td>
-                <td>
-                    <div class="book-author">${this.highlightSearch(book.author)}</div>
-                </td>
-                <td>
-                    <span class="genre-badge">${book.genre}</span>
-                </td>
-                <td>
-                    <span class="language-badge">${book.language}</span>
-                </td>
-                <td>
-                    <span class="pages-count">${book.pages}</span>
-                </td>
-                <td class="date-cell">${this.formatDate(book.publishedDate)}</td>
-                <td class="action-buttons-cell">
-                    <button class="btn btn-sm btn-secondary" onclick="booksManager.viewPDF('${book._id}')" title="View PDF">
-                        <i class="fas fa-file-pdf"></i>
-                    </button>
-                    <button class="btn btn-sm btn-primary" onclick="booksManager.editBook('${book._id}')" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="booksManager.deleteBook('${book._id}')" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            </tr>
+        booksList.innerHTML = this.books.map(book => `
+            <div class="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors">
+                <div class="flex items-start space-x-3">
+                    <div class="w-12 h-16 bg-gray-200 rounded flex items-center justify-center">
+                        <i class="fas fa-book text-gray-400"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-medium text-gray-900 truncate">${this.highlightSearch(book.title)}</h3>
+                        <p class="text-sm text-gray-600 truncate">${this.highlightSearch(book.author)}</p>
+                        <div class="flex items-center space-x-2 mt-1">
+                            <span class="inline-block bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded">${book.genre || 'Unknown'}</span>
+                            <span class="text-xs text-gray-500">${book.language || 'Unknown'}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="booksManager.viewPDF('${book._id}')" 
+                                class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded" 
+                                title="View PDF">
+                            <i class="fas fa-file-pdf"></i>
+                        </button>
+                        <button onclick="booksManager.editBook('${book._id}')" 
+                                class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded" 
+                                title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="booksManager.deleteBook('${book._id}')" 
+                                class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded" 
+                                title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
         `).join('');
     }
 
     renderPagination() {
-        const pagination = document.getElementById('pagination');
-        
-        if (this.totalPages <= 1) {
-            pagination.innerHTML = '';
-            return;
-        }
-
-        let paginationHTML = '';
-        
-        // Previous button
-        paginationHTML += `
-            <button onclick="booksManager.goToPage(${this.currentPage - 1})" 
-                    ${this.currentPage === 1 ? 'disabled' : ''}>
-                <i class="fas fa-chevron-left"></i>
-            </button>
-        `;
-
-        // Page numbers
-        const startPage = Math.max(1, this.currentPage - 2);
-        const endPage = Math.min(this.totalPages, this.currentPage + 2);
-
-        for (let i = startPage; i <= endPage; i++) {
-            paginationHTML += `
-                <button onclick="booksManager.goToPage(${i})" 
-                        class="${i === this.currentPage ? 'active' : ''}">
-                    ${i}
-                </button>
-            `;
-        }
-
-        // Next button
-        paginationHTML += `
-            <button onclick="booksManager.goToPage(${this.currentPage + 1})" 
-                    ${this.currentPage === this.totalPages ? 'disabled' : ''}>
-                <i class="fas fa-chevron-right"></i>
-            </button>
-        `;
-
-        pagination.innerHTML = paginationHTML;
+        // Remove pagination since the HTML doesn't have pagination elements
+        // Keep method for compatibility but do nothing
+        return;
     }
 
     async goToPage(page) {
@@ -377,18 +359,18 @@ class BooksManager {
         const form = document.getElementById('bookForm');
         const fileInput = document.getElementById('pdfFile');
         
-        // Create book data object
+        // Create book data object based on actual form fields
         const bookData = {
             title: document.getElementById('title').value,
             author: document.getElementById('author').value,
-            genre: document.getElementById('genre').value,
-            language: document.getElementById('language').value,
-            pages: parseInt(document.getElementById('pages').value),
-            publishedDate: document.getElementById('publishedDate').value
+            categoryId: document.getElementById('categoryId').value,
+            description: document.getElementById('description').value,
+            isPublished: document.getElementById('isPublished').checked
         };
 
-        // Validation
-        if (!this.validateForm(bookData, !this.editingBook)) {
+        // Basic validation
+        if (!bookData.title || !bookData.author) {
+            this.showMessage('Title and author are required', 'error');
             return;
         }
 
@@ -396,40 +378,30 @@ class BooksManager {
             let url, method, requestBody, headers;
 
             if (this.editingBook) {
-                // Update existing book (without PDF for now)
+                // Update existing book
                 url = `/api/management/books/${this.editingBook._id}`;
                 method = 'PUT';
                 headers = { 'Content-Type': 'application/json' };
                 requestBody = JSON.stringify(bookData);
             } else {
                 // Create new book with PDF
-                url = '/api/admin/management/books';
+                url = '/api/management/books';
                 method = 'POST';
                 headers = { 'Content-Type': 'application/json' };
                 
-                // Convert PDF file to base64
+                // Convert PDF file to base64 if provided
                 if (fileInput.files[0]) {
-                    this.showUploadProgress(10);
-                    
                     try {
                         const pdfBase64 = await this.fileToBase64(fileInput.files[0]);
-                        bookData.pdf = pdfBase64; // Add base64 PDF to the data
-                        
-                        this.showUploadProgress(50);
-                        console.log('PDF converted to base64, size:', pdfBase64.length, 'characters');
+                        bookData.pdf = pdfBase64;
+                        console.log('PDF converted to base64');
                     } catch (conversionError) {
-                        this.hideUploadProgress();
                         this.showMessage('Failed to process PDF file: ' + conversionError.message, 'error');
                         return;
                     }
                 }
                 
                 requestBody = JSON.stringify(bookData);
-            }
-
-            // Show progress for file uploads
-            if (!this.editingBook && fileInput.files[0]) {
-                this.showUploadProgress(70);
             }
 
             console.log(`Making ${method} request to ${url}`);
@@ -444,17 +416,16 @@ class BooksManager {
             console.log('Response data:', data);
 
             if (response.ok) {
-                this.hideUploadProgress();
-                this.showMessage(data.message, 'success');
-                this.closeModal();
+                this.showMessage(data.message || 'Book saved successfully', 'success');
+                form.reset();
+                this.editingBook = null;
+                document.getElementById('submitBtnText').textContent = 'Add Book';
                 await this.loadBooks();
             } else {
-                this.hideUploadProgress();
-                this.showMessage('Error: ' + data.error, 'error');
+                this.showMessage('Error: ' + (data.error || data.message), 'error');
             }
         } catch (error) {
             console.error('Error saving book:', error);
-            this.hideUploadProgress();
             this.showMessage('Failed to save book', 'error');
         }
     }
@@ -690,38 +661,46 @@ class BooksManager {
         const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
         const selectAllCheckbox = document.getElementById('selectAll');
         
-        if (this.selectedBooks.size > 0) {
-            bulkDeleteBtn.disabled = false;
-            bulkDeleteBtn.textContent = `Delete Selected (${this.selectedBooks.size})`;
-        } else {
-            bulkDeleteBtn.disabled = true;
-            bulkDeleteBtn.textContent = 'Delete Selected';
+        if (bulkDeleteBtn) {
+            if (this.selectedBooks.size > 0) {
+                bulkDeleteBtn.disabled = false;
+                bulkDeleteBtn.textContent = `Delete Selected (${this.selectedBooks.size})`;
+            } else {
+                bulkDeleteBtn.disabled = true;
+                bulkDeleteBtn.textContent = 'Delete Selected';
+            }
         }
         
         // Update select all checkbox state
         const checkboxes = document.querySelectorAll('input[type="checkbox"][value]');
         const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
         
-        if (checkedCount === 0) {
-            selectAllCheckbox.indeterminate = false;
-            selectAllCheckbox.checked = false;
-        } else if (checkedCount === checkboxes.length) {
-            selectAllCheckbox.indeterminate = false;
-            selectAllCheckbox.checked = true;
-        } else {
-            selectAllCheckbox.indeterminate = true;
+        if (selectAllCheckbox) {
+            if (checkedCount === 0) {
+                selectAllCheckbox.indeterminate = false;
+                selectAllCheckbox.checked = false;
+            } else if (checkedCount === checkboxes.length) {
+                selectAllCheckbox.indeterminate = false;
+                selectAllCheckbox.checked = true;
+            } else {
+                selectAllCheckbox.indeterminate = true;
+            }
         }
     }
 
     showLoading() {
-        const tbody = document.getElementById('booksTableBody');
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="8" class="loading">
-                    <div class="spinner"></div>
-                    Loading books...
-                </td>
-            </tr>
+        const booksList = document.getElementById('booksList');
+        if (!booksList) return; // defensive: avoid setting innerHTML on null
+
+        booksList.innerHTML = `
+            <div class="col-span-full flex items-center justify-center py-12">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-spinner fa-spin text-gray-400"></i>
+                    </div>
+                    <p class="text-sm text-gray-500">Loading books...</p>
+                </div>
+            </div>
         `;
     }
 
@@ -752,15 +731,25 @@ class BooksManager {
 
         // Create new message
         const messageDiv = document.createElement('div');
-        messageDiv.className = `message message-${type}`;
+        messageDiv.className = `message fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm`;
+        
+        if (type === 'success') {
+            messageDiv.className += ' bg-green-100 border border-green-200 text-green-800';
+        } else if (type === 'error') {
+            messageDiv.className += ' bg-red-100 border border-red-200 text-red-800';
+        } else {
+            messageDiv.className += ' bg-blue-100 border border-blue-200 text-blue-800';
+        }
+        
         messageDiv.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-            <span>${message}</span>
+            <div class="flex items-center">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} mr-2"></i>
+                <span class="text-sm">${message}</span>
+            </div>
         `;
 
-        // Insert at the top of the page
-        const pageHeader = document.querySelector('.page-header');
-        pageHeader.insertAdjacentElement('afterend', messageDiv);
+        // Insert into body
+        document.body.appendChild(messageDiv);
 
         // Auto remove after 5 seconds
         setTimeout(() => {
@@ -771,50 +760,22 @@ class BooksManager {
     updateStats() {
         const totalBooks = this.books.length;
         
-        // Categorize books by genre
-        let fictionCount = 0;
-        let nonFictionCount = 0;
-        let educationalCount = 0;
-        let recentCount = 0;
+        // Update UI - match the HTML element IDs
+        const totalBooksEl = document.getElementById('totalBooks');
+        if (totalBooksEl) totalBooksEl.textContent = totalBooks;
         
-        const now = new Date();
-        const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        // Other stats elements might not exist in this HTML, so guard them
+        const publishedBooksEl = document.getElementById('publishedBooks');
+        if (publishedBooksEl) publishedBooksEl.textContent = this.books.filter(b => b.isPublished).length;
         
-        this.books.forEach(book => {
-            const genre = book.genre || '';
-            
-            // Check categories - including children's and reference in appropriate categories
-            if (GENRE_CATEGORIES.fiction.includes(genre) || GENRE_CATEGORIES.children.includes(genre)) {
-                fictionCount++;
-            } else if (GENRE_CATEGORIES.nonFiction.includes(genre) || GENRE_CATEGORIES.reference.includes(genre)) {
-                nonFictionCount++;
-            } else if (GENRE_CATEGORIES.educational.includes(genre)) {
-                educationalCount++;
-            } else if (genre) {
-                // For custom genres, try to categorize based on common patterns
-                const lowerGenre = genre.toLowerCase();
-                if (lowerGenre.includes('fiction') || lowerGenre.includes('novel') || lowerGenre.includes('story')) {
-                    fictionCount++;
-                } else if (lowerGenre.includes('textbook') || lowerGenre.includes('academic') || lowerGenre.includes('education')) {
-                    educationalCount++;
-                } else {
-                    // Default custom genres to non-fiction
-                    nonFictionCount++;
-                }
-            }
-            
-            // Count recent books (this month)
-            if (book.createdAt && new Date(book.createdAt) >= thisMonth) {
-                recentCount++;
-            }
-        });
+        const totalCategoriesEl = document.getElementById('totalCategories');
+        if (totalCategoriesEl) {
+            const uniqueCategories = new Set(this.books.map(b => b.categoryId).filter(Boolean));
+            totalCategoriesEl.textContent = uniqueCategories.size;
+        }
         
-        // Update UI
-        document.getElementById('totalBooks').textContent = totalBooks;
-        document.getElementById('fictionBooks').textContent = fictionCount;
-        document.getElementById('nonFictionBooks').textContent = nonFictionCount;
-        document.getElementById('educationalBooks').textContent = educationalCount;
-        document.getElementById('recentBooks').textContent = recentCount;
+        const totalDownloadsEl = document.getElementById('totalDownloads');
+        if (totalDownloadsEl) totalDownloadsEl.textContent = '-'; // No download data available
     }
 }
 
@@ -841,6 +802,12 @@ function toggleSelectAll() {
 
 function closeDeleteModal() {
     booksManager.closeDeleteModal();
+}
+
+function loadBooks() {
+    if (window.booksManager) {
+        booksManager.loadBooks();
+    }
 }
 
 // Initialize the manager when DOM is loaded
