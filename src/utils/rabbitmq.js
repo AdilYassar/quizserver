@@ -5,7 +5,7 @@ let connection = null;
 
 const connectRabbitMQ = async () => {
     try {
-        const rabbitUrl = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
+        const rabbitUrl = process.env.RABBITMQ_URL || 'amqps://rrnflwdm:9gbVVTOlYIwD17H21LctTcWNCP3ZLHsk@possum.lmq.cloudamqp.com/rrnflwdm';
         console.log('🔗 Attempting to connect to RabbitMQ at:', rabbitUrl);
 
         if (!connection) {
