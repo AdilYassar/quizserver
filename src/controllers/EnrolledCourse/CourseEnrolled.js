@@ -2,6 +2,7 @@ import EnrolledCourse from "../../models/enrolledCourses.js";
 import { Course } from "../../models/course.js";
 import { Student } from "../../models/user.js";
 import { initializeChapterProgress } from "../../utils/progressUtils.js";
+import { sendNotification, NotificationTypes, NotificationTemplates } from "../../services/notification.service.js";
 
 export const enrollCourse = async (req, reply) => {
   try {
@@ -66,6 +67,22 @@ export const enrollCourse = async (req, reply) => {
     console.log(`🔄 Initializing chapter progress for student ${student._id} in course ${courseId}`);
     const progressResult = await initializeChapterProgress(student._id, courseId);
     console.log(`📊 Progress initialization result:`, progressResult);
+
+    // Send enrollment notification to student
+    try {
+      const template = NotificationTemplates.courseEnrolled(course.title);
+      await sendNotification(
+        student.uuid,
+        NotificationTypes.COURSE_ENROLLED,
+        template.title,
+        template.body,
+        { courseId, courseName: course.title },
+        false
+      );
+      console.log(`📢 Enrollment notification sent to ${student.uuid}`);
+    } catch (notifError) {
+      console.error('⚠️  Failed to send enrollment notification:', notifError.message);
+    }
 
     // Populate the response with course and student details
     await newEnrollment.populate('course', 'title description');

@@ -30,6 +30,7 @@ const studentSchema = new mongoose.Schema({
     ...userschema.obj,
     name: { type: String },
     age: { type: Number },
+    bio: { type: String, required: false, default: '' }, // User bio/about section
     email: { 
         type: String, 
         required: true, 
@@ -45,7 +46,7 @@ const studentSchema = new mongoose.Schema({
         select: false // Don't include password in queries by default
     },
     role: { type: String, enum: ['Student'], default: 'Student' },
-    isActivated: { type: Boolean, default: true },
+    isActivated: { type: Boolean, default: false }, // Must verify OTP to activate
     photo: { type: String, required: false },
     phone: { 
         type: String, 
@@ -53,6 +54,11 @@ const studentSchema = new mongoose.Schema({
         sparse: true,
         match: [/^\+?[1-9]\d{1,14}$/, 'Please enter a valid phone number']
     },
+    // Password reset fields
+    resetToken: { type: String, select: false },
+    resetTokenExpiry: { type: Date, select: false },
+    resetOTPCode: { type: String, select: false },
+    resetOTPExpiry: { type: Date, select: false },
     enrolledCourses: [{ 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Course' 
@@ -94,6 +100,7 @@ const adminSchema = new mongoose.Schema({
         minlength: 6,
         select: false // Don't include password in queries by default
     },
+    bio: { type: String, required: false, default: '' }, // Admin bio/about section
     phone: { 
         type: String,
         required: false,
@@ -107,6 +114,12 @@ const adminSchema = new mongoose.Schema({
             message: 'Please enter a valid phone number'
         }
     },
+    photo: { type: String, required: false }, // Admin profile photo
+    // Password reset fields
+    resetToken: { type: String, select: false },
+    resetTokenExpiry: { type: Date, select: false },
+    resetOTPCode: { type: String, select: false },
+    resetOTPExpiry: { type: Date, select: false },
     role: { type: String, enum: ['Admin'], default: 'Admin' },
     isActivated: { type: Boolean, default: true }
 });

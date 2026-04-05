@@ -9,7 +9,8 @@ import { quizRoutes } from "./quizRoutes.js";
 import { quizSubmissionroutes } from "./submissionRoutes.js";
 import theoryRoutes from "./theoryRoutes.js";
 import { videoCallRoutes } from "./videoCallRoutes.js";
-// Removed internalRoutes import - registered separately in app.js
+import { notificationRoutes } from "./notificationRoutes.js";
+import { internalApiRoutes } from "./internal.api.routes.js";
 
 const prefix = "/api";
 
@@ -26,5 +27,7 @@ export const registerRoutes = async (fastify) => {
     fastify.register(Branches, { prefix: prefix });
     fastify.register(theoryRoutes);
     fastify.register(videoCallRoutes); // Removed prefix so endpoints are /create-session and /is-alive
+    fastify.register(notificationRoutes, { prefix: prefix }); // NEW: Notification routes
+    fastify.register(internalApiRoutes, { prefix: prefix }); // NEW: Internal API routes for microservice
     // Removed internal routes - registered separately in app.js
 };

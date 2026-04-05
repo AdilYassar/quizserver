@@ -7,7 +7,8 @@ import { fileURLToPath } from "url";
 import fastifyCookie from "@fastify/cookie";
 import fastifySession from "@fastify/session";
 
-import { connectDB } from "./src/config/connect.js";
+import { connectDB, connectSharedDB } from "./src/config/connect.js";
+import { initFirebase } from "./src/config/firebase.js";
 import { COOKIE_PASSWORD, sessionStore } from "./src/config/config.js";
 import { buildAdminRouter } from "./src/config/setup.js";
 import { registerRoutes } from "./src/routes/index.js";
@@ -16,6 +17,7 @@ import { registerStaticRoutes } from "./src/routes/staticRoutes.js";
 import { registerHtmlRoutes } from "./src/routes/htmlRoutes.js";
 import { registerDashboardRoutes } from "./src/routes/dashboardRoutes.js";
 import { registerAuthRoutes } from "./src/routes/authRoutes.js";
+import { authRoutes } from "./src/routes/auth.js";
 import { videoRoutes } from "./src/routes/videoRoutes.js";
 import fastifySocketIO from "fastify-socket.io";
 import webRTCSignalingSocket from "./src/controllers/videoCallController.js";
@@ -35,6 +37,14 @@ const start = async () => {
         await connectDB(process.env.MONGO_URI);
         console.log("Connected to the database");
 
+        // Initialize shared microservice database for device tokens
+        if (process.env.SHARED_DB_URI) {
+            await connectSharedDB(process.env.SHARED_DB_URI);
+        }
+
+        // Initialize Firebase for notifications
+        initFirebase();
+
         const app = Fastify({
             // Increase body size limit to handle large video uploads (100MB)
             bodyLimit: 100 * 1024 * 1024, // 100MB in bytes
@@ -49,6 +59,13 @@ const start = async () => {
             root: path.join(path.dirname(fileURLToPath(import.meta.url)), 'public', 'videos'),
             prefix: '/videos/',
             decorateReply: false
+        });
+
+        // Register multipart plugin for file uploads (profile photos, etc.)
+        await app.register(import('@fastify/multipart'), {
+            limits: {
+                fileSize: 10 * 1024 * 1024, // 10MB max file size for images
+            }
         });
 
         // Register internal routes BEFORE ANY middleware to avoid conflicts
@@ -179,7 +196,10 @@ const start = async () => {
         await app.register(videoRoutes, { prefix: "/api" });
         console.log('✅ Video routes registered successfully');
         registerDashboardRoutes(app);    // Dashboard API endpoints
-        registerAuthRoutes(app);         // Authentication routes
+        registerAuthRoutes(app);         // Old admin authentication routes
+        
+        // Register new OTP-based student authentication routes
+        await app.register(authRoutes, { prefix: '/api/auth' });
 
         // Register management routes
         await registerManagementRoutes(app);

@@ -3,6 +3,7 @@ import Theory from "../../models/theory.js";
 import { Student } from "../../models/user.js";
 import EnrolledCourse from "../../models/enrolledCourses.js";
 import { updateChapterStatus } from "../../utils/progressUtils.js";
+import { sendNotification, NotificationTypes, NotificationTemplates } from "../../services/notification.service.js";
 
 // Helper function to find the correct user and enrollment using UUID
 const findCorrectUserAndEnrollment = async (req, courseId, populateCourse = false) => {
@@ -98,6 +99,24 @@ export const markChapterCompleted = async (req, reply) => {
 
         // Update user statistics
         await updateUserProgressStats(correctUserId);
+
+        // Send chapter completion notification
+        try {
+            const user = await Student.findById(correctUserId);
+            if (user) {
+                await sendNotification(
+                    user.uuid,
+                    NotificationTypes.CHAPTER_COMPLETED,
+                    '✅ Chapter Completed',
+                    `You completed: ${chapterTitle}. Great progress!`,
+                    { chapterId, chapterTitle, courseId },
+                    false
+                );
+                console.log(`📢 Chapter completion notification sent to ${user.uuid}`);
+            }
+        } catch (notifError) {
+            console.error('⚠️  Failed to send chapter completion notification:', notifError.message);
+        }
 
         return reply.status(200).send({
             message: "Chapter marked as completed successfully",
@@ -442,12 +461,33 @@ const updateUserProgressStats = async (userId) => {
         
         const user = await Student.findById(userId);
         if (user) {
-            // Update user's progress statistics (we'll add these fields to the model)
+            const previousChaptersCompleted = user.totalChaptersCompleted || 0;
+            
+            // Update user's progress statistics
             user.totalChaptersCompleted = overallProgress.totalCompletedChapters;
             user.totalTimeSpent = overallProgress.totalTimeSpent;
             user.averageCourseCompletion = Math.round(overallProgress.averageCompletion);
             
             await user.save();
+
+            // Check for milestone achievements
+            const milestones = [5, 10, 25, 50, 100];
+            if (milestones.includes(user.totalChaptersCompleted) && user.totalChaptersCompleted > previousChaptersCompleted) {
+                try {
+                    const template = NotificationTemplates.milestoneAchieved(`${user.totalChaptersCompleted} Chapters Completed`);
+                    await sendNotification(
+                        user.uuid,
+                        NotificationTypes.MILESTONE_ACHIEVED,
+                        template.title,
+                        template.body,
+                        { chaptersCompleted: user.totalChaptersCompleted, milestone: true },
+                        true
+                    );
+                    console.log(`\ud83d\udce2 Milestone notification sent to ${user.uuid}`);
+                } catch (notifError) {
+                    console.error('\u26a0\ufe0f  Failed to send milestone notification:', notifError.message);
+                }
+            }
         }
     } catch (error) {
         console.error("Error updating user progress stats:", error);

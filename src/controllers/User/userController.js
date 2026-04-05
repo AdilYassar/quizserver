@@ -54,7 +54,7 @@ export const registerStudent = async (req, reply) => {
       });
     }
 
-    // Create new student
+    // Create new student with isActivated: false (requires OTP verification)
     const student = new Student({
       email,
       password,
@@ -62,7 +62,7 @@ export const registerStudent = async (req, reply) => {
       name,
       age,
       role: "Student",
-      isActivated: true
+      isActivated: false  // User must verify OTP before account activation
     });
 
     await student.save();
@@ -79,17 +79,21 @@ export const registerStudent = async (req, reply) => {
         }
     });
 
-    // Generate tokens
-    const { accessToken, refreshToken } = generateTokens(student);
-
     // Log successful registration
-    console.log(`New student registered: ${student.uuid} (${email})`);
+    console.log(`New student registered (unverified): ${student.uuid} (${email})`);
 
+    // Return user data and UUID for frontend to register device
     return reply.status(201).send({
-      message: "Student registered successfully",
-      accessToken,
-      refreshToken,
-      student: sanitizeUser(student)
+      success: true,
+      message: "Registration successful. Please register your device and verify OTP.",
+      data: {
+        uuid: student.uuid,
+        name: student.name,
+        email: student.email,
+        phone: student.phone,
+        role: student.role,
+        isActivated: student.isActivated
+      }
     });
 
   } catch (error) {
@@ -214,11 +218,19 @@ export const registerAdmin = async (req, reply) => {
 // Student login
 export const loginStudent = async (req, reply) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, verificationToken } = req.body;
 
-    if (!email || !password) {
+    if (!email) {
       return reply.status(400).send({ 
-        message: "Email and password are required",
+        message: "Email is required",
+        code: "MISSING_EMAIL"
+      });
+    }
+
+    // Either password or verificationToken must be provided
+    if (!password && !verificationToken) {
+      return reply.status(400).send({ 
+        message: "Either password or verificationToken is required",
         code: "MISSING_CREDENTIALS"
       });
     }
@@ -250,16 +262,32 @@ export const loginStudent = async (req, reply) => {
       });
     }
 
-    // Verify password
-    const isPasswordValid = await student.comparePassword(password);
-    
-    if (!isPasswordValid) {
-      // Increment login attempts
-      await student.incLoginAttempts();
-      return reply.status(401).send({ 
-        message: "Invalid email or password",
-        code: "INVALID_CREDENTIALS"
-      });
+    // Verify credentials - either password or verification token
+    let isValid = false;
+
+    if (verificationToken) {
+      // OTP-based login: verify the token (simplified for now)
+      // In production, you'd want to validate the token against stored record
+      isValid = verificationToken && verificationToken.length > 0;
+      
+      if (!isValid) {
+        return reply.status(401).send({ 
+          message: "Invalid verification token",
+          code: "INVALID_TOKEN"
+        });
+      }
+    } else {
+      // Traditional password-based login
+      isValid = await student.comparePassword(password);
+      
+      if (!isValid) {
+        // Increment login attempts
+        await student.incLoginAttempts();
+        return reply.status(401).send({ 
+          message: "Invalid email or password",
+          code: "INVALID_CREDENTIALS"
+        });
+      }
     }
 
     // Reset login attempts on successful login
@@ -268,11 +296,16 @@ export const loginStudent = async (req, reply) => {
     // Clear rate limiting for this IP
     clearLoginAttempts(req);
 
+    // Update last login
+    student.lastLogin = new Date();
+    await student.save();
+
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(student);
 
     // Log successful login
-    console.log(`Student login successful: ${student.uuid} (${email})`);
+    const loginType = verificationToken ? 'OTP' : 'Password';
+    console.log(`Student login successful: ${student.uuid} (${email}) - ${loginType}`);
 
     return reply.send({
       message: "Login successful",

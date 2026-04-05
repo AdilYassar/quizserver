@@ -1,7 +1,10 @@
-import { getQuizSubmissionById, postQuizSubmission, getUserQuizSubmissions } from "../controllers/QuizSubmission/quizSubmissionController.js";
+import { getQuizSubmissionById, postQuizSubmission, getUserQuizSubmissions, startQuiz } from "../controllers/QuizSubmission/quizSubmissionController.js";
 import { verifyToken } from "../middleware/auth.js";
 
 export const quizSubmissionroutes = async (fastify, options) => {
+    // Start quiz (requires authentication)
+    fastify.post("/quiz/:quizId/start", { preHandler: [verifyToken] }, startQuiz);
+    
     // Get specific submission by ID
     fastify.get("/submission/:submissionId", getQuizSubmissionById);
     

@@ -3,6 +3,7 @@ import UserProgress from "../../models/userProgress.js";
 import { Student } from "../../models/user.js";
 import EnrolledCourse from "../../models/enrolledCourses.js";
 import { updateChapterStatus } from "../../utils/progressUtils.js";
+import { sendNotification, NotificationTypes, NotificationTemplates } from "../../services/notification.service.js";
 
 export const getAllTheoryByCourse = async (req, reply) => {
     const { courseId } = req.params;
@@ -231,6 +232,53 @@ export const updateTheoryChapterStatus = async (req, reply) => {
 
         // Update user statistics
         await updateUserProgressStats(correctUserId);
+
+        // Send notifications based on status change
+        try {
+            const user = await Student.findById(correctUserId);
+            if (user) {
+                if (status === 'in_progress') {
+                    // Send notification when starting a chapter
+                    await sendNotification(
+                        user.uuid,
+                        NotificationTypes.NEW_CONTENT,
+                        '📖 Chapter Started',
+                        `You started: ${chapter.title}. Good luck!`,
+                        { chapterId, chapterTitle: chapter.title, courseId },
+                        false
+                    );
+                    console.log(`📢 Chapter started notification sent to ${user.uuid}`);
+                } else if (status === 'completed') {
+                    // Send notification when completing a chapter
+                    await sendNotification(
+                        user.uuid,
+                        NotificationTypes.CHAPTER_COMPLETED,
+                        '✅ Chapter Completed',
+                        `You completed: ${chapter.title}. Great progress!`,
+                        { chapterId, chapterTitle: chapter.title, courseId },
+                        false
+                    );
+                    console.log(`📢 Chapter completion notification sent to ${user.uuid}`);
+
+                    // Check for milestone achievements (5, 10, 25, 50, 100 chapters)
+                    const milestones = [5, 10, 25, 50, 100];
+                    if (milestones.includes(user.totalChaptersCompleted)) {
+                        const template = NotificationTemplates.milestoneAchieved(`${user.totalChaptersCompleted} Chapters Completed`);
+                        await sendNotification(
+                            user.uuid,
+                            NotificationTypes.MILESTONE_ACHIEVED,
+                            template.title,
+                            template.body,
+                            { chaptersCompleted: user.totalChaptersCompleted, milestone: true },
+                            true
+                        );
+                        console.log(`🏆 Milestone notification sent to ${user.uuid}`);
+                    }
+                }
+            }
+        } catch (notifError) {
+            console.error('⚠️  Failed to send chapter notification:', notifError.message);
+        }
 
         return reply.status(200).send({
             message: `Chapter "${chapter.title}" status updated to '${status}' successfully`,

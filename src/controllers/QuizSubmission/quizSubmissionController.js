@@ -3,6 +3,7 @@ import { Quiz } from "../../models/quiz.js";
 import { Question } from "../../models/question.js";
 import { Student } from "../../models/user.js";
 import { MarksSummary } from "../../models/MarksSummary.js";
+import { sendNotification, NotificationTypes, NotificationTemplates } from "../../services/notification.service.js";
 
 // Helper function to calculate grade based on percentage
 const calculateGrade = (percentage) => {
@@ -14,6 +15,85 @@ const calculateGrade = (percentage) => {
     if (percentage >= 40) return 'C';
     if (percentage >= 30) return 'D';
     return 'F';
+};
+
+/**
+ * Start a quiz - sends notification when user begins the quiz
+ * POST /api/quiz/:quizId/start
+ */
+export const startQuiz = async (req, reply) => {
+    try {
+        const { quizId } = req.params;
+        const { courseId } = req.body;
+        const { userUuid, role } = req.user;
+
+        // Validate
+        if (!quizId) {
+            return reply.status(400).send({ 
+                message: "Quiz ID is required",
+                code: "MISSING_QUIZ_ID"
+            });
+        }
+
+        // Only students can start quizzes
+        if (role !== 'Student') {
+            return reply.status(403).send({ 
+                message: "Only students can start quizzes",
+                code: "INSUFFICIENT_PERMISSIONS"
+            });
+        }
+
+        // Get quiz details
+        const quiz = await Quiz.findById(quizId);
+        if (!quiz) {
+            return reply.status(404).send({ 
+                message: "Quiz not found",
+                code: "QUIZ_NOT_FOUND"
+            });
+        }
+
+        // Get user
+        const user = await Student.findOne({ uuid: userUuid });
+        if (!user) {
+            return reply.status(404).send({ 
+                message: "User not found",
+                code: "USER_NOT_FOUND"
+            });
+        }
+
+        // Send quiz started notification
+        try {
+            const template = NotificationTemplates.quizAssigned(quiz.title, quiz.course?.title || 'Course');
+            await sendNotification(
+                user.uuid,
+                NotificationTypes.QUIZ_AVAILABLE,
+                '📖 Quiz Started',
+                `You started: ${quiz.title}. Good luck!`,
+                { quizId, quizName: quiz.title, courseId },
+                false
+            );
+            console.log(`📢 Quiz started notification sent to ${user.uuid}`);
+        } catch (notifError) {
+            console.error('⚠️  Failed to send quiz started notification:', notifError.message);
+        }
+
+        return reply.status(200).send({
+            success: true,
+            message: "Quiz started",
+            quiz: {
+                _id: quiz._id,
+                title: quiz.title,
+                description: quiz.description,
+                startedAt: new Date()
+            }
+        });
+    } catch (error) {
+        console.error("Error starting quiz:", error);
+        return reply.status(500).send({
+            message: "An error occurred while starting the quiz",
+            error: error.message
+        });
+    }
 };
 
 export const postQuizSubmission = async (req, reply) => {
@@ -125,6 +205,44 @@ export const postQuizSubmission = async (req, reply) => {
         // Save the submission to the database
         await newSubmission.save();
 
+        // Send quiz submitted notification
+        try {
+          const template = NotificationTemplates.quizSubmitted(quiz.title);
+          await sendNotification(
+            user.uuid,
+            NotificationTypes.QUIZ_SUBMITTED,
+            template.title,
+            template.body,
+            { quizId, quizName: quiz.title, submissionId: newSubmission._id },
+            false
+          );
+          console.log(`📢 Quiz submission notification sent to ${user.uuid}`);
+        } catch (notifError) {
+          console.error('⚠️  Failed to send quiz submission notification:', notifError.message);
+        }
+
+        // Send quiz graded notification with score
+        try {
+          let template;
+          if (percentage >= 70) {
+            template = NotificationTemplates.quizResultGood(quiz.title, Math.round(percentage));
+          } else {
+            template = NotificationTemplates.quizResultNeedsImprovement(quiz.title, Math.round(percentage));
+          }
+          
+          await sendNotification(
+            user.uuid,
+            NotificationTypes.QUIZ_GRADED,
+            template.title,
+            template.body,
+            { quizId, score, totalQuestions: actualTotalQuestions, percentage: Math.round(percentage) },
+            true
+          );
+          console.log(`📢 Quiz graded notification sent to ${user.uuid}`);
+        } catch (notifError) {
+          console.error('⚠️  Failed to send quiz graded notification:', notifError.message);
+        }
+
         // Create or update marks summary
         const marksSummary = await MarksSummary.findOneAndUpdate(
             { user: user._id, quiz: quizId },
@@ -163,6 +281,25 @@ export const postQuizSubmission = async (req, reply) => {
             : 0;
 
         await user.save();
+
+        // Send statistics updated notification
+        try {
+          await sendNotification(
+            user.uuid,
+            'statistics_updated',
+            '📊 Your Statistics Updated',
+            `Total Quizzes: ${user.totalQuizzesTaken} | Average: ${user.averageScore}%`,
+            { 
+              totalQuizzesTaken: user.totalQuizzesTaken,
+              averageScore: user.averageScore,
+              totalChaptersCompleted: user.totalChaptersCompleted
+            },
+            false
+          );
+          console.log(`📢 Statistics updated notification sent to ${user.uuid}`);
+        } catch (notifError) {
+          console.error('⚠️  Failed to send statistics notification:', notifError.message);
+        }
 
         return reply.status(201).send({
             message: "Quiz submission completed successfully",
