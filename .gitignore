@@ -1,10 +1,41 @@
 /node_modules
 .env
+.env.local
+.env.*.local
 public/videos/
+temp-uploads/
+debug.log
 
-# Google Cloud credentials and tokens
+# ============================================
+# SECURITY: Credential & Token Files (NEVER COMMIT)
+# ============================================
+# Google Cloud & Firebase
 brave-aileron-475518-a8-1d758e3d5e11.json
 token.json
+google-credentials.json
+firebase-key.json
+serviceAccountKey.json
+
+# AWS, Azure, GCP credentials
+.aws/
+.gcp/
+*.pem
+*.key
+
+# All JSON files except package files
 *.json
 !package.json
 !package-lock.json
+!backend-flow-diagram.json
+!quiz-server-backend-complete.json
+!babel.config.js
+!react-native-config-example.js
+!jsconfig.json
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
