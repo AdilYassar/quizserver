@@ -12,27 +12,51 @@ const initFirebase = () => {
     if (firebaseApp) return firebaseApp;
 
     try {
-        const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+        const serviceAccountInput = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
       
-        if (!serviceAccountPath) {
+        if (!serviceAccountInput) {
             console.warn('⚠️ Firebase service account not configured. Set FIREBASE_SERVICE_ACCOUNT_JSON environment variable.');
             return null;
         }
 
         let serviceAccount;
         
-        // Check if it's a JSON string or a file path
-        if (serviceAccountPath.startsWith('{')) {
+        // Check if it's base64-encoded, JSON string, or file path
+        if (serviceAccountInput.startsWith('{')) {
             // JSON string
-            serviceAccount = JSON.parse(serviceAccountPath);
+            console.log('📌 Loading Firebase from JSON string...');
+            serviceAccount = JSON.parse(serviceAccountInput);
+        } else if (serviceAccountInput.match(/^[A-Za-z0-9+/=]+$/)) {
+            // Base64-encoded JSON (for cloud deployments like Koyeb)
+            try {
+                console.log('📌 Decoding Firebase from base64...');
+                const decoded = Buffer.from(serviceAccountInput, 'base64').toString('utf-8');
+                serviceAccount = JSON.parse(decoded);
+            } catch (err) {
+                console.error('❌ Failed to decode base64 Firebase config:', err.message);
+                // Fall back to treating it as a file path
+                const fullPath = path.isAbsolute(serviceAccountInput) 
+                    ? serviceAccountInput 
+                    : path.join(process.cwd(), serviceAccountInput);
+                
+                if (!fs.existsSync(fullPath)) {
+                    console.error(`❌ Firebase service account file not found at: ${fullPath}`);
+                    console.log('💡 Tip: Set FIREBASE_SERVICE_ACCOUNT_JSON as base64 or JSON string for cloud deployments');
+                    return null;
+                }
+                
+                const fileContent = fs.readFileSync(fullPath, 'utf-8');
+                serviceAccount = JSON.parse(fileContent);
+            }
         } else {
             // File path
-            const fullPath = path.isAbsolute(serviceAccountPath) 
-                ? serviceAccountPath 
-                : path.join(process.cwd(), serviceAccountPath);
+            const fullPath = path.isAbsolute(serviceAccountInput) 
+                ? serviceAccountInput 
+                : path.join(process.cwd(), serviceAccountInput);
             
             if (!fs.existsSync(fullPath)) {
                 console.error(`❌ Firebase service account file not found at: ${fullPath}`);
+                console.log('💡 Tip: Set FIREBASE_SERVICE_ACCOUNT_JSON as base64 or JSON string for cloud deployments');
                 return null;
             }
             
