@@ -27,8 +27,17 @@ export async function requestRegistrationOTP(req, reply) {
     try {
         const { phoneNumber, deviceToken, deviceName, deviceType } = req.body;
 
+        console.log('📝 [requestRegistrationOTP] Received request:', {
+            phoneNumber,
+            deviceToken: deviceToken ? `${deviceToken.substring(0, 10)}...` : 'MISSING',
+            deviceName,
+            deviceType,
+            ip: req.ip
+        });
+
         // Validation
         if (!phoneNumber || !deviceToken || !deviceName || !deviceType) {
+            console.warn('⚠️ [requestRegistrationOTP] Missing required fields');
             return reply.status(400).send({
                 success: false,
                 message: 'Missing required fields',
@@ -48,7 +57,10 @@ export async function requestRegistrationOTP(req, reply) {
         const { v4: uuidv4 } = await import('uuid');
         const tempSessionUUID = uuidv4();
 
+        console.log(`🆔 [requestRegistrationOTP] Generated temp session UUID: ${tempSessionUUID}`);
+
         // Send OTP
+        console.log(`🚀 [requestRegistrationOTP] Calling sendOTP for ${phoneNumber}...`);
         const result = await sendOTP(
             tempSessionUUID,
             deviceToken,
@@ -57,12 +69,15 @@ export async function requestRegistrationOTP(req, reply) {
         );
 
         if (!result.success) {
+            console.error(`❌ [requestRegistrationOTP] Failed to send OTP: ${result.message}`);
             return reply.status(400).send({
                 success: false,
                 message: 'Failed to send OTP',
                 error: result.message
             });
         }
+
+        console.log(`✅ [requestRegistrationOTP] OTP sent successfully. Session ID: ${result.sessionId}`);
 
         // Store phone number temporarily linked to this OTP session
         // We'll retrieve it when user verifies OTP
@@ -109,6 +124,7 @@ export async function requestRegistrationOTP(req, reply) {
 export async function verifyRegistrationOTP(req, reply) {
     try {
         const { sessionId, otpCode } = req.body;
+        console.log(`🔍 [verifyRegistrationOTP] Verifying OTP for session: ${sessionId}`);
 
         // Validation
         if (!sessionId || !otpCode) {
@@ -123,11 +139,14 @@ export async function verifyRegistrationOTP(req, reply) {
         const otpRecord = await OTP.findOne({ sessionId });
 
         if (!otpRecord) {
+            console.warn(`⚠️ [verifyRegistrationOTP] OTP session not found: ${sessionId}`);
             return reply.status(404).send({
                 success: false,
                 message: 'OTP session not found or expired'
             });
         }
+
+        console.log(`📄 [verifyRegistrationOTP] Found OTP record for phone: ${otpRecord.phoneNumber}`);
 
         // Verify OTP using existing service
         const result = await verifyOTP(
@@ -207,6 +226,8 @@ export async function completeRegistration(req, reply) {
             role = 'Student' // Default role
         } = req.body;
 
+        console.log(`🏗️ [completeRegistration] Completing registration for email: ${email}`);
+
         // Validation
         if (!verificationTicket || !email || !password || !firstName || !lastName) {
             return reply.status(400).send({
@@ -253,7 +274,7 @@ export async function completeRegistration(req, reply) {
         const newUserUUID = uuidv4();
 
         const newUser = new Student({
-            userUUID: newUserUUID,
+            uuid: newUserUUID,
             email,
             password,
             firstName,

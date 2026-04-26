@@ -30,6 +30,7 @@ const createRateLimiter = (windowMs, max, store) => {
     attempts.count.push(now);
     
     if (attempts.count.length > max) {
+      console.warn(`🛑 [generalLimiter] Blocking request from ${key} (count: ${attempts.count.length})`);
       return reply.status(429).send({
         message: 'Too many requests from this IP, please try again later.',
         retryAfter: Math.ceil(windowMs / 1000)
@@ -75,6 +76,7 @@ export const loginLimiter = async (request, reply) => {
   attempts.count.push(now);
   
   if (attempts.count.length > max) {
+    console.warn(`🛑 [loginLimiter] Blocking request from ${key} (count: ${attempts.count.length})`);
     return reply.status(429).send({
       message: 'Too many login attempts from this IP, please try again in 15 minutes.',
       retryAfter: Math.ceil(windowMs / 1000),

@@ -54,8 +54,30 @@ const otpSchema = new mongoose.Schema({
     },
     userAgent: {
         type: String
+    },
+    // Fields for Registration Flow
+    phoneNumber: {
+        type: String
+    },
+    tempSessionUUID: {
+        type: String
+    },
+    registrationType: {
+        type: String,
+        enum: ['new_user', 'password_reset', 'login'],
+        default: 'login'
+    },
+    verificationTicket: {
+        type: String
+    },
+    ticketExpiry: {
+        type: Date
+    },
+    registrationCompleted: {
+        type: Boolean,
+        default: false
     }
-});
+}, { timestamps: true });
 
 // Index for finding non-verified OTPs
 otpSchema.index({ userUUID: 1, isVerified: 1 });

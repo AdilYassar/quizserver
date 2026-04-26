@@ -15,9 +15,11 @@ const initFirebase = () => {
         const serviceAccountInput = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
       
         if (!serviceAccountInput) {
-            console.warn('⚠️ Firebase service account not configured. Set FIREBASE_SERVICE_ACCOUNT_JSON environment variable.');
+            console.warn('⚠️ [initFirebase] Firebase service account NOT configured in environment variables.');
             return null;
         }
+
+        console.log('🔍 [initFirebase] Attempting to initialize Firebase...');
 
         let serviceAccount;
         
@@ -69,7 +71,7 @@ const initFirebase = () => {
             projectId: serviceAccount.project_id,
         });
 
-        console.log('✅ Firebase initialized successfully');
+        console.log(`✅ [initFirebase] Firebase initialized successfully for project: ${serviceAccount.project_id}`);
         return firebaseApp;
     } catch (error) {
         console.error('❌ Failed to initialize Firebase:', error.message);

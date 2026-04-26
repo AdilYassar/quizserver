@@ -33,7 +33,15 @@ export function generateOTP() {
  */
 export async function registerDevice(userUUID, email, deviceToken, deviceName, deviceType) {
     try {
+        console.log(`📱 [registerDevice] Registering device for ${email}:`, {
+            userUUID,
+            deviceName,
+            deviceType,
+            token: deviceToken ? `${deviceToken.substring(0, 10)}...` : 'MISSING'
+        });
+
         if (!userUUID || !email || !deviceToken || !deviceName || !deviceType) {
+            console.warn('⚠️ [registerDevice] Missing required fields');
             return {
                 success: false,
                 message: 'Missing required fields: userUUID, email, deviceToken, deviceName, deviceType'
@@ -110,7 +118,9 @@ export async function registerDevice(userUUID, email, deviceToken, deviceName, d
  */
 export async function sendOTP(userUUID, deviceToken, ipAddress = '', userAgent = '') {
     try {
+        console.log(`🔑 [sendOTP] Preparing OTP for ${userUUID}...`);
         if (!userUUID || !deviceToken) {
+            console.warn('⚠️ [sendOTP] Missing userUUID or deviceToken');
             return {
                 success: false,
                 message: 'Missing userUUID or deviceToken'
@@ -122,6 +132,7 @@ export async function sendOTP(userUUID, deviceToken, ipAddress = '', userAgent =
         const expiresAt = new Date(Date.now() + OTP_VALIDITY_MINUTES * 60 * 1000);
 
         // Save OTP to database
+        console.log(`💾 [sendOTP] Saving OTP record for session...`);
         const otpRecord = await OTP.create({
             userUUID,
             deviceToken,
@@ -131,6 +142,7 @@ export async function sendOTP(userUUID, deviceToken, ipAddress = '', userAgent =
             ipAddress,
             userAgent
         });
+        console.log(`✅ [sendOTP] OTP record saved. Code: ${otpCode}, Session: ${otpRecord.sessionId}`);
 
         // Send OTP via Firebase notification
         try {
@@ -173,12 +185,13 @@ export async function sendOTP(userUUID, deviceToken, ipAddress = '', userAgent =
                 }
             };
 
+            console.log(`📡 [sendOTP] Dispatching Firebase notification to token: ${deviceToken.substring(0, 20)}...`);
             const messageId = await messaging.send({
                 ...message,
                 token: deviceToken
             });
 
-            console.log('📱 Firebase message sent:');
+            console.log('✅ [sendOTP] Firebase message sent successfully:');
             console.log('   Message ID:', messageId);
             console.log('   Device Token:', deviceToken.substring(0, 50) + '...');
             console.log('   User UUID:', userUUID);
@@ -207,6 +220,7 @@ export async function sendOTP(userUUID, deviceToken, ipAddress = '', userAgent =
             };
 
         } catch (firebaseError) {
+            console.error('❌ [sendOTP] Firebase dispatch failed:', firebaseError);
             // Delete OTP record if Firebase send fails
             await OTP.deleteOne({ _id: otpRecord._id });
             

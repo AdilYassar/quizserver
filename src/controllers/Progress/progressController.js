@@ -18,14 +18,23 @@ const findCorrectUserAndEnrollment = async (req, courseId, populateCourse = fals
         return { enrollment: null, correctUserId: null };
     }
     
-    // Find student by UUID
-    const student = await Student.findOne({ uuid: userUuid });
+    // Find student - try UUID first, then ID, then email
+    let student = await Student.findOne({ uuid: userUuid });
+    
+    if (!student && req.user.userId) {
+        student = await Student.findById(req.user.userId);
+    }
+    
+    if (!student && req.user.email) {
+        student = await Student.findOne({ email: req.user.email });
+    }
+
     if (!student) {
-        console.log('DEBUG: Student not found with UUID:', userUuid);
+        console.log('DEBUG: Student not found with UUID/ID/Email:', userUuid, req.user.userId, req.user.email);
         return { enrollment: null, correctUserId: null };
     }
     
-    console.log('DEBUG: Found student:', student._id);
+    console.log('DEBUG: Found student:', student._id, 'Email:', student.email);
     
     // Find enrollment for this student
     const enrollment = populateCourse 
@@ -37,7 +46,7 @@ const findCorrectUserAndEnrollment = async (req, courseId, populateCourse = fals
         return { enrollment, correctUserId: student._id };
     }
     
-    console.log('DEBUG: No enrollment found');
+    console.log('DEBUG: No enrollment found for student:', student._id, 'course:', courseId);
     return { enrollment: null, correctUserId: student._id };
 };
 
@@ -307,8 +316,29 @@ export const getCourseProgress = async (req, reply) => {
 // Get overall user progress statistics
 export const getUserProgressStats = async (req, reply) => {
     try {
-        const userId = req.user.userId;
+        // Get user details - find the correct user ID first
+        let userId = req.user.userId;
+        let user = await Student.findById(userId)
+            .select('name email enrolledCourses quizPerformance totalQuizzesTaken averageScore');
+        
+        // If user not found by userId, try by email (more reliable fallback for re-registered users)
+        if (!user && req.user.email) {
+            console.log(`🔍 [getUserProgressStats] User not found by ID ${userId}, trying email ${req.user.email}`);
+            user = await Student.findOne({ email: req.user.email })
+                .select('name email enrolledCourses quizPerformance totalQuizzesTaken averageScore');
+            if (user) {
+                userId = user._id; // Update userId to the correct ID
+                console.log(`✅ [getUserProgressStats] Found correct user ID: ${userId}`);
+            }
+        }
 
+        if (!user) {
+            return reply.status(404).send({
+                message: "User not found. Please log in again."
+            });
+        }
+
+        // NOW fetch progress data using the CORRECT userId
         // Get overall progress
         const overallProgress = await UserProgress.getOverallProgress(userId);
 
@@ -336,18 +366,6 @@ export const getUserProgressStats = async (req, reply) => {
             .sort({ lastAccessedAt: -1 })
             .limit(10);
 
-        // Get user details - try by userId first, then by phone if needed
-        let user = await Student.findById(userId)
-            .select('name email enrolledCourses quizPerformance totalQuizzesTaken averageScore');
-        
-        // If user not found by userId, try by email (more reliable fallback)
-        if (!user && req.user.email) {
-            user = await Student.findOne({ email: req.user.email })
-                .select('name email enrolledCourses quizPerformance totalQuizzesTaken averageScore');
-            if (user) {
-                userId = user._id; // Update userId to the correct ID
-            }
-        }
 
         return reply.status(200).send({
             message: "User progress statistics fetched successfully",
@@ -390,34 +408,23 @@ export const getUserProgressStats = async (req, reply) => {
 // Get progress for all enrolled courses (summary view)
 export const getAllCoursesProgress = async (req, reply) => {
     try {
-        const userId = req.user.userId;
+        let userId = req.user.userId;
 
-        // Try to find enrolled courses by userId first, then by phone if needed
-        let enrolledCourses = await EnrolledCourse.find({ user: userId })
+        // First, ensure we have the correct student ID
+        let student = await Student.findById(userId);
+        if (!student && req.user.email) {
+            student = await Student.findOne({ email: req.user.email });
+            if (student) userId = student._id;
+        }
+
+        if (!student) {
+            return reply.status(404).send({ message: "User not found" });
+        }
+
+        // Now fetch enrolled courses for the correct student
+        const enrolledCourses = await EnrolledCourse.find({ user: userId })
             .populate('course', 'title description estimatedTime');
-        
-        // If no courses found by userId, try by phone
-        if (enrolledCourses.length === 0 && req.user.phone) {
-            const student = await Student.findOne({ phone: req.user.phone });
-            if (student) {
-                enrolledCourses = await EnrolledCourse.find({ user: student._id })
-                    .populate('course', 'title description estimatedTime');
-                userId = student._id; // Update userId to the correct ID
-            }
-        }
 
-        // If still no courses found, try to find by email (more reliable than phone)
-        if (enrolledCourses.length === 0 && req.user.email) {
-            const student = await Student.findOne({ email: req.user.email });
-            if (student) {
-                const courses = await EnrolledCourse.find({ user: student._id })
-                    .populate('course', 'title description estimatedTime');
-                if (courses.length > 0) {
-                    enrolledCourses = courses;
-                    userId = student._id;
-                }
-            }
-        }
 
         const coursesProgress = await Promise.all(
             enrolledCourses.map(async (enrollment) => {

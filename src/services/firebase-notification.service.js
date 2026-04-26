@@ -19,6 +19,7 @@ class FirebaseNotificationService {
      */
     async sendToUser(userUUID, type, content, data = {}) {
         try {
+            console.log(`📨 [FirebaseNotificationService.sendToUser] Sending ${type} to ${userUUID}`);
             // 1. Send push notification
             await this.pushToUserDevices(userUUID, type, content, data);
 
@@ -66,9 +67,10 @@ class FirebaseNotificationService {
      */
     async pushToUserDevices(userUUID, type, content, data = {}) {
         try {
+            console.log(`🚀 [FirebaseNotificationService.pushToUserDevices] Preparing to push ${type} to ${userUUID}`);
             const messaging = getFirebaseMessaging();
             if (!messaging) {
-                console.warn('⚠️ Firebase messaging not initialized');
+                console.warn('⚠️ [FirebaseNotificationService.pushToUserDevices] Firebase messaging not initialized');
                 return { success: 0, failed: 0 };
             }
 
@@ -77,9 +79,11 @@ class FirebaseNotificationService {
             const devices = await DeviceToken.find({ userUUID, isInvalid: false });
 
             if (devices.length === 0) {
-                console.debug(`ℹ️ No devices for user ${userUUID}`);
+                console.warn(`ℹ️ [FirebaseNotificationService.pushToUserDevices] No valid devices found for user ${userUUID}`);
                 return { success: 0, failed: 0 };
             }
+
+            console.log(`📱 [FirebaseNotificationService.pushToUserDevices] Found ${devices.length} devices for user ${userUUID}`);
 
             const validTokens = devices.map(d => d.token);
 
@@ -105,6 +109,7 @@ class FirebaseNotificationService {
                 apns: { headers: { 'apns-priority': '10' } }
             };
 
+            console.log(`📡 [FirebaseNotificationService.pushToUserDevices] Sending multicast message to ${validTokens.length} tokens...`);
             const response = await messaging.sendMulticast({
                 ...message,
                 tokens: validTokens
@@ -125,11 +130,11 @@ class FirebaseNotificationService {
                 }
             });
 
-            console.debug(`✅ Pushed to ${response.successCount}/${validTokens.length} devices`);
+            console.log(`✅ [FirebaseNotificationService.pushToUserDevices] Pushed successfully: ${response.successCount}, Failed: ${response.failureCount}`);
             return { success: response.successCount, failed: response.failureCount };
 
         } catch (error) {
-            console.error('❌ Push to Firebase failed:', error.message);
+            console.error('❌ [FirebaseNotificationService.pushToUserDevices] Push to Firebase failed:', error);
             return { success: 0, failed: 1 };
         }
     }

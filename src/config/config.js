@@ -12,12 +12,23 @@ const MongoDBStore = ConnectMongoDBSession(fastifySession)
 // Only create session store if MONGO_URI is available
 export const sessionStore = process.env.MONGO_URI ? new MongoDBStore({
     uri: process.env.MONGO_URI,
-    collection: 'session'
+    collection: 'session',
+    expires: 1000 * 60 * 60 * 24 * 14, // 14 days
+    connectionOptions: {
+        serverSelectionTimeoutMS: 10000 // Timeout after 10s if cluster is down
+    }
+}, (error) => {
+    if (error) {
+        console.error("🛑 [Session Store Initial Connection Error]", error.message);
+        // Do not throw, just log
+    }
 }) : null;
 
 if (sessionStore) {
     sessionStore.on("error", (error) => {
-        console.log("session store error", error);
+        console.error("🛑 [Session Store Error] Session storage connection failed:", error.message);
+        // We log the error but allow the application to keep running
+        // Session-dependent features (like AdminJS) may be limited
     });
 }
 
