@@ -155,7 +155,7 @@ export const updateUserProfile = async (req, reply) => {
 
         // Publish user event
         try {
-            await publishUserEvent('user.profile_updated', {
+            await publishUserEvent('user.updated', {
                 eventType: 'profile_updated',
                 data: {
                     uuid: updatedUser.uuid,

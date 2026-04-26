@@ -8,7 +8,9 @@ export const generateTokens = (user) => {
     userId: user._id,
     userUuid: user.uuid,
     role: user.role,
-    email: user.email
+    email: user.email,
+    name: user.name,
+    avatar: user.photo
   };
 
   const accessToken = jwt.sign(
@@ -154,6 +156,8 @@ export const extractTokenInfo = (token) => {
       userId: decoded?.userId,
       userUuid: decoded?.userUuid,
       role: decoded?.role,
+      name: decoded?.name,
+      avatar: decoded?.avatar,
       exp: decoded?.exp
     };
   } catch (error) {

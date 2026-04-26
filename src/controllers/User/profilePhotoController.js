@@ -124,7 +124,7 @@ export const uploadProfilePhoto = async (req, reply) => {
             // Publish event for user photo update
             try {
                 const { publishUserEvent } = await import('../../utils/rabbitmq.js');
-                await publishUserEvent('user.profile_updated', {
+                await publishUserEvent('user.updated', {
                     eventType: 'profile_updated',
                     data: {
                         uuid: user.uuid,
