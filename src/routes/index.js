@@ -11,6 +11,7 @@ import theoryRoutes from "./theoryRoutes.js";
 import { videoCallRoutes } from "./videoCallRoutes.js";
 import { notificationRoutes } from "./notificationRoutes.js";
 import { internalApiRoutes } from "./internal.api.routes.js";
+import { timelineRoutes } from "./timelineRoutes.js";
 
 const prefix = "/api";
 
@@ -29,5 +30,6 @@ export const registerRoutes = async (fastify) => {
     fastify.register(videoCallRoutes); // Removed prefix so endpoints are /create-session and /is-alive
     fastify.register(notificationRoutes, { prefix: prefix }); // NEW: Notification routes
     fastify.register(internalApiRoutes, { prefix: prefix }); // NEW: Internal API routes for microservice
+    fastify.register(timelineRoutes, { prefix: prefix }); // NEW: AI Timeline routes
     // Removed internal routes - registered separately in app.js
 };

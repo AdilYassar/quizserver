@@ -47,6 +47,9 @@ export const NotificationTypes = {
     GRADE_IMPROVED: 'grade_improved',
     STATISTICS_UPDATED: 'statistics_updated',
     
+    // AI Study Planner
+    STUDY_REMINDER: 'study_reminder',
+    
     // Administrative
     ADMIN_ALERT: 'admin_alert',
     ACCOUNT_ACTIVITY: 'account_activity',

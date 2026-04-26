@@ -8,6 +8,7 @@ import { MarksSummary } from './MarksSummary.js';
 import { Branch } from './branch.js';
 import { Question } from './question.js';
 import { UserProgress } from './userProgress.js';
+import { Timeline } from './Timeline.js';
 
 export  default {
     Student,
@@ -18,5 +19,6 @@ export  default {
     //EnrolledCourse,
     MarksSummary,
     Question,
-    UserProgress
+    UserProgress,
+    Timeline
 };

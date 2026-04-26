@@ -9,6 +9,7 @@ import fastifySession from "@fastify/session";
 
 import { connectDB, connectSharedDB } from "./src/config/connect.js";
 import { initFirebase } from "./src/config/firebase.js";
+import { initScheduler } from "./src/services/scheduler.service.js";
 import { COOKIE_PASSWORD, sessionStore } from "./src/config/config.js";
 import { buildAdminRouter } from "./src/config/setup.js";
 import { registerRoutes } from "./src/routes/index.js";
@@ -44,6 +45,9 @@ const start = async () => {
 
         // Initialize Firebase for notifications
         initFirebase();
+
+        // Initialize Study Planner Scheduler
+        initScheduler();
 
         const app = Fastify({
             // Increase body size limit to handle large video uploads (100MB)
