@@ -12,6 +12,8 @@ import { videoCallRoutes } from "./videoCallRoutes.js";
 import { notificationRoutes } from "./notificationRoutes.js";
 import { internalApiRoutes } from "./internal.api.routes.js";
 import { timelineRoutes } from "./timelineRoutes.js";
+import feedbackRoutes from "./feedback.js";
+import supportRoutes from "./support.js";
 
 const prefix = "/api";
 
@@ -31,5 +33,7 @@ export const registerRoutes = async (fastify) => {
     fastify.register(notificationRoutes, { prefix: prefix }); // NEW: Notification routes
     fastify.register(internalApiRoutes, { prefix: prefix }); // NEW: Internal API routes for microservice
     fastify.register(timelineRoutes, { prefix: prefix }); // NEW: AI Timeline routes
+    fastify.register(feedbackRoutes);
+    fastify.register(supportRoutes);
     // Removed internal routes - registered separately in app.js
 };
