@@ -25,11 +25,19 @@ const bookSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    pdf: {
-        type: Buffer,
+    description: {
+        type: String,
+        default: ''
+    },
+    fileId: {
+        type: String,
+        required: true
+    },
+    pdfUrl: {
+        type: String,
         required: true
     }
-});
+}, { timestamps: true });
 
 export const Book = mongoose.model('Book', bookSchema);
 export default Book;

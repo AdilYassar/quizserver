@@ -1,4 +1,4 @@
-// Dashboard API endpoints for statistics and activities
+import adminAuthMiddleware from '../middleware/adminAuthMiddleware.js';
 
 // API endpoint for dashboard statistics
 export const getDashboardStats = async (request, reply) => {
@@ -108,9 +108,14 @@ export const getDashboardActivities = async (request, reply) => {
 };
 
 // Register dashboard API routes
-export const registerDashboardRoutes = (app) => {
-    app.get('/api/dashboard-stats', getDashboardStats);
-    app.get('/api/dashboard-activities', getDashboardActivities);
+export const registerDashboardRoutes = async (app) => {
+    // Wrap in register to create a scope for the preHandler hook
+    await app.register(async (dashboardInstance) => {
+        dashboardInstance.addHook('preHandler', adminAuthMiddleware);
+        
+        dashboardInstance.get('/api/dashboard-stats', getDashboardStats);
+        dashboardInstance.get('/api/dashboard-activities', getDashboardActivities);
+    });
     
-    console.log('Dashboard API routes registered');
+    console.log('Dashboard API routes registered (protected)');
 };

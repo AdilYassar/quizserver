@@ -1,3 +1,4 @@
+import adminAuthMiddleware from '../../middleware/adminAuthMiddleware.js';
 import registerStudentRoutes from './students.js';
 import registerCourseRoutes from './courses.js';
 import registerQuizRoutes from './quizzes.js';
@@ -12,20 +13,30 @@ import registerQuizSubmissionRoutes from './quizSubmissions.js';
 import registerTheoryRoutes from './theory.js';
 import registerUserProgressRoutes from './userProgress.js';
 import registerAdminEmailsRoutes from './adminEmails.js';
+import registerAnalyticsRoutes from './analytics.js';
 
 export const registerManagementRoutes = async (app) => {
-    await registerStudentRoutes(app);
-    await registerCourseRoutes(app);
-    await registerQuizRoutes(app);
-    await registerQuestionRoutes(app);
-    await registerSessionRoutes(app);
-    await registerBookRoutes(app);
-    await registerCategoryRoutes(app);
-    await registerBranchRoutes(app);
-    await registerEnrolledCourseRoutes(app);
-    await registerMarksSummaryRoutes(app);
-    await registerQuizSubmissionRoutes(app);
-    await registerTheoryRoutes(app);
-    await registerUserProgressRoutes(app);
-    await registerAdminEmailsRoutes(app);
+    // Use app.register to create a new scope so the preHandler hook 
+    // only applies to management routes and doesn't leak to other APIs
+    await app.register(async (managementInstance) => {
+        // Apply the admin authentication guard to all routes in this scope
+        managementInstance.addHook('preHandler', adminAuthMiddleware);
+
+        // Register all management sub-routes
+        await registerStudentRoutes(managementInstance);
+        await registerCourseRoutes(managementInstance);
+        await registerQuizRoutes(managementInstance);
+        await registerQuestionRoutes(managementInstance);
+        await registerSessionRoutes(managementInstance);
+        await registerBookRoutes(managementInstance);
+        await registerCategoryRoutes(managementInstance);
+        await registerBranchRoutes(managementInstance);
+        await registerEnrolledCourseRoutes(managementInstance);
+        await registerMarksSummaryRoutes(managementInstance);
+        await registerQuizSubmissionRoutes(managementInstance);
+        await registerTheoryRoutes(managementInstance);
+        await registerUserProgressRoutes(managementInstance);
+        await registerAdminEmailsRoutes(managementInstance);
+        await registerAnalyticsRoutes(managementInstance);
+    });
 };

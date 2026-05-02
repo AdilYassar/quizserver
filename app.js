@@ -18,6 +18,7 @@ import { registerStaticRoutes } from "./src/routes/staticRoutes.js";
 import { registerHtmlRoutes } from "./src/routes/htmlRoutes.js";
 import { registerDashboardRoutes } from "./src/routes/dashboardRoutes.js";
 import { registerAuthRoutes } from "./src/routes/authRoutes.js";
+import registerWellKnownRoutes from './src/routes/well-known.js';
 import { authRoutes } from "./src/routes/auth.js";
 import { videoRoutes } from "./src/routes/videoRoutes.js";
 import fastifySocketIO from "fastify-socket.io";
@@ -50,10 +51,10 @@ const start = async () => {
         initScheduler();
 
         const app = Fastify({
-            // Increase body size limit to handle large video uploads (100MB)
-            bodyLimit: 100 * 1024 * 1024, // 100MB in bytes
+            // Increase body size limit to handle large video uploads (500MB)
+            bodyLimit: 500 * 1024 * 1024, // 500MB in bytes
             // Increase request timeout for large file uploads
-            requestTimeout: 300000 // 5 minutes for large video uploads
+            requestTimeout: 600000 // 10 minutes for large video uploads
         });
         
         // Register video static files FIRST (before session middleware)
@@ -65,10 +66,11 @@ const start = async () => {
             decorateReply: false
         });
 
-        // Register multipart plugin for file uploads (profile photos, etc.)
+        // Register multipart plugin for file uploads (profile photos, videos, etc.)
         await app.register(import('@fastify/multipart'), {
+            attachFieldsToBody: true,
             limits: {
-                fileSize: 10 * 1024 * 1024, // 10MB max file size for images
+                fileSize: 500 * 1024 * 1024, // 500MB max file size
             }
         });
 
@@ -148,13 +150,34 @@ const start = async () => {
         await app.register(fastifyCookie);
 
         const sessionConfig = {
-            saveUninitialized: true,
+            saveUninitialized: false,
+            rolling: false,
             secret: COOKIE_PASSWORD,
             cookie: {
                 httpOnly: process.env.NODE_ENV === "production",
                 secure: process.env.NODE_ENV === "production",
             },
-            skip: (request) => request.url.startsWith('/api/internal'),
+            skip: (request) => {
+                const url = request.url || '';
+                // Only ALLOW session for these paths (everything else is skipped)
+                const allowedPaths = [
+                    '/api/login',
+                    '/api/management',
+                    '/api/dashboard',
+                    '/custom-dashboard',
+                    '/admin',
+                    '/manage-admins',
+                    '/students',
+                    '/courses',
+                    '/quizzes',
+                    '/questions',
+                    '/videos',
+                    '/video-upload'
+                ];
+                
+                const isAllowed = allowedPaths.some(path => url.startsWith(path));
+                return !isAllowed || url.includes('.') || url.includes('socket.io');
+            },
         };
 
         if (sessionStore) {
@@ -199,7 +222,7 @@ const start = async () => {
         // Register video routes AFTER AdminJS so multipart is available
         await app.register(videoRoutes, { prefix: "/api" });
         console.log('✅ Video routes registered successfully');
-        registerDashboardRoutes(app);    // Dashboard API endpoints
+        await registerDashboardRoutes(app);    // Dashboard API endpoints
         registerAuthRoutes(app);         // Old admin authentication routes
         
         // Register new OTP-based student authentication routes
@@ -207,6 +230,9 @@ const start = async () => {
 
         // Register management routes
         await registerManagementRoutes(app);
+
+        // Register public well-known routes for Deep Linking (Android App Links & iOS Universal Links)
+        await registerWellKnownRoutes(app);
 
         // Register Socket.IO for real-time communication
         app.register(fastifySocketIO, {

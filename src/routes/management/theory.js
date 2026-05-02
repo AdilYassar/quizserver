@@ -141,11 +141,17 @@ export default async function registerTheoryRoutes(app) {
                 return { error: 'Course not found' };
             }
 
+            // Auto-populate course ID into chapters if missing
+            const processedChapters = (chapters || []).map(ch => ({
+                ...ch,
+                course: ch.course || courseId
+            }));
+
             const theory = new Theory({
                 courseTitle,
                 description: description || '',
                 course: courseId,
-                chapters: chapters || []
+                chapters: processedChapters
             });
 
             await theory.save();
@@ -179,7 +185,10 @@ export default async function registerTheoryRoutes(app) {
                     courseTitle,
                     description: description || '',
                     course: courseId,
-                    chapters: chapters || []
+                    chapters: (chapters || []).map(ch => ({
+                        ...ch,
+                        course: ch.course || courseId
+                    }))
                 },
                 { new: true, runValidators: true }
             );

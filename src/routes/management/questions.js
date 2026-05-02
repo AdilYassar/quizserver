@@ -26,6 +26,10 @@ export default async function registerQuestionRoutes(app) {
                 searchQuery.difficulty = difficulty;
             }
 
+            if (request.query.quiz) {
+                searchQuery.quiz = request.query.quiz;
+            }
+
             // Build sort object
             const sort = {};
             sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
@@ -87,7 +91,7 @@ export default async function registerQuestionRoutes(app) {
     // Create question
     app.post('/api/management/questions', async (request, reply) => {
         try {
-            const { question, type, options, correctAnswer, difficulty, points } = request.body;
+            const { question, type, options, correctAnswer, difficulty, points, quiz } = request.body;
             
             if (!question || !type) {
                 reply.code(400);
@@ -100,10 +104,25 @@ export default async function registerQuestionRoutes(app) {
                 options: options || [],
                 correctAnswer,
                 difficulty: difficulty || 'medium',
-                points: points || 1
+                points: points || 1,
+                quiz: quiz || null
             });
 
             await newQuestion.save();
+
+            // If a quiz ID was provided, link the question to the quiz
+            if (quiz) {
+                try {
+                    const { Quiz } = await import('../../models/quiz.js');
+                    await Quiz.findByIdAndUpdate(quiz, {
+                        $push: { questions: newQuestion._id },
+                        $inc: { totalQuestions: 1 }
+                    });
+                } catch (quizError) {
+                    console.error('Failed to link question to quiz:', quizError);
+                    // We don't fail the whole request, but we log the error
+                }
+            }
 
             reply.code(201);
             reply.type('application/json');

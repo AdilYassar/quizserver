@@ -1,4 +1,7 @@
 import { Student } from '../../models/user.js';
+import EnrolledCourse from '../../models/enrolledCourses.js';
+import UserProgress from '../../models/userProgress.js';
+import { QuizSubmission } from '../../models/QuizSubmission.js';
 
 export default async function registerStudentRoutes(app) {
     // Get all students
@@ -45,11 +48,88 @@ export default async function registerStudentRoutes(app) {
             return { error: 'Failed to fetch students' };
         }
     });
+    
+    // Get student profile with analytics
+    app.get('/api/management/students/:id/profile', async (request, reply) => {
+        try {
+            const { id } = request.params;
+            
+            // Validate ID format to prevent CastError
+            if (!id || id === 'undefined' || id.length !== 24) {
+                reply.code(400);
+                return { error: 'Invalid or missing student ID' };
+            }
+
+            // 1. Get student basic info
+            const student = await Student.findById(id).select('email role isActivated createdAt').lean();
+            if (!student) {
+                reply.code(404);
+                return { error: 'Student not found' };
+            }
+
+            // 2. Fetch enrolled courses and their progress
+            const enrollments = await EnrolledCourse.find({ user: id })
+                .populate('course', 'title')
+                .lean();
+
+            const enrolledCourses = await Promise.all(enrollments.map(async (enroll) => {
+                const progressSummary = await UserProgress.getCourseProgress(id, enroll.course._id);
+                return {
+                    id: enroll.course._id,
+                    title: enroll.course?.title || 'Deleted Course',
+                    progress: progressSummary.completionPercentage
+                };
+            }));
+
+            // 3. Fetch quiz attempts
+            const attempts = await QuizSubmission.find({ user: id })
+                .populate('quiz', 'title')
+                .sort({ completedAt: -1, startedAt: -1 })
+                .lean();
+
+            const quizAttempts = attempts.map(attempt => ({
+                quizTitle: attempt.quiz?.title || 'Unknown Quiz',
+                score: attempt.percentage,
+                date: attempt.completedAt || attempt.startedAt
+            }));
+
+            // 4. Calculate analytics
+            const quizzesDone = attempts.length;
+            const avgScore = quizzesDone > 0 
+                ? Math.round(attempts.reduce((sum, a) => sum + a.percentage, 0) / quizzesDone) 
+                : 0;
+
+            reply.type('application/json');
+            return {
+                student: {
+                    id: student._id,
+                    email: student.email,
+                    isActivated: student.isActivated,
+                    createdAt: student.createdAt
+                },
+                analytics: {
+                    coursesCount: enrollments.length,
+                    quizzesDone,
+                    avgScore
+                },
+                enrolledCourses,
+                quizAttempts
+            };
+        } catch (error) {
+            console.error('Error fetching student profile:', error);
+            reply.code(500);
+            return { error: 'Failed to fetch student profile' };
+        }
+    });
 
     // Get single student
     app.get('/api/management/students/:id', async (request, reply) => {
         try {
             const { id } = request.params;
+            if (!id || id === 'undefined' || id.length !== 24) {
+                reply.code(400);
+                return { error: 'Invalid or missing student ID' };
+            }
             const student = await Student.findById(id).select('email role isActivated createdAt').lean();
             
             if (!student) {
@@ -124,6 +204,10 @@ export default async function registerStudentRoutes(app) {
     app.put('/api/management/students/:id', async (request, reply) => {
         try {
             const { id } = request.params;
+            if (!id || id === 'undefined' || id.length !== 24) {
+                reply.code(400);
+                return { error: 'Invalid or missing student ID' };
+            }
             const { email, role, isActivated } = request.body;
 
             const student = await Student.findById(id);
@@ -175,6 +259,10 @@ export default async function registerStudentRoutes(app) {
     app.delete('/api/management/students/:id', async (request, reply) => {
         try {
             const { id } = request.params;
+            if (!id || id === 'undefined' || id.length !== 24) {
+                reply.code(400);
+                return { error: 'Invalid or missing student ID' };
+            }
             
             const student = await Student.findById(id);
             if (!student) {

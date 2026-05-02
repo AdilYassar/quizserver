@@ -1,4 +1,4 @@
-// Custom authentication routes (separate from AdminJS)
+import { generateTokens } from '../utils/authUtils.js';
 
 // Custom Admin login POST route
 export const customAdminLogin = async (request, reply) => {
@@ -22,6 +22,8 @@ export const customAdminLogin = async (request, reply) => {
         
         // Try database authentication with proper password hashing
         let isAuthenticated = false;
+        let authenticatedAdmin = null;
+
         try {
             const { Admin } = await import('../models/user.js');
             // Find admin and include password field for comparison
@@ -43,6 +45,7 @@ export const customAdminLogin = async (request, reply) => {
                 
                 if (isPasswordValid) {
                     isAuthenticated = true;
+                    authenticatedAdmin = admin;
                     console.log('Database authentication successful');
                 } else {
                     console.log('Password mismatch');
@@ -54,25 +57,35 @@ export const customAdminLogin = async (request, reply) => {
             console.error('Database authentication error:', dbError.message);
         }
         
-        if (isAuthenticated) {
-            console.log('Authentication successful, setting custom session');
+        if (isAuthenticated && authenticatedAdmin) {
+            console.log('Authentication successful, setting custom session and generating tokens');
             
-            // Set custom session data (no AdminJS dependency)
+            // Set custom session data (for web panel)
             if (request.session) {
                 request.session.customAdmin = {
-                    email: email,
+                    email: authenticatedAdmin.email,
                     isAuthenticated: true,
                     loginTime: new Date().toISOString()
                 };
-                request.session.save();
-                console.log('Custom session saved');
+                console.log('Custom session data set');
             }
+
+            // Generate JWT tokens (for mobile app)
+            const { accessToken, refreshToken } = generateTokens(authenticatedAdmin);
             
             reply.type('application/json');
             return reply.send({
                 message: 'Login successful',
                 success: true,
-                user: { email }
+                user: { 
+                    email: authenticatedAdmin.email,
+                    role: authenticatedAdmin.role,
+                    name: authenticatedAdmin.name
+                },
+                tokens: {
+                    accessToken,
+                    refreshToken
+                }
             });
         } else {
             console.log('Authentication failed');

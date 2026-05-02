@@ -7,13 +7,14 @@ import { uploadAndMakePublic, deleteFromDrive } from '../utils/googleDrive.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+import adminAuthMiddleware from '../middleware/adminAuthMiddleware.js';
+
 export const videoRoutes = async (fastify, options) => {
     console.log('🎬 Video routes being registered...');
     
-    // Disable session for video routes
-    fastify.addHook('preHandler', async (req, reply) => {
-        req.session = null;
-    });
+    // Protect video routes with the admin authentication guard
+    // This supports both web sessions and mobile JWT tokens
+    fastify.addHook('preHandler', adminAuthMiddleware);
 
     // Test endpoint
     fastify.get('/videos/test', async (req, reply) => {
@@ -23,16 +24,6 @@ export const videoRoutes = async (fastify, options) => {
 
     // Upload video
     fastify.post('/videos/upload', async (req, reply) => {
-        console.log('📹 Video upload endpoint reached!');
-        console.log('🔍 Available methods on req:', Object.keys(req));
-        
-        // Check if multipart is available
-        if (typeof req.parts !== 'function') {
-            console.error('❌ req.parts is not available');
-            console.error('Available req methods:', Object.getOwnPropertyNames(req).filter(name => typeof req[name] === 'function'));
-            return reply.code(500).send({ message: 'Multipart parsing not available' });
-        }
-
         try {
             console.log('📹 Video upload request received');
             console.log('🔍 Content-Type:', req.headers['content-type']);

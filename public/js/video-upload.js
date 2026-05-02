@@ -245,10 +245,46 @@ class VideoUploadManager {
 
     async loadVideos() {
         try {
+            console.log('📡 Fetching videos from /api/videos...');
             const response = await fetch('/api/videos');
-            const videos = await response.json();
-            this.allVideos = videos; // Store for search functionality
-            this.renderVideos(videos);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`❌ Server returned ${response.status}:`, errorText);
+                
+                if (response.status === 401) {
+                    this.videoContainer.innerHTML = `
+                        <div class="flex items-center justify-center py-12">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <i class="fas fa-lock text-amber-500"></i>
+                                </div>
+                                <p class="text-sm text-amber-600 font-medium">Session Expired</p>
+                                <p class="text-xs text-gray-500 mt-1">Please log in again to manage videos.</p>
+                                <a href="/admin-login" class="inline-block mt-3 px-4 py-2 bg-gray-900 text-white text-xs rounded-lg hover:bg-black transition-colors">Log In</a>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                throw new Error(`Server error: ${response.status}`);
+            }
+
+            const responseText = await response.text();
+            if (!responseText) {
+                console.warn('⚠️ Received empty response from server');
+                this.renderVideos([]);
+                return;
+            }
+
+            try {
+                const videos = JSON.parse(responseText);
+                this.allVideos = videos;
+                this.renderVideos(videos);
+            } catch (parseError) {
+                console.error('❌ Failed to parse JSON:', responseText);
+                throw parseError;
+            }
         } catch (error) {
             console.error('Error loading videos:', error);
             this.videoContainer.innerHTML = `
@@ -257,7 +293,7 @@ class VideoUploadManager {
                         <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
                             <i class="fas fa-exclamation-triangle text-red-400"></i>
                         </div>
-                        <p class="text-sm text-red-500">Failed to load videos</p>
+                        <p class="text-sm text-red-500">Failed to load videos: ${error.message}</p>
                     </div>
                 </div>
             `;

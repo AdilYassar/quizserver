@@ -64,9 +64,8 @@ export const registerHtmlRoutes = (app) => {
             }
             
             console.log('Valid custom session found, serving dashboard');
-            // Set session cookie manually to avoid onSend conflicts
-            reply.header('Set-Cookie', `session=${request.session.sessionId}; HttpOnly; Path=/; SameSite=Lax`);
-            request.session = null; // Prevent automatic session save
+            
+            // Just serve the HTML, session middleware will handle the rest
             const htmlPath = path.join(publicDir, 'custom-dashboard.html');
             const htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
             reply.type('text/html');
