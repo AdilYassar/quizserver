@@ -7,8 +7,8 @@ export default async function registerFeedbackRoutes(app) {
         preHandler: [verifyToken],
         handler: async (request, reply) => {
             try {
-                // request.user is set by verifyToken middleware
-                const userId = request.user._id;
+                // request.user is set by verifyToken middleware (using userId field)
+                const userId = request.user.userId;
                 const { rating, category, comment } = request.body;
 
                 if (!rating || !category || !comment) {

@@ -10,7 +10,7 @@ export default async function registerSupportRoutes(app) {
         preHandler: [verifyToken],
         handler: async (request, reply) => {
             try {
-                const userId = request.user._id;
+                const userId = request.user.userId;
                 const { subject, priority = 'Medium' } = request.body;
 
                 if (!subject) {
@@ -43,7 +43,7 @@ export default async function registerSupportRoutes(app) {
         preHandler: [verifyToken],
         handler: async (request, reply) => {
             try {
-                const userId = request.user._id;
+                const userId = request.user.userId;
                 const tickets = await SupportTicket.find({ userId })
                     .sort({ lastMessageAt: -1 })
                     .lean();
@@ -62,7 +62,7 @@ export default async function registerSupportRoutes(app) {
         preHandler: [verifyToken],
         handler: async (request, reply) => {
             try {
-                const userId = request.user._id;
+                const userId = request.user.userId;
                 const { id: ticketId } = request.params;
 
                 // Verify ticket ownership
@@ -90,7 +90,7 @@ export default async function registerSupportRoutes(app) {
         preHandler: [verifyToken],
         handler: async (request, reply) => {
             try {
-                const userId = request.user._id;
+                const userId = request.user.userId;
                 const { id: ticketId } = request.params;
                 const { message } = request.body;
 
