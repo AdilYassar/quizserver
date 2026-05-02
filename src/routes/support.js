@@ -230,4 +230,19 @@ export default async function registerSupportRoutes(app) {
             return { error: 'Failed to send reply' };
         }
     });
+
+    // Get message history for a ticket (Admin)
+    app.get('/api/management/support/tickets/:id/messages', async (request, reply) => {
+        try {
+            const { id: ticketId } = request.params;
+            const messages = await SupportMessage.find({ ticketId })
+                .sort({ createdAt: 1 })
+                .lean();
+            return { data: messages };
+        } catch (error) {
+            console.error('Error fetching ticket messages (Admin):', error);
+            reply.code(500);
+            return { error: 'Failed to fetch ticket messages' };
+        }
+    });
 }
