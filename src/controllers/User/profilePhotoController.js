@@ -121,6 +121,16 @@ export const uploadProfilePhoto = async (req, reply) => {
 
             console.log(`👤 User ${userUuid} photo updated successfully`);
 
+            // Sync to Social Microservice (for students)
+            if (role === 'Student') {
+                try {
+                    const { syncToSocial } = await import('../../services/socialSync.service.js');
+                    syncToSocial(user);
+                } catch (syncError) {
+                    console.warn('Social sync failed for photo update:', syncError.message);
+                }
+            }
+
             // Publish event for user photo update
             try {
                 const { publishUserEvent } = await import('../../utils/rabbitmq.js');
@@ -282,6 +292,16 @@ export const deleteProfilePhoto = async (req, reply) => {
         // Update user
         user.photo = undefined;
         await user.save();
+
+        // Sync to Social Microservice (for students)
+        if (role === 'Student') {
+            try {
+                const { syncToSocial } = await import('../../services/socialSync.service.js');
+                syncToSocial(user);
+            } catch (syncError) {
+                console.warn('Social sync failed for photo deletion:', syncError.message);
+            }
+        }
 
         return reply.status(200).send({
             success: true,

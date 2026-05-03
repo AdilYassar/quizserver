@@ -476,6 +476,14 @@ const updateUserProgressStats = async (userId) => {
             user.averageCourseCompletion = Math.round(overallProgress.averageCompletion);
             
             await user.save();
+            
+            // Sync to Social Microservice
+            try {
+                const { syncToSocial } = await import('../../services/socialSync.service.js');
+                syncToSocial(user);
+            } catch (syncError) {
+                console.warn('Social sync failed after progress update:', syncError.message);
+            }
 
             // Check for milestone achievements
             const milestones = [5, 10, 25, 50, 100];

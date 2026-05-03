@@ -282,6 +282,14 @@ export const postQuizSubmission = async (req, reply) => {
 
         await user.save();
 
+        // Sync to Social Microservice
+        try {
+            const { syncToSocial } = await import('../../services/socialSync.service.js');
+            syncToSocial(user);
+        } catch (syncError) {
+            console.warn('Social sync failed after quiz submission:', syncError.message);
+        }
+
         // Send statistics updated notification
         try {
           await sendNotification(

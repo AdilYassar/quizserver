@@ -153,6 +153,12 @@ export const updateUserProfile = async (req, reply) => {
         console.log(`📝 Profile updated for user: ${userUuid}`);
         console.log(`   Updated fields: ${Object.keys(updateData).join(', ')}`);
 
+        // Sync to Social Microservice (for students)
+        if (role === 'Student') {
+            const { syncToSocial } = await import('../../services/socialSync.service.js');
+            syncToSocial(updatedUser);
+        }
+
         // Publish user event
         try {
             await publishUserEvent('user.updated', {
