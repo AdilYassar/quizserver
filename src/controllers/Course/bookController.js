@@ -15,6 +15,7 @@ export const getAllBooks = async (req, reply) => {
             language: book.language,
             pages: book.pages,
             publishedDate: book.publishedDate,
+            pdfUrl: book.pdfUrl,
         }));
 
         // Send the response
@@ -80,6 +81,7 @@ export const getBooksByIdOrName = async (req, reply) => {
             language: book.language,
             pages: book.pages,
             publishedDate: book.publishedDate,
+            pdfUrl: book.pdfUrl,
         }));
 
         return reply.status(200).send({
@@ -110,6 +112,7 @@ export const getAllBookNames = async (req, reply) => {
             language: book.language,
             pages: book.pages,
             publishedDate: book.publishedDate,
+            pdfUrl: book.pdfUrl,
         }));
 
         return reply.status(200).send({
@@ -146,7 +149,7 @@ export const getBookWithPdfById = async (req, reply) => {
             });
         }
 
-        // Convert PDF Buffer to Base64 string
+        // Return book data including the PDF URL
         const bookWithPdf = {
             _id: book._id,
             title: book.title,
@@ -155,7 +158,9 @@ export const getBookWithPdfById = async (req, reply) => {
             language: book.language,
             pages: book.pages,
             publishedDate: book.publishedDate,
-            pdf: book.pdf.toString('base64'),
+            pdfUrl: book.pdfUrl,
+            // Fallback for mobile app which might expect field named 'pdf'
+            pdf: book.pdfUrl, 
         };
 
         return reply.status(200).send({
