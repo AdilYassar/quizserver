@@ -1,5 +1,6 @@
 // filepath: /D:/projects/quizServer/app.js
 import "dotenv/config"; // Ensure environment variables are loaded first
+import "./src/subscribers/quizProgressSubscriber.js"; // Register quiz events subscriber
 import Fastify from "fastify";
 import path from "path";
 import fs from "fs";

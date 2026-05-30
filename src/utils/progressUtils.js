@@ -160,6 +160,9 @@ export const updateChapterStatus = async (userId, courseId, chapterId, newStatus
         
         await progressRecord.save();
         
+        // Sync course progress
+        await syncCourseProgress(userId, courseId);
+        
         console.log(`✅ Updated chapter status: ${previousStatus} → ${newStatus} for chapter ${chapterId}`);
         return { success: true, progressRecord, previousStatus };
         
@@ -169,4 +172,89 @@ export const updateChapterStatus = async (userId, courseId, chapterId, newStatus
     }
 };
 
-export default { initializeChapterProgress, updateChapterStatus };
+/**
+ * Recalculates and syncs overall course progress to EnrolledCourse
+ */
+export const syncCourseProgress = async (userId, courseId) => {
+    try {
+        console.log(`🔄 Syncing course progress for user ${userId} in course ${courseId}`);
+        const EnrolledCourse = (await import("../models/enrolledCourses.js")).default;
+        const UserProgress = (await import("../models/userProgress.js")).default;
+        const Theory = (await import("../models/theory.js")).default;
+
+        // Find the enrollment
+        const enrollment = await EnrolledCourse.findOne({ user: userId, course: courseId });
+        if (!enrollment) {
+            console.log(`⚠️ No enrollment found for user ${userId} and course ${courseId}`);
+            return { success: false, error: "Enrollment not found" };
+        }
+
+        // Get total chapters from Theory
+        const theory = await Theory.findOne({ course: courseId });
+        const totalChaptersCount = theory && theory.chapters ? theory.chapters.length : 0;
+
+        // Get completed chapters from UserProgress
+        const progressRecords = await UserProgress.find({ user: userId, course: courseId });
+        const chaptersCompletedCount = progressRecords.filter(p => p.status === 'completed').length;
+
+        // Calculate progress percentage
+        const progressPercentage = totalChaptersCount > 0 
+            ? Math.round((chaptersCompletedCount / totalChaptersCount) * 100) 
+            : 0;
+
+        // Determine status
+        let status = 'not_started';
+        if (progressPercentage === 100) {
+            status = 'completed';
+        } else if (progressPercentage > 0 || progressRecords.some(p => p.status === 'in_progress')) {
+            status = 'in_progress';
+        }
+
+        // Update enrollment fields
+        const wasCompleted = enrollment.status === 'completed';
+        enrollment.status = status;
+        enrollment.progressPercentage = progressPercentage;
+        enrollment.chaptersCompletedCount = chaptersCompletedCount;
+        enrollment.totalChaptersCount = totalChaptersCount;
+
+        if (status === 'completed' && !wasCompleted) {
+            enrollment.completedAt = new Date();
+            
+            // Trigger COURSE_COMPLETED push notification
+            try {
+                const { Student } = await import("../models/user.js");
+                const { Course } = await import("../models/course.js");
+                const { sendNotification, NotificationTypes, NotificationTemplates } = await import("../services/notification.service.js");
+
+                const student = await Student.findById(userId);
+                const course = await Course.findById(courseId);
+
+                if (student && course) {
+                    const template = NotificationTemplates.courseCompleted(course.title, 100);
+                    await sendNotification(
+                        student.uuid,
+                        NotificationTypes.COURSE_COMPLETED,
+                        template.title,
+                        template.body,
+                        { courseId, courseName: course.title },
+                        true
+                    );
+                    console.log(`📢 Course completion notification sent to ${student.uuid} for ${course.title}`);
+                }
+            } catch (notifErr) {
+                console.error("⚠️ Failed to send course completion notification:", notifErr.message);
+            }
+        } else if (status !== 'completed') {
+            enrollment.completedAt = undefined;
+        }
+
+        await enrollment.save();
+        console.log(`✅ Synced course progress: ${progressPercentage}% completed. Status: ${status}`);
+        return { success: true, enrollment };
+    } catch (error) {
+        console.error("❌ Error syncing course progress:", error);
+        return { success: false, error: error.message };
+    }
+};
+
+export default { initializeChapterProgress, updateChapterStatus, syncCourseProgress };

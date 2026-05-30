@@ -4,6 +4,7 @@ import { Question } from "../../models/question.js";
 import { Student } from "../../models/user.js";
 import { MarksSummary } from "../../models/MarksSummary.js";
 import { sendNotification, NotificationTypes, NotificationTemplates } from "../../services/notification.service.js";
+import { quizEventEmitter, QuizEvents } from "../../utils/quizEvents.js";
 
 // Helper function to calculate grade based on percentage
 const calculateGrade = (percentage) => {
@@ -61,30 +62,64 @@ export const startQuiz = async (req, reply) => {
             });
         }
 
-        // Send quiz started notification
-        try {
-            const template = NotificationTemplates.quizAssigned(quiz.title, quiz.course?.title || 'Course');
-            await sendNotification(
-                user.uuid,
-                NotificationTypes.QUIZ_AVAILABLE,
-                '📖 Quiz Started',
-                `You started: ${quiz.title}. Good luck!`,
-                { quizId, quizName: quiz.title, courseId },
-                false
-            );
-            console.log(`📢 Quiz started notification sent to ${user.uuid}`);
-        } catch (notifError) {
-            console.error('⚠️  Failed to send quiz started notification:', notifError.message);
+        // Mark any existing pending submissions for this quiz and user as abandoned
+        const pendingSubmissions = await QuizSubmission.find({
+            user: user._id,
+            quiz: quizId,
+            status: 'pending'
+        });
+
+        for (const pending of pendingSubmissions) {
+            pending.status = 'abandoned';
+            pending.completedAt = new Date();
+            await pending.save();
+            
+            // Emit abandoned event
+            quizEventEmitter.emit(QuizEvents.QUIZ_ABANDONED, {
+                submissionId: pending._id,
+                quizId: pending.quiz,
+                studentId: pending.user
+            });
         }
+
+        // Determine attempt number
+        const existingSubmissions = await QuizSubmission.find({ 
+            user: user._id, 
+            quiz: quizId 
+        });
+        const attemptNumber = existingSubmissions.length + 1;
+
+        // Create new pending submission
+        const newSubmission = new QuizSubmission({
+            user: user._id,
+            quiz: quizId,
+            course: courseId,
+            attemptNumber,
+            status: 'pending',
+            startedAt: new Date()
+        });
+
+        await newSubmission.save();
+
+        // Emit quiz started event (subscribers handle notifications)
+        quizEventEmitter.emit(QuizEvents.QUIZ_STARTED, {
+            submission: newSubmission,
+            studentUuid: user.uuid,
+            quizTitle: quiz.title,
+            quizId: quiz._id,
+            courseId
+        });
 
         return reply.status(200).send({
             success: true,
-            message: "Quiz started",
+            message: "Quiz started successfully",
+            submissionId: newSubmission._id,
             quiz: {
                 _id: quiz._id,
                 title: quiz.title,
                 description: quiz.description,
-                startedAt: new Date()
+                startedAt: newSubmission.startedAt,
+                attemptNumber
             }
         });
     } catch (error) {
@@ -135,12 +170,33 @@ export const postQuizSubmission = async (req, reply) => {
             });
         }
 
-        // Check for existing submissions to determine attempt number
-        const existingSubmissions = await QuizSubmission.find({ 
+        // Find existing pending submission for this attempt
+        let submission = await QuizSubmission.findOne({ 
             user: user._id, 
-            quiz: quizId 
+            quiz: quizId,
+            status: 'pending'
         });
-        const attemptNumber = existingSubmissions.length + 1;
+
+        let attemptNumber;
+        if (submission) {
+            attemptNumber = submission.attemptNumber;
+        } else {
+            // Fallback: If no pending submission was found, determine attempt number and create one
+            const existingSubmissions = await QuizSubmission.find({ 
+                user: user._id, 
+                quiz: quizId 
+            });
+            attemptNumber = existingSubmissions.length + 1;
+            
+            submission = new QuizSubmission({
+                user: user._id,
+                quiz: quizId,
+                course: courseId,
+                attemptNumber,
+                status: 'pending',
+                startedAt: new Date()
+            });
+        }
 
         // Calculate score
         let correctAnswers = 0;
@@ -185,70 +241,48 @@ export const postQuizSubmission = async (req, reply) => {
         const percentage = actualTotalQuestions > 0 ? (correctAnswers / actualTotalQuestions) * 100 : 0;
         const grade = calculateGrade(percentage);
 
-        // Create a new quiz submission
-        const newSubmission = new QuizSubmission({
-            user: user._id,
-            quiz: quizId,
-            course: courseId,
-            answers: processedAnswers,
-            score,
-            totalQuestions: actualTotalQuestions,
-            correctAnswers,
-            percentage: Math.round(percentage * 100) / 100,
-            grade,
-            completedAt: new Date(),
-            status: 'completed',
-            timeSpent: timeSpent || 0,
-            attemptNumber
-        });
+        // Update active submission
+        submission.answers = processedAnswers;
+        submission.score = score;
+        submission.totalQuestions = actualTotalQuestions;
+        submission.correctAnswers = correctAnswers;
+        submission.percentage = Math.round(percentage * 100) / 100;
+        submission.grade = grade;
+        submission.completedAt = new Date();
+        submission.status = 'completed';
+        
+        // Calculate timeSpent in seconds if not provided
+        if (timeSpent !== undefined) {
+            submission.timeSpent = timeSpent;
+        } else {
+            submission.timeSpent = Math.round((submission.completedAt - submission.startedAt) / 1000) || 0;
+        }
+        
+        if (courseId) {
+            submission.course = courseId;
+        }
 
         // Save the submission to the database
-        await newSubmission.save();
+        await submission.save();
 
-        // Send quiz submitted notification
-        try {
-          const template = NotificationTemplates.quizSubmitted(quiz.title);
-          await sendNotification(
-            user.uuid,
-            NotificationTypes.QUIZ_SUBMITTED,
-            template.title,
-            template.body,
-            { quizId, quizName: quiz.title, submissionId: newSubmission._id },
-            false
-          );
-          console.log(`📢 Quiz submission notification sent to ${user.uuid}`);
-        } catch (notifError) {
-          console.error('⚠️  Failed to send quiz submission notification:', notifError.message);
-        }
-
-        // Send quiz graded notification with score
-        try {
-          let template;
-          if (percentage >= 70) {
-            template = NotificationTemplates.quizResultGood(quiz.title, Math.round(percentage));
-          } else {
-            template = NotificationTemplates.quizResultNeedsImprovement(quiz.title, Math.round(percentage));
-          }
-          
-          await sendNotification(
-            user.uuid,
-            NotificationTypes.QUIZ_GRADED,
-            template.title,
-            template.body,
-            { quizId, score, totalQuestions: actualTotalQuestions, percentage: Math.round(percentage) },
-            true
-          );
-          console.log(`📢 Quiz graded notification sent to ${user.uuid}`);
-        } catch (notifError) {
-          console.error('⚠️  Failed to send quiz graded notification:', notifError.message);
-        }
+        // Emit quiz submitted event to trigger async side effects (notifications, profile stats, social sync)
+        quizEventEmitter.emit(QuizEvents.QUIZ_SUBMITTED, {
+            submission,
+            studentId: user._id,
+            quizId,
+            courseId: courseId || submission.course,
+            percentage,
+            score,
+            actualTotalQuestions,
+            grade
+        });
 
         // Create or update marks summary
         const marksSummary = await MarksSummary.findOneAndUpdate(
             { user: user._id, quiz: quizId },
             {
                 user: user._id,
-                course: courseId,
+                course: courseId || submission.course,
                 quiz: quizId,
                 totalMarks: actualTotalQuestions,
                 obtainedMarks: score,
@@ -258,69 +292,18 @@ export const postQuizSubmission = async (req, reply) => {
             { upsert: true, new: true }
         );
 
-        // Update user's quiz performance in their profile
-        if (!user.quizPerformance) {
-            user.quizPerformance = [];
-        }
-        
-        user.quizPerformance.push({
-            quiz: quizId,
-            score,
-            percentage: Math.round(percentage * 100) / 100,
-            grade,
-            completedAt: new Date()
-        });
-
-        // Update quiz statistics - use array length for consistency
-        user.totalQuizzesTaken = user.quizPerformance.length;
-        
-        // Calculate new average score
-        const allScores = user.quizPerformance.map(perf => perf.percentage || 0);
-        user.averageScore = allScores.length > 0 
-            ? Math.round((allScores.reduce((sum, score) => sum + score, 0) / allScores.length) * 100) / 100
-            : 0;
-
-        await user.save();
-
-        // Sync to Social Microservice
-        try {
-            const { syncToSocial } = await import('../../services/socialSync.service.js');
-            syncToSocial(user);
-        } catch (syncError) {
-            console.warn('Social sync failed after quiz submission:', syncError.message);
-        }
-
-        // Send statistics updated notification
-        try {
-          await sendNotification(
-            user.uuid,
-            'statistics_updated',
-            '📊 Your Statistics Updated',
-            `Total Quizzes: ${user.totalQuizzesTaken} | Average: ${user.averageScore}%`,
-            { 
-              totalQuizzesTaken: user.totalQuizzesTaken,
-              averageScore: user.averageScore,
-              totalChaptersCompleted: user.totalChaptersCompleted
-            },
-            false
-          );
-          console.log(`📢 Statistics updated notification sent to ${user.uuid}`);
-        } catch (notifError) {
-          console.error('⚠️  Failed to send statistics notification:', notifError.message);
-        }
-
         return reply.status(201).send({
             message: "Quiz submission completed successfully",
             submission: {
-                _id: newSubmission._id,
+                _id: submission._id,
                 score,
                 totalQuestions: actualTotalQuestions,
                 correctAnswers,
                 percentage: Math.round(percentage * 100) / 100,
                 grade,
                 attemptNumber,
-                timeSpent: newSubmission.timeSpent,
-                completedAt: newSubmission.completedAt
+                timeSpent: submission.timeSpent,
+                completedAt: submission.completedAt
             },
             marksSummary: {
                 totalMarks: marksSummary.totalMarks,
@@ -337,6 +320,7 @@ export const postQuizSubmission = async (req, reply) => {
         });
     }
 };
+
 
 
 

@@ -6,15 +6,16 @@ import {
     getUserProgressStats,
     getAllCoursesProgress,
     getProgressLeaderboard,
-    // New comprehensive chapter management endpoints
     updateChapterProgressStatus,
     getCourseChaptersWithProgress,
     markChapterAsStarted,
     markChapterAsInProgress,
     markChapterAsCompleted,
-    resetChapterProgress
+    resetChapterProgress,
+    updateUserProgressStats
 } from "../controllers/Progress/progressController.js";
 import { verifyToken } from "../middleware/auth.js";
+import { syncCourseProgress } from "../utils/progressUtils.js";
 
 export const progressRoutes = async (fastify, options) => {
     
@@ -173,6 +174,10 @@ export const progressRoutes = async (fastify, options) => {
 
                 progressRecord.lastAccessedAt = new Date();
                 await progressRecord.save();
+
+                // Sync course progress and update student profile stats
+                await syncCourseProgress(userId, courseId);
+                await updateUserProgressStats(userId);
 
                 return reply.status(200).send({
                     message: "Chapter progress updated successfully",

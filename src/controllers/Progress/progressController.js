@@ -2,7 +2,7 @@ import UserProgress from "../../models/userProgress.js";
 import Theory from "../../models/theory.js";
 import { Student } from "../../models/user.js";
 import EnrolledCourse from "../../models/enrolledCourses.js";
-import { updateChapterStatus } from "../../utils/progressUtils.js";
+import { updateChapterStatus, syncCourseProgress } from "../../utils/progressUtils.js";
 import { sendNotification, NotificationTypes, NotificationTemplates } from "../../services/notification.service.js";
 
 // Helper function to find the correct user and enrollment using UUID
@@ -105,6 +105,9 @@ export const markChapterCompleted = async (req, reply) => {
             });
             await progressRecord.markCompleted();
         }
+
+        // Sync course-level progress
+        await syncCourseProgress(correctUserId, courseId);
 
         // Update user statistics
         await updateUserProgressStats(correctUserId);
@@ -252,6 +255,10 @@ export const endReadingSession = async (req, reply) => {
             await progressRecord.save();
         }
 
+        // Sync course-level progress and update student profile aggregates
+        await syncCourseProgress(correctUserId, courseId);
+        await updateUserProgressStats(correctUserId);
+
         return reply.status(200).send({
             message: "Reading session ended successfully",
             progress: progressRecord
@@ -349,13 +356,22 @@ export const getUserProgressStats = async (req, reply) => {
         const coursesWithProgress = await Promise.all(
             enrolledCourses.map(async (enrollment) => {
                 const progress = await UserProgress.getCourseProgress(userId, enrollment.course._id);
+                const theory = await Theory.findOne({ course: enrollment.course._id });
+                const totalChapters = theory && theory.chapters ? theory.chapters.length : progress.totalChapters;
+                const completionPercentage = totalChapters > 0 ? Math.round((progress.completedChapters / totalChapters) * 100) : 0;
+                const status = completionPercentage === 100 ? 'completed' : 
+                               (completionPercentage > 0 || progress.inProgressChapters > 0) ? 'in_progress' : 'not_started';
+
                 return {
                     course: enrollment.course,
                     enrolledAt: enrollment.enrolledAt,
-                    progress: progress.completionPercentage,
-                    chaptersCompleted: progress.completedChapters,
-                    totalChapters: progress.totalChapters,
-                    timeSpent: progress.totalTimeSpent
+                    progress: {
+                        completionPercentage,
+                        completedChapters: progress.completedChapters,
+                        totalChapters,
+                        timeSpent: progress.totalTimeSpent,
+                        status
+                    }
                 };
             })
         );
@@ -425,22 +441,24 @@ export const getAllCoursesProgress = async (req, reply) => {
         const enrolledCourses = await EnrolledCourse.find({ user: userId })
             .populate('course', 'title description estimatedTime');
 
-
         const coursesProgress = await Promise.all(
             enrolledCourses.map(async (enrollment) => {
                 const progress = await UserProgress.getCourseProgress(userId, enrollment.course._id);
                 const theory = await Theory.findOne({ course: enrollment.course._id });
-                
+                const totalChapters = theory && theory.chapters ? theory.chapters.length : progress.totalChapters;
+                const completionPercentage = totalChapters > 0 ? Math.round((progress.completedChapters / totalChapters) * 100) : 0;
+                const status = completionPercentage === 100 ? 'completed' : 
+                               (completionPercentage > 0 || progress.inProgressChapters > 0) ? 'in_progress' : 'not_started';
+
                 return {
                     course: enrollment.course,
                     enrolledAt: enrollment.enrolledAt,
                     progress: {
-                        completionPercentage: progress.completionPercentage,
+                        completionPercentage,
                         completedChapters: progress.completedChapters,
-                        totalChapters: theory ? theory.chapters.length : 0,
+                        totalChapters,
                         timeSpent: progress.totalTimeSpent,
-                        status: progress.completionPercentage === 100 ? 'completed' : 
-                               progress.completionPercentage > 0 ? 'in_progress' : 'not_started'
+                        status
                     }
                 };
             })
@@ -462,7 +480,7 @@ export const getAllCoursesProgress = async (req, reply) => {
 };
 
 // Helper function to update user progress statistics
-const updateUserProgressStats = async (userId) => {
+export const updateUserProgressStats = async (userId) => {
     try {
         const overallProgress = await UserProgress.getOverallProgress(userId);
         

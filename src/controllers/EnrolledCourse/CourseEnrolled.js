@@ -48,11 +48,25 @@ export const enrollCourse = async (req, reply) => {
       });
     }
 
+    // Find the theory/chapters for this course to determine totalChaptersCount
+    let totalChaptersCount = 0;
+    try {
+      const Theory = (await import("../../models/theory.js")).default;
+      const theory = await Theory.findOne({ course: courseId });
+      if (theory && theory.chapters) {
+        totalChaptersCount = theory.chapters.length;
+      }
+    } catch (err) {
+      console.log('Error getting theory for chapter count on enrollment:', err.message);
+    }
+
     // Create a new enrollment using the student's ObjectId
     const newEnrollment = new EnrolledCourse({
       user: student._id, // Use the student's ObjectId
       course: courseId,
       enrolledAt: new Date(), // Add the enrollment timestamp
+      totalChaptersCount,
+      status: 'not_started'
     });
 
     // Save the enrollment to the database
