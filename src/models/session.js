@@ -16,6 +16,7 @@ try {
           photo: { type: String, default: "" },
           micOn: { type: Boolean, default: false },
           videoOn: { type: Boolean, default: false },
+          isSharingScreen: { type: Boolean, default: false },
         },
       ],
       chat: [

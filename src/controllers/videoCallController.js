@@ -29,7 +29,7 @@ const webRTCSignalingSocket = (io) => {
 
     socket.on(
       "join-session",
-      async ({ sessionId, userId, name, photo, micOn, videoOn }) => {
+      async ({ sessionId, userId, name, photo, micOn, videoOn, isSharingScreen }) => {
         console.log(
           `User ${name} (${userId}) is attempting to join session ${sessionId}`
         );
@@ -48,6 +48,7 @@ const webRTCSignalingSocket = (io) => {
                 photo || session.participants[existingParticipantIndex].photo,
               micOn: micOn,
               videoOn: videoOn,
+              isSharingScreen: isSharingScreen !== undefined ? isSharingScreen : false,
               socketId: socket.id,
             };
           } else {
@@ -58,6 +59,7 @@ const webRTCSignalingSocket = (io) => {
               socketId: socket.id,
               micOn: micOn,
               videoOn: videoOn,
+              isSharingScreen: isSharingScreen || false,
             };
             session.participants.push(participant);
           }
@@ -152,6 +154,27 @@ const webRTCSignalingSocket = (io) => {
           console.log(
             `User ${userId} has turned their video ${
               participant.videoOn ? "off" : "on"
+            }`
+          );
+
+          io.to(sessionId).emit("participant-update", participant);
+        }
+      }
+    });
+
+    socket.on("toggle-screenshare", async ({ sessionId, userId }) => {
+      console.log(`User ${userId} is toggling screen share in session ${sessionId}`);
+      const session = await Session.findOne({ sessionId });
+      if (session) {
+        const participant = session.participants.find(
+          (p) => p.userId === userId
+        );
+        if (participant) {
+          participant.isSharingScreen = !participant.isSharingScreen;
+          await session.save();
+          console.log(
+            `User ${userId} has turned screen sharing ${
+              participant.isSharingScreen ? "on" : "off"
             }`
           );
 
